@@ -1,5 +1,5 @@
 // KeepCoding - Server-Side AI Judge Route
-// Evaluates user code submissions with private AI API key or intelligent mock fallback
+// Evaluates user code submissions with Google AI Studio Gemini API or intelligent mock fallback
 
 import { NextRequest, NextResponse } from 'next/server';
 import { Challenge, ChallengeFile, JudgeResult } from '@/lib/types/challenge';
@@ -23,89 +23,78 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const apiKey = process.env.AI_API_KEY;
-    const model = process.env.AI_MODEL || 'gemini-2.5-flash';
-    const baseUrl = process.env.AI_API_BASE_URL;
+    const apiKey = process.env.AI_API_KEY?.trim();
 
-    // Check if real key is configured (not dummy/placeholder)
+    // Check if real key is configured (not missing, dummy, or placeholder)
     const isRealApiKey =
       Boolean(apiKey) &&
       !apiKey?.includes('your_') &&
-      !apiKey?.includes('dummy_') &&
-      !apiKey?.includes('placeholder');
+      !apiKey?.includes('placeholder') &&
+      !apiKey?.includes('dummy_');
 
-    if (isRealApiKey && apiKey) {
-      try {
-        const systemPrompt = buildJudgeSystemPrompt();
-        const userPrompt = buildJudgeUserPrompt({ challenge, userFiles });
-
-        // Call Gemini or OpenAI-compatible endpoint
-        const targetUrl = baseUrl
-          ? `${baseUrl}/chat/completions`
-          : `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-
-        let rawResponseText = '';
-
-        if (baseUrl) {
-          // OpenAI-compatible format
-          const res = await fetch(targetUrl, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${apiKey}`,
-            },
-            body: JSON.stringify({
-              model,
-              messages: [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: userPrompt },
-              ],
-              temperature: 0.1,
-            }),
-          });
-
-          if (res.ok) {
-            const data = await res.json();
-            rawResponseText = data.choices?.[0]?.message?.content || '';
-          }
-        } else {
-          // Native Google Gemini API format
-          const res = await fetch(targetUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [
-                {
-                  parts: [
-                    { text: `${systemPrompt}\n\n${userPrompt}` },
-                  ],
-                },
-              ],
-              generationConfig: { temperature: 0.1 },
-            }),
-          });
-
-          if (res.ok) {
-            const data = await res.json();
-            rawResponseText =
-              data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-          }
-        }
-
-        if (rawResponseText.trim().length > 0) {
-          const parsedJudgeResult = parseJudgeResponse(rawResponseText, model);
-          return NextResponse.json(parsedJudgeResult);
-        }
-      } catch (apiErr) {
-        console.error('Remote AI Judge error, falling back to local evaluator:', apiErr);
-      }
+    if (!isRealApiKey || !apiKey) {
+      // Smart Local Evaluator (Mock Fallback for offline/testing when no key is configured)
+      const mockResult = evaluateLocally(challenge, userFiles);
+      return NextResponse.json(mockResult);
     }
 
-    // Smart Local Evaluator (Mock Fallback for offline/testing)
-    const mockResult = evaluateLocally(challenge, userFiles);
-    return NextResponse.json(mockResult);
+    // Call Google Generative Language API directly
+    const targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`;
+    const systemPrompt = buildJudgeSystemPrompt();
+    const userPrompt = buildJudgeUserPrompt({ challenge, userFiles });
+
+    let res: Response;
+    try {
+      res = await fetch(targetUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }],
+            },
+          ],
+          generationConfig: { temperature: 0.1 },
+        }),
+      });
+    } catch (networkErr: unknown) {
+      const netMsg = networkErr instanceof Error ? networkErr.message : 'Network request failed';
+      console.error('Google AI Studio network error:', networkErr);
+      return NextResponse.json(
+        { error: `Network error contacting Google AI Studio: ${netMsg}` },
+        { status: 502 }
+      );
+    }
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => null);
+      console.error('Google AI Studio API error response:', res.status, errorData);
+      const errorMsg =
+        errorData?.error?.message ||
+        `Google AI Studio API returned HTTP status ${res.status} (${res.statusText || 'Error'})`;
+      return NextResponse.json(
+        { error: `Google AI Studio error: ${errorMsg}` },
+        { status: res.status >= 400 && res.status < 600 ? res.status : 502 }
+      );
+    }
+
+    const data = await res.json();
+    const rawResponseText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!rawResponseText || rawResponseText.trim().length === 0) {
+      const finishReason = data.candidates?.[0]?.finishReason || 'UNKNOWN';
+      console.error('Gemini returned empty response. Finish reason:', finishReason, data);
+      return NextResponse.json(
+        { error: `AI Judge returned an empty response (finish reason: ${finishReason}).` },
+        { status: 502 }
+      );
+    }
+
+    const parsedJudgeResult = parseJudgeResponse(rawResponseText, 'gemini-flash-latest');
+    return NextResponse.json(parsedJudgeResult);
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : 'Unknown evaluation error';
+    console.error('Unexpected Judge route error:', err);
     return NextResponse.json(
       { error: `Judge evaluation failed: ${errorMsg}` },
       { status: 500 }

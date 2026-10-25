@@ -21,22 +21,40 @@ export interface ParseResult {
 }
 
 /**
- * Strips outer markdown code fences if present.
- */
-function stripOuterFences(text: string): string {
-  const trimmed = text.trim();
-  const fenceMatch = trimmed.match(/^```(?:markdown|text)?\r?\n([\s\S]*?)\r?\n```$/i);
-  if (fenceMatch) {
-    return fenceMatch[1];
-  }
-  return text;
-}
-
-/**
  * Normalizes newlines to \n.
  */
 function normalizeNewlines(text: string): string {
   return text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+}
+
+/**
+ * Strips outer markdown code fences if present.
+ */
+export function stripOuterFences(text: string): string {
+  let trimmed = text.trim();
+
+  // Strip wrapping outer code fences (e.g. ```markdown ... ``` or ```text ... ``` or ``` ... ```)
+  const outerMatch = trimmed.match(/^(`{3,})[^\n]*\n([\s\S]*)\n\1\s*$/);
+  if (outerMatch) {
+    trimmed = outerMatch[2].trim();
+  }
+
+  // Handle conversational preamble/postscript around a markdown block containing KeepCoding tags
+  const embeddedMatch = trimmed.match(/(?:^|\n)(`{3,})[^\n]*\n([\s\S]*?---+\s*METADATA[\s\S]*?)\n\1(?:\n|$)/i);
+  if (embeddedMatch) {
+    trimmed = embeddedMatch[2].trim();
+  }
+
+  // Also clean up unclosed leading code fence if user pasted without closing fence
+  const unclosedMatch = trimmed.match(/^(`{3,})[^\n]*\n([\s\S]*)$/);
+  if (unclosedMatch && /---+\s*METADATA/i.test(unclosedMatch[2])) {
+    trimmed = unclosedMatch[2].trim();
+  }
+
+  // Also clean up any lingering closing code fence at the end
+  trimmed = trimmed.replace(/\n`{3,}\s*$/, '').trim();
+
+  return trimmed;
 }
 
 /**
@@ -51,8 +69,18 @@ function cleanContent(content: string): string {
  * Extracts raw tagged sections from the input text.
  */
 export function extractSections(rawText: string): RawSection[] {
-  const cleanText = normalizeNewlines(stripOuterFences(rawText));
-  const tagRegex = /(?:^|\n)\s*---+\s*([A-Za-z0-9_]+)(?::\s*([^\n\r-]+?))?\s*---+\s*(?:\n|$)/g;
+  const normalized = normalizeNewlines(rawText);
+  const cleanText = stripOuterFences(normalized);
+
+  // Matches tags such as:
+  // --- METADATA ---
+  // ---METADATA---
+  // - - - METADATA - - -
+  // --- FILE: path/to/file.ts ---
+  // ---FILE:path/to/file.ts---
+  // --- FILE : path/to/file.ts (editable) ---
+  // - - - FILE: path - - -
+  const tagRegex = /(?:^|\n)\s*(?:---+|(?:-\s*){2,}-)\s*([A-Za-z0-9_]+)(?:\s*:\s*([^\n\r]*?))?\s*(?:---+|(?:-\s*){2,}-)\s*(?:\n|$)/gi;
 
   const matches: Array<{ tag: string; param?: string; start: number; end: number }> = [];
   let match: RegExpExecArray | null;
@@ -70,7 +98,12 @@ export function extractSections(rawText: string): RawSection[] {
   for (let i = 0; i < matches.length; i++) {
     const current = matches[i];
     const nextStart = i + 1 < matches.length ? matches[i + 1].start : cleanText.length;
-    const content = cleanContent(cleanText.substring(current.end, nextStart));
+    let content = cleanContent(cleanText.substring(current.end, nextStart));
+
+    // If this is the last section, remove any trailing markdown backtick fence
+    if (i === matches.length - 1) {
+      content = content.replace(/\n`{3,}\s*$/, '').trimEnd();
+    }
 
     sections.push({
       tag: current.tag,
@@ -99,7 +132,12 @@ export function parseMetadata(content: string): ChallengeMetadata {
   // Try JSON parsing first
   if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
     try {
-      const parsed = JSON.parse(trimmed);
+      const rawObj = JSON.parse(trimmed);
+      const parsed: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(rawObj)) {
+        parsed[k.toLowerCase().replace(/[-_\s]/g, '')] = v;
+      }
+
       if (typeof parsed.track === 'number') {
         metadata.track = parsed.track;
       } else if (typeof parsed.track === 'string') {
@@ -115,12 +153,15 @@ export function parseMetadata(content: string): ChallengeMetadata {
       }
 
       if (parsed.type) metadata.type = String(parsed.type).trim();
-      if (parsed.editableLanguage) metadata.editableLanguage = String(parsed.editableLanguage).trim().toLowerCase();
+      if (parsed.editablelanguage) metadata.editableLanguage = String(parsed.editablelanguage).trim().toLowerCase();
+      else if (parsed.language) metadata.editableLanguage = String(parsed.language).trim().toLowerCase();
 
-      if (Array.isArray(parsed.editableFiles)) {
-        metadata.editableFiles = parsed.editableFiles.map((f: unknown) => String(f).trim());
-      } else if (typeof parsed.editableFiles === 'string') {
-        metadata.editableFiles = parsed.editableFiles.split(',').map((f: string) => f.trim()).filter(Boolean);
+      const filesVal = parsed.editablefiles ?? parsed.files;
+      if (Array.isArray(filesVal)) {
+        metadata.editableFiles = filesVal.map((f: unknown) => String(f).trim().replace(/^['"]|['"]$/g, ''));
+      } else if (typeof filesVal === 'string') {
+        const cleanVal = filesVal.replace(/^\[|\]$/g, '');
+        metadata.editableFiles = cleanVal.split(',').map((f: string) => f.trim().replace(/^['"]|['"]$/g, '')).filter(Boolean);
       }
       return metadata;
     } catch {
@@ -131,10 +172,10 @@ export function parseMetadata(content: string): ChallengeMetadata {
   // Line-by-line key-value parsing
   const lines = trimmed.split('\n');
   for (const line of lines) {
-    const kvMatch = line.match(/^\s*([A-Za-z0-9_]+)\s*[:=]\s*(.*)$/);
+    const kvMatch = line.match(/^\s*(?:[-*]\s*)?([A-Za-z0-9_\-\s]+?)\s*[:=]\s*(.*)$/);
     if (!kvMatch) continue;
 
-    const key = kvMatch[1].toLowerCase();
+    const key = kvMatch[1].toLowerCase().replace(/[-_\s]/g, '');
     const val = kvMatch[2].trim();
 
     if (key === 'track') {
@@ -147,7 +188,7 @@ export function parseMetadata(content: string): ChallengeMetadata {
       metadata.type = val;
     } else if (key === 'editablelanguage' || key === 'language') {
       metadata.editableLanguage = val.toLowerCase();
-    } else if (key === 'editablefiles' || key === 'editable_files' || key === 'files') {
+    } else if (key === 'editablefiles' || key === 'files') {
       const cleanVal = val.replace(/^\[|\]$/g, '');
       metadata.editableFiles = cleanVal.split(',').map(f => f.trim().replace(/^['"]|['"]$/g, '')).filter(Boolean);
     }
@@ -200,9 +241,9 @@ export function parseTests(content: string): ChallengeTest[] {
   }
 
   for (const line of lines) {
-    const inputMatch = line.match(/^\s*(?:-\s*)?input\s*[:=]\s*(.*)$/i);
-    const expectedMatch = line.match(/^\s*(?:-\s*)?expected\s*[:=]\s*(.*)$/i);
-    const descMatch = line.match(/^\s*(?:-\s*)?description\s*[:=]\s*(.*)$/i);
+    const inputMatch = line.match(/^\s*(?:[-*]\s*)?input\s*[:=]\s*(.*)$/i);
+    const expectedMatch = line.match(/^\s*(?:[-*]\s*)?expected\s*[:=]\s*(.*)$/i);
+    const descMatch = line.match(/^\s*(?:[-*]\s*)?description\s*[:=]\s*(.*)$/i);
 
     if (inputMatch) {
       if (currentInput !== null && currentExpected !== null) {
@@ -336,10 +377,19 @@ export function parseChallenge(rawText: string): Challenge {
       isEditable = fileSections.length === 1;
     }
 
+    let fileContent = sec.content;
+    const ext = cleanPath.split('.').pop()?.toLowerCase();
+    if (ext !== 'md' && ext !== 'markdown') {
+      const fenceMatch = fileContent.match(/^`{3,}[a-zA-Z0-9_-]*\r?\n([\s\S]*)\r?\n`{3,}$/);
+      if (fenceMatch) {
+        fileContent = fenceMatch[1];
+      }
+    }
+
     files.push({
       path: cleanPath,
-      content: sec.content,
-      startContent: sec.content,
+      content: fileContent,
+      startContent: fileContent,
       isEditable,
       isAnswerFile: false,
     });
@@ -373,7 +423,11 @@ export function parseChallenge(rawText: string): Challenge {
 
   const tests = testsSection ? parseTests(testsSection.content) : [];
   const task = taskSection ? taskSection.content : '';
-  const reference = referenceSection ? referenceSection.content : '';
+  let reference = referenceSection ? referenceSection.content : '';
+  const refFenceMatch = reference.match(/^`{3,}[a-zA-Z0-9_-]*\r?\n([\s\S]*)\r?\n`{3,}$/);
+  if (refFenceMatch) {
+    reference = refFenceMatch[1];
+  }
 
   return {
     metadata,

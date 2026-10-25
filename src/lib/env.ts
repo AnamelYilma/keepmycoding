@@ -3,8 +3,6 @@
 
 export interface ServerEnv {
   aiApiKey: string;
-  aiModel: string;
-  aiApiBaseUrl: string;
   databaseUrl?: string;
 }
 
@@ -15,14 +13,10 @@ export function getServerEnv(): ServerEnv {
   }
 
   const aiApiKey = process.env.AI_API_KEY;
-  const aiModel = process.env.AI_MODEL || 'gemini-2.5-flash';
-  const aiApiBaseUrl = process.env.AI_API_BASE_URL || 'https://generativelanguage.googleapis.com/v1beta/openai';
   const databaseUrl = process.env.DATABASE_URL;
 
   return {
     aiApiKey: aiApiKey || '',
-    aiModel,
-    aiApiBaseUrl,
     databaseUrl,
   };
 }

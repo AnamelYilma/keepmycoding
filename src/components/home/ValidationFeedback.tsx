@@ -25,16 +25,17 @@ export function ValidationFeedback({ errors, fixPrompt }: ValidationFeedbackProp
   };
 
   return (
-    <div className="mt-4 p-4 rounded-lg bg-zinc-900 border border-red-900/40 text-xs space-y-3">
+    <div className="p-4 rounded-xl bg-zinc-950 border border-rose-500/30 text-xs space-y-3">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-red-400 font-medium">
+        <div className="flex items-center gap-2 text-rose-400 font-medium">
           <AlertCircle className="w-4 h-4 shrink-0" />
-          <span>Validation Errors ({errors.length})</span>
+          <span>Validation Issues ({errors.length})</span>
         </div>
         {fixPrompt && (
           <button
+            type="button"
             onClick={handleCopy}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 transition-colors"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700/80 transition-colors text-xs"
           >
             {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
             <span>{copied ? 'Copied Fix Prompt' : 'Copy Fix Prompt'}</span>
@@ -42,13 +43,19 @@ export function ValidationFeedback({ errors, fixPrompt }: ValidationFeedbackProp
         )}
       </div>
 
-      <ul className="space-y-1 text-zinc-400 list-disc list-inside">
+      <ul className="space-y-1.5 text-zinc-300 list-disc list-inside">
         {errors.map((error, idx) => (
           <li key={idx} className="leading-relaxed">
             {error}
           </li>
         ))}
       </ul>
+
+      {fixPrompt && (
+        <p className="text-[11px] text-zinc-500">
+          Tip: Click &quot;Copy Fix Prompt&quot; above and send it to your AI to quickly repair these tags.
+        </p>
+      )}
     </div>
   );
 }

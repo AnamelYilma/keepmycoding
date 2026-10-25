@@ -96,7 +96,7 @@ Description: [edge case behavior]
 
 ---REFERENCE---
 [Concise reference solution or targeted diff showing the correct implementation.
-STRICT REQUIREMENT: Must be 45 lines or fewer. NEVER duplicate entire multi-file projects here.]
+STRICT REQUIREMENT: Must be 300 lines or fewer. NEVER duplicate entire multi-file projects here.]
 
 ${
   options.type === 'Explain' || options.type === 'Find bug' || options.type === 'Predict output'
@@ -107,10 +107,10 @@ ${
     : ''
 }
 CRITICAL VALIDATION RULES:
-1. Maximum 5 code files.
-2. Every file must be under 200 lines.
+1. Maximum 10 code files.
+2. Every file must be under 1000 lines.
 3. Exactly 1 editable language (${options.language.toLowerCase()}).
-4. Reference solution must be under 45 lines.
+4. Reference solution must be under 300 lines.
 5. Code must be realistic, production-minded, and self-contained.
 6. Provide at least 2 distinct test cases.
 `;

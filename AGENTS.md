@@ -7,3 +7,9 @@ This version has breaking changes: APIs, conventions, and file structure may all
 This block is written and re-added by `next dev`: verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## KeepCoding Guidelines & Anti-AI Design Protection
+
+All agents working on this project must strictly consult and adhere to:
+- [agent_learn.md](file:///c:/continer/work/code/keepcoding/agent_learn.md): Banned AI slop patterns (no Sparkles/Zap hype icons, no pastel washes, no rainbow cards, no pulsing pill badges, no em dashes, no marketing fluff), 3-column workspace rules, and UI standards.
+- [consider.md](file:///c:/continer/work/code/keepcoding/consider.md): Golden Rule of Zero Secret Leakage, git security rules, and pre-push verification.

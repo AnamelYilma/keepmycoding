@@ -15,9 +15,9 @@ export interface ValidatorOptions {
 }
 
 const DEFAULT_OPTIONS: Required<ValidatorOptions> = {
-  maxFiles: 5,
-  maxLinesPerFile: 200,
-  maxReferenceLines: 45,
+  maxFiles: 10,
+  maxLinesPerFile: 1000,
+  maxReferenceLines: 300,
 };
 
 /**
@@ -42,7 +42,7 @@ editableFiles: [comma-separated paths of editable files]
 [Crisp, clear task description and requirements]
 
 ---FILE: path/to/file.ext---
-[Code file under 200 lines. Maximum 5 code files total.]
+[Code file under 1000 lines. Maximum 10 code files total.]
 
 ---TESTS---
 Input: [test input]
@@ -50,14 +50,14 @@ Expected: [expected result]
 Description: [test description]
 
 ---REFERENCE---
-[Concise solution or diff under 45 lines: do NOT repeat full files]
+[Concise solution or diff under 300 lines: do NOT repeat full multi-file projects]
 
 Validation Requirements:
 1. Include all required tags: ---METADATA---, ---TASK---, ---FILE: path---, ---TESTS---, ---REFERENCE---.
-2. Maximum 5 code files.
-3. Every file must be 200 lines or fewer.
+2. Maximum 10 code files.
+3. Every file must be 1000 lines or fewer.
 4. Exactly one editable programming language.
-5. Reference answer must be under 45 lines.`;
+5. Reference answer must be under 300 lines.`;
 }
 
 /**
@@ -83,7 +83,7 @@ export function validateChallenge(
     errors.push('Missing code files: at least one ---FILE: path--- or ---ANSWER_FILE--- is required.');
   }
 
-  // 1. More than 5 code files -> error
+  // 1. More than maxFiles code files -> error
   const codeFiles = challenge.files.filter(f => !f.isAnswerFile);
   if (codeFiles.length > opts.maxFiles) {
     errors.push(
@@ -91,7 +91,7 @@ export function validateChallenge(
     );
   }
 
-  // 2. Any file > 200 lines -> error (specifies which file)
+  // 2. Any file > maxLinesPerFile lines -> error (specifies which file)
   for (const file of challenge.files) {
     const lineCount = file.content.split('\n').length;
     if (lineCount > opts.maxLinesPerFile) {
@@ -132,7 +132,7 @@ export function validateChallenge(
     );
   }
 
-  // 4. REFERENCE answer looks like full duplicate files (> 45 lines) -> error
+  // 4. REFERENCE answer looks like full duplicate files (> maxReferenceLines lines) -> error
   const refTrimmed = challenge.reference.trim();
   const refLineCount = refTrimmed.length > 0 ? refTrimmed.split('\n').length : 0;
 
@@ -144,7 +144,7 @@ export function validateChallenge(
 
   if (/---+\s*FILE/i.test(challenge.reference)) {
     errors.push(
-      'Reference answer appears to duplicate entire files. Reference must only contain the focused solution or diff under 45 lines.'
+      `Reference answer appears to duplicate entire files. Reference must only contain the focused solution or diff under ${opts.maxReferenceLines} lines.`
     );
   }
 

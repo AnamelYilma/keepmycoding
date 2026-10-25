@@ -30,6 +30,10 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
+# reviews and reports
+review/
+/review
+
 # env files - Golden Rule: Zero Secret Leakage (see consider.md)
 .env
 .env.*

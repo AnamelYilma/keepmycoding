@@ -1,13 +1,136 @@
-import { Terminal, Code2, ShieldCheck, Zap } from 'lucide-react';
+'use client';
+
+import { useState } from 'react';
+import { Code2, ShieldCheck, Terminal } from 'lucide-react';
+import { MasterPromptCard } from '@/components/home/MasterPromptCard';
+import { PasteChallengeBox } from '@/components/home/PasteChallengeBox';
+import { HistoryDrawer } from '@/components/home/HistoryDrawer';
+import { WorkspaceLayout } from '@/components/workspace/WorkspaceLayout';
+import { ResultModal } from '@/components/result/ResultModal';
+import { useWorkspaceFiles } from '@/hooks/useWorkspaceFiles';
+import { saveHistoryRecord } from '@/lib/storage/history';
+import { Challenge, JudgeResult } from '@/lib/types/challenge';
 
 export default function Home() {
+  const [activeChallenge, setActiveChallenge] = useState<Challenge | null>(null);
+  const [judgeResult, setJudgeResult] = useState<JudgeResult | null>(null);
+  const [isJudging, setIsJudging] = useState<boolean>(false);
+  const [showResultModal, setShowResultModal] = useState<boolean>(false);
+
+  // Active workspace file manager
+  const workspace = useWorkspaceFiles(activeChallenge?.files || []);
+
+  const handleStartChallenge = (challenge: Challenge) => {
+    setActiveChallenge(challenge);
+    setJudgeResult(null);
+    setShowResultModal(false);
+  };
+
+  const handleBackToSetup = () => {
+    if (workspace.isDirty) {
+      if (!confirm('Leave workspace? Unsaved changes will be lost.')) {
+        return;
+      }
+    }
+    setActiveChallenge(null);
+  };
+
+  const handleSubmitToJudge = async () => {
+    if (!activeChallenge) return;
+
+    setIsJudging(true);
+    try {
+      const response = await fetch('/api/judge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          challenge: activeChallenge,
+          userFiles: workspace.files,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Judge evaluation failed with status ${response.status}`);
+      }
+
+      const result = (await response.json()) as JudgeResult;
+      setJudgeResult(result);
+      setShowResultModal(true);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Unknown evaluation error';
+      console.error('Judge submission error:', err);
+      setJudgeResult({
+        verdict: 'FAIL',
+        summary: `Submission encountered a system error: ${msg}`,
+        breakdown: '- An error occurred while evaluating the code submission.',
+        model: 'system-error',
+        advice: 'Check your network connection and server logs, then try again.',
+      });
+      setShowResultModal(true);
+    } finally {
+      setIsJudging(false);
+    }
+  };
+
+  const handleTryAgain = () => {
+    setShowResultModal(false);
+  };
+
+  const handleNextChallenge = () => {
+    if (activeChallenge && judgeResult) {
+      // Save record to local history
+      saveHistoryRecord({
+        track: activeChallenge.metadata.track,
+        level: activeChallenge.metadata.level,
+        type: activeChallenge.metadata.type,
+        taskTitle: activeChallenge.task.slice(0, 80).replace(/[\r\n]+/g, ' '),
+        verdict: judgeResult.verdict,
+        language: activeChallenge.metadata.editableLanguage || 'code',
+      });
+    }
+
+    setShowResultModal(false);
+    setActiveChallenge(null);
+  };
+
+  // If a challenge is active, render the full workspace
+  if (activeChallenge && workspace.activeFile) {
+    return (
+      <>
+        <WorkspaceLayout
+          challenge={activeChallenge}
+          files={workspace.files}
+          activeFile={workspace.activeFile}
+          activeFilePath={workspace.activeFilePath}
+          onSelectFile={workspace.setActiveFilePath}
+          onUpdateFileContent={workspace.updateFileContent}
+          isFileDirty={workspace.isFileDirty}
+          isDirty={workspace.isDirty}
+          onResetFile={workspace.resetFile}
+          onResetAll={workspace.resetAllFiles}
+          isJudging={isJudging}
+          onSubmit={handleSubmitToJudge}
+          onBack={handleBackToSetup}
+        />
+
+        <ResultModal
+          result={judgeResult}
+          isOpen={showResultModal}
+          onTryAgain={handleTryAgain}
+          onNextChallenge={handleNextChallenge}
+        />
+      </>
+    );
+  }
+
+  // Home / Setup View
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-zinc-950 text-zinc-100">
       {/* Top Navigation */}
       <header className="border-b border-zinc-800 bg-zinc-950/80 backdrop-blur sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+            <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-300">
               <Code2 className="w-4 h-4" />
             </div>
             <div>
@@ -16,67 +139,44 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="flex items-center gap-4 text-xs text-zinc-400">
-            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-300">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-              Secure Judge
+          <div className="flex items-center gap-3 text-xs text-zinc-400">
+            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-zinc-900 border border-zinc-800 text-zinc-300">
+              <ShieldCheck className="w-3.5 h-3.5 text-zinc-400" />
+              Private Judge
             </span>
           </div>
         </div>
       </header>
 
       {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-10 flex flex-col items-center">
-        <div className="w-full max-w-3xl text-center space-y-4 mb-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-xs text-zinc-400">
-            <Zap className="w-3 h-3 text-amber-400" />
-            Daily hands-on practice for developers
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-zinc-100">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-8 flex flex-col space-y-8">
+        {/* Hero Section */}
+        <div className="text-center space-y-2.5 max-w-2xl mx-auto">
+          <h1 className="text-3xl font-semibold tracking-tight text-zinc-100">
             Keep your coding intuition sharp.
           </h1>
-          <p className="text-sm text-zinc-400 max-w-xl mx-auto leading-relaxed">
+          <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
             Active practice only. Read, think, and write code by hand in an isolated workspace.
             Evaluated by a private dry-run judge with actionable feedback.
           </p>
         </div>
 
-        {/* Setup Status / Next Steps Card */}
-        <div className="w-full max-w-2xl bg-zinc-900/60 border border-zinc-800 rounded-xl p-6 shadow-sm space-y-6">
-          <div className="flex items-center justify-between pb-4 border-b border-zinc-800/80">
-            <div className="flex items-center gap-2.5">
-              <Terminal className="w-4 h-4 text-emerald-400" />
-              <h2 className="text-sm font-medium text-zinc-200">System Ready &bull; Task 1 Complete</h2>
-            </div>
-            <span className="text-xs px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">
-              Ready
-            </span>
-          </div>
+        {/* 2-Step Ingestion Flow */}
+        <div className="space-y-6">
+          {/* Step 1: Generate Master Prompt */}
+          <MasterPromptCard />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-            <div className="p-3 rounded-lg bg-zinc-950/70 border border-zinc-850 space-y-1">
-              <p className="font-medium text-zinc-300">Next.js &amp; App Router</p>
-              <p className="text-zinc-500">Configured with TypeScript &amp; Tailwind CSS</p>
-            </div>
-            <div className="p-3 rounded-lg bg-zinc-950/70 border border-zinc-850 space-y-1">
-              <p className="font-medium text-zinc-300">Zero Secret Leakage</p>
-              <p className="text-zinc-500">Protected .env files and verified .gitignore</p>
-            </div>
-            <div className="p-3 rounded-lg bg-zinc-950/70 border border-zinc-850 space-y-1">
-              <p className="font-medium text-zinc-300">Tagged Challenge Parser</p>
-              <p className="text-zinc-500">Scheduled for Task 2</p>
-            </div>
-            <div className="p-3 rounded-lg bg-zinc-950/70 border border-zinc-850 space-y-1">
-              <p className="font-medium text-zinc-300">3-Column Workspace</p>
-              <p className="text-zinc-500">Scheduled for Task 4</p>
-            </div>
-          </div>
+          {/* Step 2: Paste and Validate Challenge */}
+          <PasteChallengeBox onStartChallenge={handleStartChallenge} />
+
+          {/* Completed History Record */}
+          <HistoryDrawer />
         </div>
       </main>
 
       {/* Minimal Footer */}
       <footer className="border-t border-zinc-900 py-6 text-center text-xs text-zinc-600">
-        KeepCoding &bull; Active coding practice
+        KeepCoding: Active coding practice
       </footer>
     </div>
   );

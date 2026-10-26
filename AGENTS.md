@@ -11,5 +11,5 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 ## KeepCoding Guidelines & Anti-AI Design Protection
 
 All agents working on this project must strictly consult and adhere to:
-- [agent_learn.md](file:///c:/continer/work/code/keepcoding/agent_learn.md): Banned AI slop patterns (no Sparkles/Zap hype icons, no pastel washes, no rainbow cards, no pulsing pill badges, no em dashes, no marketing fluff), 3-column workspace rules, and UI standards.
-- [consider.md](file:///c:/continer/work/code/keepcoding/consider.md): Golden Rule of Zero Secret Leakage, git security rules, and pre-push verification.
+- [agent_learn.md](./agent_learn.md): Banned AI slop patterns (no Sparkles/Zap hype icons, no pastel washes, no rainbow cards, no pulsing pill badges, no em dashes, no marketing fluff), 3-column workspace rules, and UI standards.
+- [consider.md](./consider.md): Golden Rule of Zero Secret Leakage, git security rules, and pre-push verification.

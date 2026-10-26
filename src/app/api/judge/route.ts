@@ -23,6 +23,25 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Defensive validation: protect against oversized payloads and DoS
+    if (userFiles.length > 20) {
+      return NextResponse.json(
+        { error: 'Payload exceeds maximum allowed files (limit: 20).' },
+        { status: 400 }
+      );
+    }
+
+    const totalPayloadChars =
+      userFiles.reduce((acc, f) => acc + (f?.content?.length || 0), 0) +
+      (challenge.task?.length || 0);
+
+    if (totalPayloadChars > 200_000) {
+      return NextResponse.json(
+        { error: 'Payload size exceeds allowable threshold.' },
+        { status: 413 }
+      );
+    }
+
     const apiKey = process.env.AI_API_KEY?.trim();
 
     // Check if real key is configured (not missing, dummy, or placeholder)
@@ -38,8 +57,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(mockResult);
     }
 
-    // Call Google Generative Language API directly
-    const targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`;
+    // Call Google Generative Language API via standard header (zero query parameter leakage)
+    const targetUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent';
     const systemPrompt = buildJudgeSystemPrompt();
     const userPrompt = buildJudgeUserPrompt({ challenge, userFiles });
 
@@ -47,7 +66,10 @@ export async function POST(req: NextRequest) {
     try {
       res = await fetch(targetUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey,
+        },
         body: JSON.stringify({
           contents: [
             {
@@ -57,23 +79,26 @@ export async function POST(req: NextRequest) {
           generationConfig: { temperature: 0.1 },
         }),
       });
-    } catch (networkErr: unknown) {
-      const netMsg = networkErr instanceof Error ? networkErr.message : 'Network request failed';
-      console.error('Google AI Studio network error:', networkErr);
+    } catch {
+      console.error('Google AI Studio network error occurred.');
       return NextResponse.json(
-        { error: `Network error contacting Google AI Studio: ${netMsg}` },
+        { error: 'Network error contacting AI Judge service. Please try again later.' },
         { status: 502 }
       );
     }
 
     if (!res.ok) {
-      const errorData = await res.json().catch(() => null);
-      console.error('Google AI Studio API error response:', res.status, errorData);
-      const errorMsg =
-        errorData?.error?.message ||
-        `Google AI Studio API returned HTTP status ${res.status} (${res.statusText || 'Error'})`;
+      console.error('Google AI Studio API error response status:', res.status);
+
+      let safeErrorMessage = 'AI Judge service returned an error. Please try again.';
+      if (res.status === 429) {
+        safeErrorMessage = 'AI Judge rate limit reached. Please wait a moment and try again.';
+      } else if (res.status === 401 || res.status === 403) {
+        safeErrorMessage = 'AI Judge authorization or key configuration error.';
+      }
+
       return NextResponse.json(
-        { error: `Google AI Studio error: ${errorMsg}` },
+        { error: safeErrorMessage },
         { status: res.status >= 400 && res.status < 600 ? res.status : 502 }
       );
     }
@@ -83,7 +108,7 @@ export async function POST(req: NextRequest) {
 
     if (!rawResponseText || rawResponseText.trim().length === 0) {
       const finishReason = data.candidates?.[0]?.finishReason || 'UNKNOWN';
-      console.error('Gemini returned empty response. Finish reason:', finishReason, data);
+      console.error('Gemini returned empty response. Finish reason:', finishReason);
       return NextResponse.json(
         { error: `AI Judge returned an empty response (finish reason: ${finishReason}).` },
         { status: 502 }
@@ -92,11 +117,10 @@ export async function POST(req: NextRequest) {
 
     const parsedJudgeResult = parseJudgeResponse(rawResponseText, 'gemini-flash-latest');
     return NextResponse.json(parsedJudgeResult);
-  } catch (err: unknown) {
-    const errorMsg = err instanceof Error ? err.message : 'Unknown evaluation error';
-    console.error('Unexpected Judge route error:', err);
+  } catch {
+    console.error('Unexpected Judge route error occurred.');
     return NextResponse.json(
-      { error: `Judge evaluation failed: ${errorMsg}` },
+      { error: 'Judge evaluation failed due to an unexpected internal error.' },
       { status: 500 }
     );
   }

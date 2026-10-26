@@ -1,7 +1,7 @@
 // KeepCoding - Workspace Files Hook
 // Manages challenge file state, tracking modifications and providing reset operations
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { ChallengeFile } from '@/lib/types/challenge';
 
 export interface UseWorkspaceFilesReturn {
@@ -17,6 +17,7 @@ export interface UseWorkspaceFilesReturn {
 }
 
 export function useWorkspaceFiles(initialFiles: ChallengeFile[]): UseWorkspaceFilesReturn {
+  const [prevInitialFiles, setPrevInitialFiles] = useState(initialFiles);
   const [files, setFiles] = useState<ChallengeFile[]>(() =>
     (initialFiles || []).map((f) => ({
       ...f,
@@ -30,34 +31,18 @@ export function useWorkspaceFiles(initialFiles: ChallengeFile[]): UseWorkspaceFi
     return firstEditable?.path || initialFiles?.[0]?.path || '';
   });
 
-  // Synchronize internal state whenever initialFiles changes (e.g. when opening a challenge)
-  useEffect(() => {
-    if (!initialFiles || initialFiles.length === 0) {
-      setFiles((prev) => (prev.length === 0 ? prev : []));
-      setActiveFilePath((prev) => (prev === '' ? prev : ''));
-      return;
-    }
-
-    setFiles((prev) => {
-      const isSame =
-        prev.length === initialFiles.length &&
-        prev.every(
-          (f, i) =>
-            f.path === initialFiles[i]?.path &&
-            f.startContent === (initialFiles[i]?.startContent ?? initialFiles[i]?.content)
-        );
-      if (isSame) return prev;
-
-      return initialFiles.map((f) => ({
+  // Synchronize internal state whenever initialFiles prop identity changes during render
+  if (initialFiles !== prevInitialFiles) {
+    setPrevInitialFiles(initialFiles);
+    setFiles(
+      (initialFiles || []).map((f) => ({
         ...f,
         startContent: f.startContent ?? f.content,
-      }));
-    });
-
-    const firstEditable = initialFiles.find((f) => f.isEditable);
-    const targetPath = firstEditable?.path || initialFiles[0]?.path || '';
-    setActiveFilePath((prev) => (prev === targetPath ? prev : targetPath));
-  }, [initialFiles]);
+      }))
+    );
+    const firstEditable = (initialFiles || []).find((f) => f.isEditable);
+    setActiveFilePath(firstEditable?.path || initialFiles?.[0]?.path || '');
+  }
 
   const activeFile = useMemo(() => {
     if (!files || files.length === 0) return undefined;

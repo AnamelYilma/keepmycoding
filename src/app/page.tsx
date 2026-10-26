@@ -158,6 +158,7 @@ export default function Home() {
     return (
       <>
         <ActiveWorkspaceView
+          key={`${activeChallenge.metadata.track}-${activeChallenge.metadata.level}-${activeChallenge.metadata.type}`}
           challenge={activeChallenge}
           onBack={handleBackToSetup}
           isJudging={isJudging}

@@ -43,6 +43,17 @@ export function PasteChallengeBox({ onStartChallenge, onGoToPrompt }: PasteChall
     }
   };
 
+  const handleQuickLaunchSample = () => {
+    if (SAMPLE_CHALLENGES.length > 0) {
+      const sample = SAMPLE_CHALLENGES[0];
+      setRawText(sample.raw);
+      const val = validateRawChallenge(sample.raw);
+      if (val.valid && val.challenge) {
+        onStartChallenge(val.challenge);
+      }
+    }
+  };
+
   const handleStart = () => {
     if (validation && validation.valid && validation.challenge) {
       onStartChallenge(validation.challenge);
@@ -88,11 +99,20 @@ export function PasteChallengeBox({ onStartChallenge, onGoToPrompt }: PasteChall
         <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
           <button
             type="button"
+            onClick={handleQuickLaunchSample}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-100 hover:bg-white text-zinc-950 font-medium text-xs transition-colors cursor-pointer"
+          >
+            <BookOpen className="w-3.5 h-3.5 text-zinc-950" />
+            <span>Launch Sample Demo</span>
+          </button>
+
+          <button
+            type="button"
             onClick={handleQuickSample}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-750 text-zinc-200 border border-zinc-700 text-xs font-medium transition-colors"
           >
             <BookOpen className="w-3.5 h-3.5 text-zinc-400" />
-            <span>Try Sample Challenge</span>
+            <span>Paste Sample</span>
           </button>
 
           <select

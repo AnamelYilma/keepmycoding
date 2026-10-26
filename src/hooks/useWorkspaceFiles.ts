@@ -32,20 +32,31 @@ export function useWorkspaceFiles(initialFiles: ChallengeFile[]): UseWorkspaceFi
 
   // Synchronize internal state whenever initialFiles changes (e.g. when opening a challenge)
   useEffect(() => {
-    if (initialFiles && initialFiles.length > 0) {
-      const mapped = initialFiles.map((f) => ({
+    if (!initialFiles || initialFiles.length === 0) {
+      setFiles((prev) => (prev.length === 0 ? prev : []));
+      setActiveFilePath((prev) => (prev === '' ? prev : ''));
+      return;
+    }
+
+    setFiles((prev) => {
+      const isSame =
+        prev.length === initialFiles.length &&
+        prev.every(
+          (f, i) =>
+            f.path === initialFiles[i]?.path &&
+            f.startContent === (initialFiles[i]?.startContent ?? initialFiles[i]?.content)
+        );
+      if (isSame) return prev;
+
+      return initialFiles.map((f) => ({
         ...f,
         startContent: f.startContent ?? f.content,
       }));
-      setFiles(mapped);
+    });
 
-      const firstEditable = initialFiles.find((f) => f.isEditable);
-      const targetPath = firstEditable?.path || initialFiles[0]?.path || '';
-      setActiveFilePath(targetPath);
-    } else {
-      setFiles([]);
-      setActiveFilePath('');
-    }
+    const firstEditable = initialFiles.find((f) => f.isEditable);
+    const targetPath = firstEditable?.path || initialFiles[0]?.path || '';
+    setActiveFilePath((prev) => (prev === targetPath ? prev : targetPath));
   }, [initialFiles]);
 
   const activeFile = useMemo(() => {

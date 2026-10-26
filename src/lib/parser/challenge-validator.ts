@@ -167,7 +167,7 @@ export function validateRawChallenge(
   const presentTags = new Set(sections.map(s => s.tag));
   const tagErrors: string[] = [];
 
-  // Check for required tags in raw text
+  // Check for required tags in raw text (canonical tags resolved by normalizeTagName)
   if (!presentTags.has('METADATA')) {
     tagErrors.push('Missing required tag: ---METADATA---');
   }

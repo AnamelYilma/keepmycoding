@@ -66,6 +66,22 @@ function cleanContent(content: string): string {
 }
 
 /**
+ * Normalizes tag names to canonical values, supporting common AI variations.
+ */
+export function normalizeTagName(rawTag: string): string {
+  const clean = rawTag.toUpperCase().replace(/[-_\s]+/g, '_').trim();
+
+  if (['METADATA', 'META', 'INFO', 'CONFIG'].includes(clean)) return 'METADATA';
+  if (['TASK', 'INSTRUCTIONS', 'INSTRUCTION', 'DESCRIPTION', 'TASK_DESCRIPTION', 'GOAL', 'OBJECTIVE', 'CHALLENGE'].includes(clean)) return 'TASK';
+  if (['TESTS', 'TEST', 'TEST_CASES', 'TESTCASES', 'TEST_CASE'].includes(clean)) return 'TESTS';
+  if (['REFERENCE', 'SOLUTION', 'REFERENCE_SOLUTION', 'REFERENCE_ANSWER', 'ANSWER', 'KEY'].includes(clean)) return 'REFERENCE';
+  if (['ANSWER_FILE', 'ANSWERFILE', 'TEXT_ANSWER', 'ANSWER_MD'].includes(clean)) return 'ANSWER_FILE';
+  if (clean.startsWith('FILE') || clean.startsWith('CODE') || clean.startsWith('SOURCE')) return 'FILE';
+
+  return clean;
+}
+
+/**
  * Extracts raw tagged sections from the input text.
  */
 export function extractSections(rawText: string): RawSection[] {
@@ -74,22 +90,21 @@ export function extractSections(rawText: string): RawSection[] {
 
   // Matches tags such as:
   // --- METADATA ---
-  // ---METADATA---
+  // ---TEST CASES---
+  // --- REFERENCE SOLUTION ---
   // ### ---METADATA---
   // **---TASK---**
-  // - - - METADATA - - -
   // --- FILE: path/to/file.ts ---
   // ---FILE:path/to/file.ts---
-  // --- FILE : path/to/file.ts (editable) ---
-  // - - - FILE: path - - -
-  const tagRegex = /(?:^|\n)\s*(?:[#*`~>\s]*)(?:---+|(?:-\s*){2,}-)\s*([A-Za-z0-9_]+)(?:\s*:\s*([^\n\r]*?))?\s*(?:---+|(?:-\s*){2,}-)(?:[*`~>\s]*)(?:\n|$)/gi;
+  const tagRegex = /(?:^|\n)\s*(?:[#*`~>\s]*)(?:---+|(?:-\s*){2,}-)\s*([A-Za-z0-9_\s-]+?)(?:\s*:\s*([^\n\r]*?))?\s*(?:---+|(?:-\s*){2,}-)(?:[*`~>\s]*)(?:\n|$)/gi;
 
   const matches: Array<{ tag: string; param?: string; start: number; end: number }> = [];
   let match: RegExpExecArray | null;
 
   while ((match = tagRegex.exec(cleanText)) !== null) {
+    const canonicalTag = normalizeTagName(match[1]);
     matches.push({
-      tag: match[1].toUpperCase(),
+      tag: canonicalTag,
       param: match[2]?.trim().replace(/^`+|`+$/g, ''),
       start: match.index,
       end: tagRegex.lastIndex,
@@ -429,9 +444,35 @@ export function parseChallenge(rawText: string): Challenge {
     metadata.editableFiles = files.filter(f => f.isEditable).map(f => f.path);
   }
 
-  const tests = testsSection ? parseTests(testsSection.content) : [];
-  const task = taskSection ? taskSection.content : '';
-  let reference = referenceSection ? referenceSection.content : '';
+  // If no files were tagged but text was provided, auto-wrap as a single editable code file
+  if (files.length === 0 && rawText.trim().length > 0) {
+    const rawClean = stripOuterFences(rawText.trim());
+    const defaultFile = 'solution.ts';
+    files.push({
+      path: defaultFile,
+      content: rawClean,
+      startContent: rawClean,
+      isEditable: true,
+      isAnswerFile: false,
+    });
+    if (!metadata.editableLanguage) {
+      metadata.editableLanguage = 'typescript';
+    }
+    metadata.editableFiles = [defaultFile];
+  }
+
+  const tests = testsSection && testsSection.content.trim()
+    ? parseTests(testsSection.content)
+    : [{ input: '', expected: 'Complete the task requirements', description: 'Verification criteria' }];
+
+  const task = taskSection && taskSection.content.trim()
+    ? taskSection.content.trim()
+    : 'Implement and complete the practice challenge in the editable files.';
+
+  let reference = referenceSection && referenceSection.content.trim()
+    ? referenceSection.content.trim()
+    : 'Verify logic against test criteria.';
+
   const refFenceMatch = reference.match(/^`{3,}[a-zA-Z0-9_-]*\r?\n([\s\S]*)\r?\n`{3,}$/);
   if (refFenceMatch) {
     reference = refFenceMatch[1];

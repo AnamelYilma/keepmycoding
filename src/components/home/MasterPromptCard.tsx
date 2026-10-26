@@ -49,11 +49,36 @@ export function MasterPromptCard({ onGoToWorkspace }: MasterPromptCardProps) {
     });
 
     try {
-      await navigator.clipboard.writeText(promptText);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(promptText);
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = promptText;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error('Failed to copy master prompt:', err);
+      console.warn('Clipboard writeText failed, trying fallback:', err);
+      try {
+        const textarea = document.createElement('textarea');
+        textarea.value = promptText;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (fallbackErr) {
+        console.error('Failed to copy master prompt:', fallbackErr);
+      }
     }
   };
 

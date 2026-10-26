@@ -24,7 +24,7 @@ export function ResultModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
       <div className="w-full max-w-2xl bg-zinc-950 border border-zinc-800 rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header with verdict */}
-        <div className="p-5 border-b border-zinc-800 bg-zinc-900/60 flex items-center justify-between">
+        <div className="p-5 border-b border-zinc-800 bg-zinc-950 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {isPass ? (
               <div className="w-9 h-9 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-emerald-400 shrink-0">
@@ -62,7 +62,7 @@ export function ResultModal({
             <h3 className="font-semibold text-zinc-300 uppercase tracking-wider text-[11px]">
               Evaluation Breakdown
             </h3>
-            <div className="p-3.5 rounded-lg bg-zinc-900/50 border border-zinc-850 text-zinc-300 font-mono text-[11px] whitespace-pre-wrap">
+            <div className="p-3.5 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-300 font-mono text-[11px] whitespace-pre-wrap">
               {result.breakdown}
             </div>
           </div>
@@ -74,7 +74,7 @@ export function ResultModal({
                 <HelpCircle className="w-3.5 h-3.5 text-zinc-400" />
                 <span>Intuition Advice</span>
               </div>
-              <div className="p-3.5 rounded-lg bg-zinc-900/50 border border-zinc-850 text-zinc-300">
+              <div className="p-3.5 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-300">
                 {result.advice}
               </div>
             </div>
@@ -87,7 +87,7 @@ export function ResultModal({
                 <Code2 className="w-3.5 h-3.5 text-zinc-400" />
                 <span>Reference Fix</span>
               </div>
-              <pre className="p-3.5 rounded-lg bg-zinc-900 border border-zinc-850 text-zinc-200 font-mono text-[11px] overflow-x-auto whitespace-pre-wrap">
+              <pre className="p-3.5 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-200 font-mono text-[11px] overflow-x-auto whitespace-pre-wrap">
                 {result.fix}
               </pre>
             </div>
@@ -100,11 +100,11 @@ export function ResultModal({
         </div>
 
         {/* Actions Footer */}
-        <div className="p-4 border-t border-zinc-800 bg-zinc-900/40 flex items-center justify-between">
+        <div className="p-4 border-t border-zinc-800 bg-zinc-950 flex items-center justify-between">
           <button
             type="button"
             onClick={onTryAgain}
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-md bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 text-xs transition-colors"
+            className="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-850 text-zinc-300 border border-zinc-800 text-xs transition-colors"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Review Code</span>
@@ -113,7 +113,7 @@ export function ResultModal({
           <button
             type="button"
             onClick={onNextChallenge}
-            className="flex items-center gap-2 px-4 py-1.5 rounded-md bg-zinc-100 hover:bg-white text-zinc-950 font-medium text-xs transition-colors shadow-sm"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#88BDA4] hover:bg-[#7aa892] text-zinc-950 font-medium text-xs transition-colors shadow-sm"
           >
             <span>{isPass ? 'Save and Continue' : 'Finish Challenge'}</span>
             <ArrowRight className="w-3.5 h-3.5" />

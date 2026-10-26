@@ -75,12 +75,14 @@ export function extractSections(rawText: string): RawSection[] {
   // Matches tags such as:
   // --- METADATA ---
   // ---METADATA---
+  // ### ---METADATA---
+  // **---TASK---**
   // - - - METADATA - - -
   // --- FILE: path/to/file.ts ---
   // ---FILE:path/to/file.ts---
   // --- FILE : path/to/file.ts (editable) ---
   // - - - FILE: path - - -
-  const tagRegex = /(?:^|\n)\s*(?:---+|(?:-\s*){2,}-)\s*([A-Za-z0-9_]+)(?:\s*:\s*([^\n\r]*?))?\s*(?:---+|(?:-\s*){2,}-)\s*(?:\n|$)/gi;
+  const tagRegex = /(?:^|\n)\s*(?:[#*`~>\s]*)(?:---+|(?:-\s*){2,}-)\s*([A-Za-z0-9_]+)(?:\s*:\s*([^\n\r]*?))?\s*(?:---+|(?:-\s*){2,}-)(?:[*`~>\s]*)(?:\n|$)/gi;
 
   const matches: Array<{ tag: string; param?: string; start: number; end: number }> = [];
   let match: RegExpExecArray | null;
@@ -88,7 +90,7 @@ export function extractSections(rawText: string): RawSection[] {
   while ((match = tagRegex.exec(cleanText)) !== null) {
     matches.push({
       tag: match[1].toUpperCase(),
-      param: match[2]?.trim(),
+      param: match[2]?.trim().replace(/^`+|`+$/g, ''),
       start: match.index,
       end: tagRegex.lastIndex,
     });
@@ -406,6 +408,12 @@ export function parseChallenge(rawText: string): Challenge {
       isAnswerFile: true,
     };
     files.push(answerFile);
+  }
+
+  // Ensure at least one file is editable so user can always write code
+  if (files.length > 0 && !files.some(f => f.isEditable)) {
+    const firstCode = files.find(f => !f.isAnswerFile) || files[0];
+    firstCode.isEditable = true;
   }
 
   // If editableLanguage wasn't specified in metadata, infer it from editable files

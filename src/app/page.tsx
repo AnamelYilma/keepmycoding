@@ -1,15 +1,68 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Code2, ShieldCheck, History, Layers, Terminal } from 'lucide-react';
+import { useState } from 'react';
+import { Code2, ShieldCheck, History, Layers, Terminal, BookOpen } from 'lucide-react';
 import { MasterPromptCard } from '@/components/home/MasterPromptCard';
 import { PasteChallengeBox } from '@/components/home/PasteChallengeBox';
 import { HistoryDrawer } from '@/components/home/HistoryDrawer';
+import { HowItWorksModal } from '@/components/home/HowItWorksModal';
 import { WorkspaceLayout } from '@/components/workspace/WorkspaceLayout';
 import { ResultModal } from '@/components/result/ResultModal';
 import { useWorkspaceFiles } from '@/hooks/useWorkspaceFiles';
 import { saveHistoryRecord, getHistory } from '@/lib/storage/history';
-import { Challenge, JudgeResult } from '@/lib/types/challenge';
+import { Challenge, ChallengeFile, JudgeResult } from '@/lib/types/challenge';
+
+interface ActiveWorkspaceViewProps {
+  challenge: Challenge;
+  onBack: () => void;
+  isJudging: boolean;
+  onSubmit: (userFiles: ChallengeFile[]) => void;
+}
+
+function ActiveWorkspaceView({
+  challenge,
+  onBack,
+  isJudging,
+  onSubmit,
+}: ActiveWorkspaceViewProps) {
+  const workspace = useWorkspaceFiles(challenge.files);
+  const activeFile = workspace.activeFile || workspace.files[0] || challenge.files[0];
+
+  const handleBack = () => {
+    if (workspace.isDirty) {
+      if (!confirm('Leave workspace? Unsaved changes will be lost.')) {
+        return;
+      }
+    }
+    onBack();
+  };
+
+  if (!activeFile) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-zinc-950 text-zinc-400 text-sm">
+        No files found in challenge.
+      </div>
+    );
+  }
+
+  return (
+    <WorkspaceLayout
+      challenge={challenge}
+      files={workspace.files.length > 0 ? workspace.files : challenge.files}
+      activeFile={activeFile}
+      activeFilePath={workspace.activeFilePath || activeFile.path}
+      onSelectFile={workspace.setActiveFilePath}
+      onUpdateFileContent={workspace.updateFileContent}
+      isFileDirty={workspace.isFileDirty}
+      isDirty={workspace.isDirty}
+      onResetFile={workspace.resetFile}
+      onResetAll={workspace.resetAllFiles}
+      isJudging={isJudging}
+      onSubmit={() => onSubmit(workspace.files.length > 0 ? workspace.files : challenge.files)}
+      onBack={handleBack}
+    />
+  );
+}
 
 export default function Home() {
   const [activeChallenge, setActiveChallenge] = useState<Challenge | null>(null);
@@ -17,21 +70,17 @@ export default function Home() {
   const [isJudging, setIsJudging] = useState<boolean>(false);
   const [showResultModal, setShowResultModal] = useState<boolean>(false);
 
-  // Home View State: Segmented tab & History slide-over
+  // Home View State: Segmented tab, Guest Modal & History slide-over
   const [activeTab, setActiveTab] = useState<'prompt' | 'paste'>('prompt');
   const [isHistoryOpen, setIsHistoryOpen] = useState<boolean>(false);
-  const [historyCount, setHistoryCount] = useState<number>(0);
+  const [isHowItWorksOpen, setIsHowItWorksOpen] = useState<boolean>(false);
+  const [historyCount, setHistoryCount] = useState<number>(() => {
+    return typeof window !== 'undefined' ? getHistory().length : 0;
+  });
 
   const refreshHistoryCount = () => {
     setHistoryCount(getHistory().length);
   };
-
-  useEffect(() => {
-    refreshHistoryCount();
-  }, []);
-
-  // Active workspace file manager
-  const workspace = useWorkspaceFiles(activeChallenge?.files || []);
 
   const handleStartChallenge = (challenge: Challenge) => {
     setActiveChallenge(challenge);
@@ -40,15 +89,10 @@ export default function Home() {
   };
 
   const handleBackToSetup = () => {
-    if (workspace.isDirty) {
-      if (!confirm('Leave workspace? Unsaved changes will be lost.')) {
-        return;
-      }
-    }
     setActiveChallenge(null);
   };
 
-  const handleSubmitToJudge = async () => {
+  const handleSubmitToJudge = async (userFiles: ChallengeFile[]) => {
     if (!activeChallenge) return;
 
     setIsJudging(true);
@@ -58,7 +102,7 @@ export default function Home() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           challenge: activeChallenge,
-          userFiles: workspace.files,
+          userFiles,
         }),
       });
 
@@ -110,23 +154,14 @@ export default function Home() {
   };
 
   // If a challenge is active, render the full workspace
-  if (activeChallenge && workspace.activeFile) {
+  if (activeChallenge) {
     return (
       <>
-        <WorkspaceLayout
+        <ActiveWorkspaceView
           challenge={activeChallenge}
-          files={workspace.files}
-          activeFile={workspace.activeFile}
-          activeFilePath={workspace.activeFilePath}
-          onSelectFile={workspace.setActiveFilePath}
-          onUpdateFileContent={workspace.updateFileContent}
-          isFileDirty={workspace.isFileDirty}
-          isDirty={workspace.isDirty}
-          onResetFile={workspace.resetFile}
-          onResetAll={workspace.resetAllFiles}
+          onBack={handleBackToSetup}
           isJudging={isJudging}
           onSubmit={handleSubmitToJudge}
-          onBack={handleBackToSetup}
         />
 
         <ResultModal
@@ -142,9 +177,10 @@ export default function Home() {
   // Home Setup View
   return (
     <div className="flex flex-col min-h-screen bg-zinc-950 text-zinc-100">
-      {/* Top Header Navigation */}
-      <header className="border-b border-zinc-850 bg-zinc-950/80 backdrop-blur sticky top-0 z-40">
+      {/* Top Header Navigation for Guests & Developers */}
+      <header className="border-b border-zinc-800 bg-zinc-950/90 backdrop-blur sticky top-0 z-40">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+          {/* Brand mark & title (no Zap icon) */}
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-300">
               <Code2 className="w-4 h-4" />
@@ -153,19 +189,37 @@ export default function Home() {
               <span className="font-semibold text-sm tracking-tight text-zinc-100">KeepCoding</span>
               <span className="text-[11px] text-zinc-500 font-mono">v0.1</span>
             </div>
-            <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono bg-zinc-900 border border-zinc-800 text-zinc-400 ml-1">
-              Active Practice
-            </span>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          {/* Guest Navigation */}
+          <nav className="flex items-center gap-2 sm:gap-3" aria-label="Main Navigation">
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab('prompt');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-200 hover:text-zinc-100 hover:bg-zinc-900 transition-colors"
+            >
+              Practice
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsHowItWorksOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-colors"
+            >
+              <BookOpen className="w-3.5 h-3.5 text-zinc-400" />
+              <span>How It Works</span>
+            </button>
+
             <button
               type="button"
               onClick={() => setIsHistoryOpen(true)}
               className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 text-zinc-300 hover:text-zinc-100 text-xs transition-colors"
             >
               <History className="w-3.5 h-3.5 text-zinc-400" />
-              <span>Practice History</span>
+              <span className="hidden sm:inline">History</span>
               {historyCount > 0 && (
                 <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-zinc-300">
                   {historyCount}
@@ -173,36 +227,36 @@ export default function Home() {
               )}
             </button>
 
-            <span className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-zinc-900/60 border border-zinc-800 text-zinc-400 text-xs">
+            <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-400 text-xs">
               <ShieldCheck className="w-3.5 h-3.5 text-zinc-400" />
               <span>Private Judge</span>
-            </span>
-          </div>
+            </div>
+          </nav>
         </div>
       </header>
 
       {/* Main Container */}
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-10 flex flex-col space-y-8">
-        {/* Calm Hero Section */}
+        {/* Calm Hero Section - No floating pill badge */}
         <div className="text-center space-y-3 max-w-xl mx-auto">
           <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-zinc-100">
             Keep your coding intuition sharp.
           </h1>
           <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
-            Hands-on practice. Read, think, and write code by hand in an isolated editor with a private AI judge.
+            Deliberate hands-on practice. Read, think, and write code by hand in an isolated editor with a private AI judge.
           </p>
         </div>
 
-        {/* Focused Segmented Tab Control */}
+        {/* Focused Segmented Tab Control with High-Contrast Primary Accent */}
         <div className="flex justify-center">
-          <div className="inline-flex p-1 rounded-xl bg-zinc-900/90 border border-zinc-800">
+          <div className="inline-flex p-1 rounded-xl bg-zinc-900 border border-zinc-800">
             <button
               type="button"
               onClick={() => setActiveTab('prompt')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
                 activeTab === 'prompt'
-                  ? 'bg-zinc-100 text-zinc-950 shadow-sm'
-                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-850/50'
+                  ? 'bg-[#88BDA4] text-zinc-950 shadow-sm'
+                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-850/60'
               }`}
             >
               <Layers className="w-3.5 h-3.5" />
@@ -211,10 +265,10 @@ export default function Home() {
             <button
               type="button"
               onClick={() => setActiveTab('paste')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
                 activeTab === 'paste'
-                  ? 'bg-zinc-100 text-zinc-950 shadow-sm'
-                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-850/50'
+                  ? 'bg-[#88BDA4] text-zinc-950 shadow-sm'
+                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-850/60'
               }`}
             >
               <Terminal className="w-3.5 h-3.5" />
@@ -236,6 +290,16 @@ export default function Home() {
         </div>
       </main>
 
+      {/* Guest "How It Works" Modal */}
+      <HowItWorksModal
+        isOpen={isHowItWorksOpen}
+        onClose={() => setIsHowItWorksOpen(false)}
+        onStartPractice={() => {
+          setIsHowItWorksOpen(false);
+          setActiveTab('prompt');
+        }}
+      />
+
       {/* Practice History Slide-Over Drawer */}
       <HistoryDrawer
         isOpen={isHistoryOpen}
@@ -243,7 +307,7 @@ export default function Home() {
         onHistoryChange={refreshHistoryCount}
       />
 
-      {/* Minimal Footer */}
+      {/* Minimal Clean Footer */}
       <footer className="border-t border-zinc-900 py-6 text-center text-xs text-zinc-600">
         KeepCoding: Deliberate hands-on practice for developers.
       </footer>

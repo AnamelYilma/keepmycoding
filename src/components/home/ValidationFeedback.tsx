@@ -25,7 +25,7 @@ export function ValidationFeedback({ errors, fixPrompt }: ValidationFeedbackProp
   };
 
   return (
-    <div className="p-4 rounded-xl bg-zinc-950 border border-rose-500/30 text-xs space-y-3">
+    <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800 text-xs space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-rose-400 font-medium">
           <AlertCircle className="w-4 h-4 shrink-0" />
@@ -35,7 +35,7 @@ export function ValidationFeedback({ errors, fixPrompt }: ValidationFeedbackProp
           <button
             type="button"
             onClick={handleCopy}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700/80 transition-colors text-xs"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-800 transition-colors text-xs"
           >
             {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
             <span>{copied ? 'Copied Fix Prompt' : 'Copy Fix Prompt'}</span>

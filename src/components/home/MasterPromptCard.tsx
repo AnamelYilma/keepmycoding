@@ -58,12 +58,12 @@ export function MasterPromptCard({ onGoToWorkspace }: MasterPromptCardProps) {
   };
 
   return (
-    <div className="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-6 sm:p-7 space-y-7 shadow-sm">
+    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 sm:p-7 space-y-6 shadow-sm">
       {/* Card Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-zinc-800/80">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-zinc-800">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-zinc-800 border border-zinc-700/60 flex items-center justify-center text-zinc-300">
+            <div className="w-6 h-6 rounded-md bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-300">
               <Layers className="w-3.5 h-3.5" />
             </div>
             <h2 className="text-base font-semibold text-zinc-100">Step 1: Configure & Copy Master Prompt</h2>
@@ -76,9 +76,9 @@ export function MasterPromptCard({ onGoToWorkspace }: MasterPromptCardProps) {
         <button
           onClick={handleCopyPrompt}
           type="button"
-          className="self-start sm:self-auto flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-100 hover:bg-white text-zinc-950 font-medium text-xs transition-colors shadow-sm shrink-0"
+          className="self-start sm:self-auto flex items-center gap-2 px-4 py-2 rounded-lg bg-[#88BDA4] hover:bg-[#7aa892] text-zinc-950 font-medium text-xs transition-colors shadow-sm shrink-0"
         >
-          {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4 text-zinc-900" />}
+          {copied ? <Check className="w-4 h-4 text-zinc-950" /> : <Copy className="w-4 h-4 text-zinc-950" />}
           <span>{copied ? 'Copied to Clipboard' : 'Copy Master Prompt'}</span>
         </button>
       </div>
@@ -87,7 +87,7 @@ export function MasterPromptCard({ onGoToWorkspace }: MasterPromptCardProps) {
       <div className="space-y-2.5">
         <div className="flex items-center justify-between">
           <label className="text-xs font-medium text-zinc-200">1. Focus Track</label>
-          <span className="text-[11px] text-zinc-500 font-mono">Track {track} of 4 selected</span>
+          <span className="text-[11px] text-zinc-400 font-mono">Track {track} of 4 selected</span>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {Object.entries(TRACK_DEFINITIONS).map(([key, info]) => {
@@ -100,8 +100,8 @@ export function MasterPromptCard({ onGoToWorkspace }: MasterPromptCardProps) {
                 onClick={() => setTrack(trkNum)}
                 className={`text-left p-3.5 rounded-xl border text-xs transition-all relative ${
                   isSelected
-                    ? 'bg-zinc-800/90 border-zinc-600 text-zinc-100 shadow-sm ring-1 ring-zinc-600'
-                    : 'bg-zinc-950/50 border-zinc-850 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200 hover:bg-zinc-900/50'
+                    ? 'bg-zinc-800 border-zinc-650 text-zinc-100 shadow-sm ring-1 ring-zinc-700'
+                    : 'bg-zinc-950 border-zinc-850 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200 hover:bg-zinc-900/60'
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -144,7 +144,7 @@ export function MasterPromptCard({ onGoToWorkspace }: MasterPromptCardProps) {
           max="12"
           value={level}
           onChange={(e) => setLevel(parseInt(e.target.value, 10))}
-          className="w-full accent-zinc-100 bg-zinc-800 h-2 rounded-lg appearance-none cursor-pointer"
+          className="w-full accent-[#88BDA4] bg-zinc-800 h-2 rounded-lg appearance-none cursor-pointer"
         />
 
         {/* 4 Intuitive Level Tier Pills */}
@@ -158,8 +158,8 @@ export function MasterPromptCard({ onGoToWorkspace }: MasterPromptCardProps) {
                 onClick={() => setLevel(tier.defaultLevel)}
                 className={`text-left p-2.5 rounded-lg border text-xs transition-colors ${
                   isCurrentTier
-                    ? 'bg-zinc-800 border-zinc-600 text-zinc-100'
-                    : 'bg-zinc-950/40 border-zinc-850 text-zinc-400 hover:border-zinc-700 hover:text-zinc-300'
+                    ? 'bg-zinc-800 border-zinc-650 text-zinc-100'
+                    : 'bg-zinc-950 border-zinc-850 text-zinc-400 hover:border-zinc-700 hover:text-zinc-300'
                 }`}
               >
                 <div className="font-mono text-[10px] text-zinc-500">{tier.range}</div>
@@ -178,7 +178,7 @@ export function MasterPromptCard({ onGoToWorkspace }: MasterPromptCardProps) {
           <select
             value={type}
             onChange={(e) => setType(e.target.value)}
-            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-200 focus:outline-none focus:border-zinc-600 focus:ring-1 focus:ring-zinc-600"
+            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-200 focus:outline-none focus:border-zinc-700 focus:ring-1 focus:ring-zinc-700"
           >
             {CHALLENGE_TYPES.map((t) => (
               <option key={t} value={t}>
@@ -194,7 +194,7 @@ export function MasterPromptCard({ onGoToWorkspace }: MasterPromptCardProps) {
           <select
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
-            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-200 focus:outline-none focus:border-zinc-600 focus:ring-1 focus:ring-zinc-600"
+            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-200 focus:outline-none focus:border-zinc-700 focus:ring-1 focus:ring-zinc-700"
           >
             {SUPPORTED_LANGUAGES.map((lang) => (
               <option key={lang} value={lang}>
@@ -206,7 +206,7 @@ export function MasterPromptCard({ onGoToWorkspace }: MasterPromptCardProps) {
       </div>
 
       {/* Action Bar & Quick Link */}
-      <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-zinc-850">
+      <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-zinc-800">
         <button
           type="button"
           onClick={() => setShowPreview(!showPreview)}

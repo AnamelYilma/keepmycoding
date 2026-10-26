@@ -17,7 +17,7 @@ export function TaskGuidePane({ task, tests, language }: TaskGuidePaneProps) {
   return (
     <div className="flex flex-col h-full bg-zinc-950 border border-zinc-800 rounded-lg overflow-hidden text-xs">
       {/* Tabs */}
-      <div className="flex items-center border-b border-zinc-800 bg-zinc-900/90 px-3">
+      <div className="flex items-center border-b border-zinc-800 bg-zinc-900 px-3">
         <button
           type="button"
           onClick={() => setActiveTab('task')}
@@ -52,7 +52,7 @@ export function TaskGuidePane({ task, tests, language }: TaskGuidePaneProps) {
                 <BookOpen className="w-3.5 h-3.5 text-zinc-400" />
                 <span>Objective</span>
               </div>
-              <div className="p-3 rounded-lg bg-zinc-900/60 border border-zinc-850 text-zinc-300 whitespace-pre-wrap font-sans">
+              <div className="p-3 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-300 whitespace-pre-wrap font-sans">
                 {task}
               </div>
             </div>
@@ -67,7 +67,7 @@ export function TaskGuidePane({ task, tests, language }: TaskGuidePaneProps) {
                 {tests.map((t, idx) => (
                   <div
                     key={idx}
-                    className="p-3 rounded-lg bg-zinc-900/40 border border-zinc-850 space-y-1.5 font-mono text-[11px]"
+                    className="p-3 rounded-lg bg-zinc-900 border border-zinc-800 space-y-1.5 font-mono text-[11px]"
                   >
                     {t.description && (
                       <div className="font-sans text-xs font-medium text-zinc-300">
@@ -90,7 +90,7 @@ export function TaskGuidePane({ task, tests, language }: TaskGuidePaneProps) {
             </div>
 
             {/* Hints Collapsible */}
-            <div className="pt-2 border-t border-zinc-850">
+            <div className="pt-2 border-t border-zinc-800">
               <button
                 type="button"
                 onClick={() => setHintsOpen(!hintsOpen)}
@@ -100,7 +100,7 @@ export function TaskGuidePane({ task, tests, language }: TaskGuidePaneProps) {
                 <span className="font-medium">Practice Tips</span>
               </button>
               {hintsOpen && (
-                <div className="mt-2 p-3 rounded-lg bg-zinc-900/40 border border-zinc-850 text-zinc-400 text-xs space-y-1.5">
+                <div className="mt-2 p-3 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-400 text-xs space-y-1.5">
                   <p>1. Think about boundary conditions: null, empty string, negative numbers, or expired tokens.</p>
                   <p>2. Keep code simple and focused. You do not need to add unneeded abstractions or external packages.</p>
                   <p>3. Submit to the judge when ready for an instant mental dry-run evaluation.</p>
@@ -117,21 +117,21 @@ export function TaskGuidePane({ task, tests, language }: TaskGuidePaneProps) {
             </div>
 
             <div className="space-y-3 font-mono text-[11px] text-zinc-300">
-              <div className="p-3 rounded-lg bg-zinc-900/60 border border-zinc-850 space-y-1">
+              <div className="p-3 rounded-lg bg-zinc-900 border border-zinc-800 space-y-1">
                 <div className="font-sans font-medium text-zinc-200">Comparison & Equality</div>
                 <div className="text-zinc-400">=== (strict equality)</div>
                 <div className="text-zinc-400">Object.is(a, b)</div>
-                <div className="text-zinc-500">// Constant time compare:</div>
+                <div className="text-zinc-500 font-sans italic text-[10px]">Constant-time compare:</div>
                 <div className="text-zinc-400">mismatch |= a.charCodeAt(i) ^ b.charCodeAt(i)</div>
               </div>
 
-              <div className="p-3 rounded-lg bg-zinc-900/60 border border-zinc-850 space-y-1">
+              <div className="p-3 rounded-lg bg-zinc-900 border border-zinc-800 space-y-1">
                 <div className="font-sans font-medium text-zinc-200">Timers & Debounce</div>
                 <div className="text-zinc-400">const timer = setTimeout(fn, ms);</div>
                 <div className="text-zinc-400">clearTimeout(timer);</div>
               </div>
 
-              <div className="p-3 rounded-lg bg-zinc-900/60 border border-zinc-850 space-y-1">
+              <div className="p-3 rounded-lg bg-zinc-900 border border-zinc-800 space-y-1">
                 <div className="font-sans font-medium text-zinc-200">Safe String Manipulation</div>
                 <div className="text-zinc-400">str.trim()</div>
                 <div className="text-zinc-400">str.replace(/[^\w]/g, &apos;&apos;)</div>

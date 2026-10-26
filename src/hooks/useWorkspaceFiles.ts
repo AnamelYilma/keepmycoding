@@ -1,7 +1,7 @@
 // KeepCoding - Workspace Files Hook
 // Manages challenge file state, tracking modifications and providing reset operations
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { ChallengeFile } from '@/lib/types/challenge';
 
 export interface UseWorkspaceFilesReturn {
@@ -18,7 +18,7 @@ export interface UseWorkspaceFilesReturn {
 
 export function useWorkspaceFiles(initialFiles: ChallengeFile[]): UseWorkspaceFilesReturn {
   const [files, setFiles] = useState<ChallengeFile[]>(() =>
-    initialFiles.map((f) => ({
+    (initialFiles || []).map((f) => ({
       ...f,
       startContent: f.startContent ?? f.content,
     }))
@@ -26,14 +26,32 @@ export function useWorkspaceFiles(initialFiles: ChallengeFile[]): UseWorkspaceFi
 
   // Default active file is the first editable file, or first file
   const [activeFilePath, setActiveFilePath] = useState<string>(() => {
-    const firstEditable = initialFiles.find((f) => f.isEditable);
-    return firstEditable?.path || initialFiles[0]?.path || '';
+    const firstEditable = (initialFiles || []).find((f) => f.isEditable);
+    return firstEditable?.path || initialFiles?.[0]?.path || '';
   });
 
-  const activeFile = useMemo(
-    () => files.find((f) => f.path === activeFilePath) || files[0],
-    [files, activeFilePath]
-  );
+  // Synchronize internal state whenever initialFiles changes (e.g. when opening a challenge)
+  useEffect(() => {
+    if (initialFiles && initialFiles.length > 0) {
+      const mapped = initialFiles.map((f) => ({
+        ...f,
+        startContent: f.startContent ?? f.content,
+      }));
+      setFiles(mapped);
+
+      const firstEditable = initialFiles.find((f) => f.isEditable);
+      const targetPath = firstEditable?.path || initialFiles[0]?.path || '';
+      setActiveFilePath(targetPath);
+    } else {
+      setFiles([]);
+      setActiveFilePath('');
+    }
+  }, [initialFiles]);
+
+  const activeFile = useMemo(() => {
+    if (!files || files.length === 0) return undefined;
+    return files.find((f) => f.path === activeFilePath) || files[0];
+  }, [files, activeFilePath]);
 
   const updateFileContent = useCallback((path: string, newContent: string) => {
     setFiles((prev) =>

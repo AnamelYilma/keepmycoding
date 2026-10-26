@@ -3,11 +3,17 @@
 :root {
   --background: #09090b;
   --foreground: #f4f4f5;
+  --brand-primary: #88bda4;
+  --brand-primary-foreground: #09090b;
+  --brand-primary-hover: #7aa892;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-primary-foreground: var(--brand-primary-foreground);
+  --color-brand-primary-hover: var(--brand-primary-hover);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }

@@ -2,7 +2,7 @@
 
 import { buildJudgeSystemPrompt, buildJudgeUserPrompt } from '../judge-prompt';
 import { parseJudgeResponse } from '../judge-parser';
-import { Challenge, ChallengeFile } from '../../types/challenge';
+import { Challenge } from '../../types/challenge';
 
 let passed = 0;
 let total = 0;

@@ -11,18 +11,9 @@ interface HistoryDrawerProps {
 }
 
 export function HistoryDrawer({ isOpen, onClose, onHistoryChange }: HistoryDrawerProps) {
-  const [history, setHistory] = useState<HistoryRecord[]>([]);
-
-  const refreshHistory = () => {
-    const records = getHistory();
-    setHistory(records);
-  };
-
-  useEffect(() => {
-    if (isOpen) {
-      refreshHistory();
-    }
-  }, [isOpen]);
+  const [history, setHistory] = useState<HistoryRecord[]>(() => {
+    return typeof window !== 'undefined' ? getHistory() : [];
+  });
 
   // Handle escape key
   useEffect(() => {
@@ -35,6 +26,8 @@ export function HistoryDrawer({ isOpen, onClose, onHistoryChange }: HistoryDrawe
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
+  if (!isOpen) return null;
+
   const handleClear = () => {
     if (confirm('Clear all practice history? This action cannot be undone.')) {
       clearHistory();
@@ -42,8 +35,6 @@ export function HistoryDrawer({ isOpen, onClose, onHistoryChange }: HistoryDrawe
       onHistoryChange?.();
     }
   };
-
-  if (!isOpen) return null;
 
   const passedCount = history.filter((h) => h.verdict === 'PASS').length;
   const passRate = history.length > 0 ? Math.round((passedCount / history.length) * 100) : 0;
@@ -53,7 +44,7 @@ export function HistoryDrawer({ isOpen, onClose, onHistoryChange }: HistoryDrawe
     <div className="fixed inset-0 z-50 flex justify-end">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-black/75 backdrop-blur-sm transition-opacity"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -61,14 +52,14 @@ export function HistoryDrawer({ isOpen, onClose, onHistoryChange }: HistoryDrawe
       {/* Slide-over panel */}
       <div className="relative w-full max-w-md bg-zinc-950 border-l border-zinc-800 p-6 flex flex-col shadow-2xl z-10 overflow-hidden">
         {/* Panel Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-zinc-850">
+        <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-300">
               <History className="w-4 h-4" />
             </div>
             <div>
               <h3 className="text-sm font-semibold text-zinc-100">Practice History</h3>
-              <p className="text-[11px] text-zinc-500 font-mono">
+              <p className="text-[11px] text-zinc-400 font-mono">
                 {history.length} completed {history.length === 1 ? 'session' : 'sessions'}
               </p>
             </div>
@@ -92,6 +83,7 @@ export function HistoryDrawer({ isOpen, onClose, onHistoryChange }: HistoryDrawe
               onClick={onClose}
               className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors"
               title="Close panel"
+              aria-label="Close panel"
             >
               <X className="w-4 h-4" />
             </button>
@@ -100,17 +92,17 @@ export function HistoryDrawer({ isOpen, onClose, onHistoryChange }: HistoryDrawe
 
         {/* Summary Stats Card */}
         {history.length > 0 && (
-          <div className="my-4 p-3.5 rounded-xl bg-zinc-900/60 border border-zinc-850 grid grid-cols-3 gap-2 text-center">
+          <div className="my-4 p-3.5 rounded-xl bg-zinc-900 border border-zinc-800 grid grid-cols-3 gap-2 text-center">
             <div className="space-y-0.5">
-              <span className="text-[10px] text-zinc-500 uppercase tracking-wider block font-mono">Total</span>
+              <span className="text-[10px] text-zinc-400 uppercase tracking-wider block font-mono">Total</span>
               <span className="text-sm font-semibold font-mono text-zinc-100">{history.length}</span>
             </div>
             <div className="space-y-0.5 border-x border-zinc-800">
-              <span className="text-[10px] text-zinc-500 uppercase tracking-wider block font-mono">Pass Rate</span>
+              <span className="text-[10px] text-zinc-400 uppercase tracking-wider block font-mono">Pass Rate</span>
               <span className="text-sm font-semibold font-mono text-emerald-400">{passRate}%</span>
             </div>
             <div className="space-y-0.5">
-              <span className="text-[10px] text-zinc-500 uppercase tracking-wider block font-mono">Tracks</span>
+              <span className="text-[10px] text-zinc-400 uppercase tracking-wider block font-mono">Tracks</span>
               <span className="text-xs font-medium text-zinc-300">
                 {uniqueTracks.length > 0 ? uniqueTracks.map((t) => `T${t}`).join(', ') : 'None'}
               </span>
@@ -136,7 +128,7 @@ export function HistoryDrawer({ isOpen, onClose, onHistoryChange }: HistoryDrawe
             history.map((item) => (
               <div
                 key={item.id}
-                className="p-3 rounded-xl bg-zinc-900/40 border border-zinc-850 hover:border-zinc-750 transition-colors space-y-2"
+                className="p-3 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition-colors space-y-2"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2 truncate">
@@ -153,8 +145,8 @@ export function HistoryDrawer({ isOpen, onClose, onHistoryChange }: HistoryDrawe
                   <span
                     className={`text-[10px] font-mono px-1.5 py-0.5 rounded border shrink-0 ${
                       item.verdict === 'PASS'
-                        ? 'text-emerald-400 border-emerald-500/30 bg-zinc-950'
-                        : 'text-rose-400 border-rose-500/30 bg-zinc-950'
+                        ? 'text-emerald-400 border-zinc-800 bg-zinc-950'
+                        : 'text-rose-400 border-zinc-800 bg-zinc-950'
                     }`}
                   >
                     {item.verdict}
@@ -183,7 +175,7 @@ export function HistoryDrawer({ isOpen, onClose, onHistoryChange }: HistoryDrawe
         </div>
 
         {/* Panel Footer */}
-        <div className="pt-4 border-t border-zinc-850 text-center text-[11px] text-zinc-600">
+        <div className="pt-4 border-t border-zinc-800 text-center text-[11px] text-zinc-600">
           History is saved locally in your browser
         </div>
       </div>

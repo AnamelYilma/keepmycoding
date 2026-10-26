@@ -15,6 +15,10 @@ interface SymbolOutlineProps {
 }
 
 export function SymbolOutline({ content, filePath }: SymbolOutlineProps) {
+  const fileName = useMemo(() => {
+    return filePath ? filePath.split('/').pop() || filePath : '';
+  }, [filePath]);
+
   const symbols = useMemo<SymbolItem[]>(() => {
     if (!content) return [];
     const lines = content.split('\n');
@@ -71,9 +75,14 @@ export function SymbolOutline({ content, filePath }: SymbolOutlineProps) {
   }, [content]);
 
   return (
-    <div className="space-y-1 pt-3 border-t border-zinc-800/80">
-      <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
-        Outline ({symbols.length})
+    <div className="space-y-1 pt-3 border-t border-zinc-800">
+      <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-zinc-500 flex items-center justify-between">
+        <span>Outline ({symbols.length})</span>
+        {fileName && (
+          <span className="font-mono text-[10px] text-zinc-600 truncate max-w-[100px]">
+            {fileName}
+          </span>
+        )}
       </div>
       {symbols.length === 0 ? (
         <div className="px-3 py-2 text-xs text-zinc-600 italic">No symbols detected</div>

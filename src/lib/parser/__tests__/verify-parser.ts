@@ -1,18 +1,7 @@
 // KeepCoding - Test Verification Suite for Challenge Parser and Validator
 
-import {
-  parseChallenge,
-  extractSections,
-  parseMetadata,
-  parseTests,
-  stripOuterFences,
-} from '../challenge-parser';
-import {
-  validateChallenge,
-  validateRawChallenge,
-  createFixPrompt,
-} from '../challenge-validator';
-import { Challenge } from '../../types/challenge';
+import { parseChallenge } from '../challenge-parser';
+import { validateRawChallenge } from '../challenge-validator';
 
 let passedTests = 0;
 let totalTests = 0;

@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowLeft, RotateCcw, Send, ShieldCheck, Loader2 } from 'lucide-react';
+import { ArrowLeft, RotateCcw, ShieldCheck, Loader2 } from 'lucide-react';
 import { ChallengeMetadata } from '@/lib/types/challenge';
 
 interface WorkspaceHeaderProps {
@@ -71,11 +71,11 @@ export function WorkspaceHeader({
           type="button"
           onClick={onSubmit}
           disabled={isJudging}
-          className="flex items-center gap-2 px-3.5 py-1.5 rounded-md bg-zinc-100 hover:bg-white text-zinc-950 font-medium text-xs disabled:opacity-40 disabled:pointer-events-none transition-colors shadow-sm"
+          className="flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-[#88BDA4] hover:bg-[#7aa892] text-zinc-950 font-medium text-xs disabled:opacity-40 disabled:pointer-events-none transition-colors shadow-sm"
         >
           {isJudging ? (
             <>
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-950" />
               <span>Evaluating...</span>
             </>
           ) : (

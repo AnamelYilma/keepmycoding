@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsx src/lib/parser/__tests__/verify-parser.ts && tsx src/lib/judge/__tests__/verify-judge.ts"
+    "test": "tsx src/lib/parser/__tests__/verify-parser.ts && tsx src/lib/judge/__tests__/verify-judge.ts && tsx src/__tests__/e2e-workflow.test.ts"
   },
   "dependencies": {
     "@codemirror/lang-css": "^6.3.1",

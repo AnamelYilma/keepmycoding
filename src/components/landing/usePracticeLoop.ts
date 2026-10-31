@@ -29,16 +29,27 @@ export function usePracticeLoop(): PracticeLoopState {
     let frameId: number | null = null;
 
     const updateReducedMotion = () => {
+      const reducedMotion = mediaQuery?.matches ?? false;
       setState((current) => ({
         ...current,
-        prefersReducedMotion: mediaQuery?.matches ?? false,
+        prefersReducedMotion: reducedMotion,
+        activeStage: reducedMotion ? 'read' : current.activeStage,
+        progress: reducedMotion ? 0 : current.progress,
       }));
     };
 
     const updateProgress = () => {
       frameId = null;
-      const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
-      const progress = scrollableHeight > 0 ? window.scrollY / scrollableHeight : 0;
+      if (mediaQuery?.matches) {
+        return;
+      }
+
+      const loopElement = document.getElementById('loop');
+      if (!loopElement) return;
+
+      const loopTop = loopElement.getBoundingClientRect().top + window.scrollY;
+      const loopHeight = loopElement.offsetHeight - window.innerHeight;
+      const progress = loopHeight > 0 ? (window.scrollY - loopTop) / loopHeight : 0;
       const boundedProgress = Math.max(0, Math.min(1, progress));
 
       setState((current) => ({
@@ -56,6 +67,7 @@ export function usePracticeLoop(): PracticeLoopState {
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     mediaQuery?.addEventListener('change', updateReducedMotion);
+    updateReducedMotion();
     updateProgress();
 
     return () => {

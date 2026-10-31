@@ -1,16 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import { Code2, ShieldCheck, History, Layers, Terminal, BookOpen } from 'lucide-react';
 import { MasterPromptCard } from '@/components/home/MasterPromptCard';
 import { PasteChallengeBox } from '@/components/home/PasteChallengeBox';
 import { HistoryDrawer } from '@/components/home/HistoryDrawer';
 import { HowItWorksModal } from '@/components/home/HowItWorksModal';
+import { PracticeLoopLanding } from '@/components/landing/PracticeLoopLanding';
 import { WorkspaceLayout } from '@/components/workspace/WorkspaceLayout';
 import { ResultModal } from '@/components/result/ResultModal';
 import { useWorkspaceFiles } from '@/hooks/useWorkspaceFiles';
 import { saveHistoryRecord, getHistory } from '@/lib/storage/history';
 import { Challenge, ChallengeFile, JudgeResult } from '@/lib/types/challenge';
+import { validateRawChallenge } from '@/lib/parser/challenge-validator';
+import { SAMPLE_CHALLENGES } from '@/lib/sample-challenges';
 
 interface ActiveWorkspaceViewProps {
   challenge: Challenge;
@@ -86,6 +88,16 @@ export default function Home() {
     setActiveChallenge(challenge);
     setJudgeResult(null);
     setShowResultModal(false);
+  };
+
+  const handleStartSample = () => {
+    const sample = SAMPLE_CHALLENGES[0];
+    if (!sample) return;
+
+    const validation = validateRawChallenge(sample.raw);
+    if (validation.valid && validation.challenge) {
+      handleStartChallenge(validation.challenge);
+    }
   };
 
   const handleBackToSetup = () => {
@@ -177,109 +189,55 @@ export default function Home() {
 
   // Home Setup View
   return (
-    <div className="flex flex-col min-h-screen bg-zinc-950 text-zinc-100">
-      {/* Top Header Navigation for Guests & Developers */}
-      <header className="border-b border-zinc-800 bg-zinc-950/90 backdrop-blur sticky top-0 z-40">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-          {/* Brand mark & title (no Zap icon) */}
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-300">
-              <Code2 className="w-4 h-4" />
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span className="font-semibold text-sm tracking-tight text-zinc-100">KeepCoding</span>
-              <span className="text-[11px] text-zinc-500 font-mono">v0.1</span>
+    <div className="min-h-screen bg-zinc-950 text-zinc-100">
+      <PracticeLoopLanding
+        onStartSample={handleStartSample}
+        onOpenHowItWorks={() => setIsHowItWorksOpen(true)}
+        onOpenHistory={() => setIsHistoryOpen(true)}
+        historyCount={historyCount}
+      />
+
+      <section id="practice-setup" className="border-t border-zinc-800 bg-zinc-950 px-4 py-16 sm:px-6">
+        <div className="mx-auto flex w-full max-w-4xl flex-col space-y-8">
+          <div className="text-center">
+            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-brand-primary">
+              Build your own repetition
+            </p>
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-zinc-100 sm:text-3xl">
+              Bring a challenge into the loop.
+            </h2>
+            <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-zinc-400">
+              Configure a prompt with the track and difficulty you want, or paste a structured challenge you already have.
+            </p>
+          </div>
+
+          <div className="flex justify-center">
+            <div className="inline-flex flex-wrap justify-center gap-1 rounded-xl border border-zinc-800 bg-zinc-900 p-1">
+              <button
+                type="button"
+                onClick={() => setActiveTab('prompt')}
+                className={`rounded-lg px-4 py-2 text-xs font-semibold transition-all ${
+                  activeTab === 'prompt'
+                    ? 'bg-[#88BDA4] text-zinc-950 shadow-sm'
+                    : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
+                }`}
+              >
+                1. Get Practice Prompt
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('paste')}
+                className={`rounded-lg px-4 py-2 text-xs font-semibold transition-all ${
+                  activeTab === 'paste'
+                    ? 'bg-[#88BDA4] text-zinc-950 shadow-sm'
+                    : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
+                }`}
+              >
+                2. Paste & Start
+              </button>
             </div>
           </div>
 
-          {/* Guest Navigation */}
-          <nav className="flex items-center gap-2 sm:gap-3" aria-label="Main Navigation">
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab('prompt');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              className="px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-200 hover:text-zinc-100 hover:bg-zinc-900 transition-colors"
-            >
-              Practice
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setIsHowItWorksOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-colors"
-            >
-              <BookOpen className="w-3.5 h-3.5 text-zinc-400" />
-              <span>How It Works</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setIsHistoryOpen(true)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 text-zinc-300 hover:text-zinc-100 text-xs transition-colors"
-            >
-              <History className="w-3.5 h-3.5 text-zinc-400" />
-              <span className="hidden sm:inline">History</span>
-              {historyCount > 0 && (
-                <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-zinc-300">
-                  {historyCount}
-                </span>
-              )}
-            </button>
-
-            <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-400 text-xs">
-              <ShieldCheck className="w-3.5 h-3.5 text-zinc-400" />
-              <span>Private Judge</span>
-            </div>
-          </nav>
-        </div>
-      </header>
-
-      {/* Main Container */}
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-10 flex flex-col space-y-8">
-        {/* Calm Hero Section - No floating pill badge */}
-        <div className="text-center space-y-3 max-w-xl mx-auto">
-          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-zinc-100">
-            Keep your coding intuition sharp.
-          </h1>
-          <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
-            Deliberate hands-on practice. Read, think, and write code by hand in an isolated editor with a private AI judge.
-          </p>
-        </div>
-
-        {/* Focused Segmented Tab Control with High-Contrast Primary Accent */}
-        <div className="flex justify-center">
-          <div className="inline-flex p-1 rounded-xl bg-zinc-900 border border-zinc-800">
-            <button
-              type="button"
-              onClick={() => setActiveTab('prompt')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
-                activeTab === 'prompt'
-                  ? 'bg-[#88BDA4] text-zinc-950 shadow-sm'
-                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-850/60'
-              }`}
-            >
-              <Layers className="w-3.5 h-3.5" />
-              <span>1. Get Practice Prompt</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('paste')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
-                activeTab === 'paste'
-                  ? 'bg-[#88BDA4] text-zinc-950 shadow-sm'
-                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-850/60'
-              }`}
-            >
-              <Terminal className="w-3.5 h-3.5" />
-              <span>2. Paste & Start</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Tab Viewport */}
-        <div>
           {activeTab === 'prompt' ? (
             <MasterPromptCard onGoToWorkspace={() => setActiveTab('paste')} />
           ) : (
@@ -289,9 +247,8 @@ export default function Home() {
             />
           )}
         </div>
-      </main>
+      </section>
 
-      {/* Guest "How It Works" Modal */}
       <HowItWorksModal
         isOpen={isHowItWorksOpen}
         onClose={() => setIsHowItWorksOpen(false)}
@@ -301,17 +258,11 @@ export default function Home() {
         }}
       />
 
-      {/* Practice History Slide-Over Drawer */}
       <HistoryDrawer
         isOpen={isHistoryOpen}
         onClose={() => setIsHistoryOpen(false)}
         onHistoryChange={refreshHistoryCount}
       />
-
-      {/* Minimal Clean Footer */}
-      <footer className="border-t border-zinc-900 py-6 text-center text-xs text-zinc-600">
-        KeepCoding: Deliberate hands-on practice for developers.
-      </footer>
     </div>
   );
 }

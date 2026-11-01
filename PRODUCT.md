@@ -26,7 +26,8 @@ Users choose a track, difficulty, challenge type, and language; send a generated
 
 - The workspace presents challenge instructions, editable and read-only files, and verification feedback.
 - Challenge evaluation is sent through the server-side `/api/judge` route.
-- The current application has no account or sign-in flow.
+- Email and password accounts use Supabase Auth. Sign-up collects a name, developer role, experience level, and optional gender.
+- Account confirmation and password reset use Supabase email links routed through `/auth/callback`.
 - Practice history is stored locally in the browser.
 
 ## Brand Commitments

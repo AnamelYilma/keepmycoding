@@ -21,32 +21,36 @@ export function WorkspaceHeader({
   onSubmit,
 }: WorkspaceHeaderProps) {
   return (
-    <header className="border-b border-zinc-800 bg-zinc-950/90 backdrop-blur sticky top-0 z-40 px-4 h-14 flex items-center justify-between">
-      {/* Left: Back button and challenge tags */}
-      <div className="flex items-center gap-3">
+    <header className="border-b border-white/8 bg-[#090A0F]/90 backdrop-blur-md sticky top-0 z-40 px-3 sm:px-4 h-14 flex items-center justify-between">
+      <h1 className="sr-only">
+        KeepCoding Workspace - Track {metadata.track}: Level {metadata.level} {metadata.type}
+      </h1>
+
+      {/* Left: Setup Back Button and Breadcrumb Chips */}
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
         <button
           type="button"
           onClick={onBack}
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 border border-zinc-800 text-xs transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 rounded-full bg-[#11131A] hover:bg-[#171a24] text-zinc-300 hover:text-white border border-white/10 text-xs font-medium transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] shrink-0"
         >
-          <ArrowLeft className="w-3.5 h-3.5" />
+          <ArrowLeft className="w-3.5 h-3.5 text-zinc-400" aria-hidden="true" />
           <span>Setup</span>
         </button>
 
-        <div className="h-4 w-[1px] bg-zinc-800" />
+        <div className="h-4 w-[1px] bg-white/10 shrink-0" />
 
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-zinc-200">
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-hidden">
+          <span className="text-xs px-2.5 py-1 rounded-full bg-[#11131A] border border-white/10 text-zinc-200 font-medium shrink-0">
             Track {metadata.track}
           </span>
-          <span className="text-xs px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-300 font-mono">
+          <span className="text-xs px-2.5 py-1 rounded-full bg-[#171a24] border border-[#88BDA4]/30 text-[#88BDA4] font-mono font-medium shrink-0">
             Lvl {metadata.level}
           </span>
-          <span className="text-xs px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400">
+          <span className="hidden sm:inline-flex text-xs px-2.5 py-1 rounded-full bg-[#11131A] border border-white/10 text-zinc-300 font-medium shrink-0">
             {metadata.type}
           </span>
           {metadata.editableLanguage && (
-            <span className="text-xs px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 font-mono">
+            <span className="hidden md:inline-flex text-xs px-2.5 py-1 rounded-full bg-[#11131A] border border-white/10 text-zinc-400 font-mono shrink-0">
               {metadata.editableLanguage}
             </span>
           )}
@@ -54,16 +58,16 @@ export function WorkspaceHeader({
       </div>
 
       {/* Right: Actions */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
         {isDirty && (
           <button
             type="button"
             onClick={onResetAll}
             disabled={isJudging}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 transition-colors"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3.5 rounded-full text-xs font-medium text-zinc-400 hover:text-zinc-100 bg-[#11131A] hover:bg-[#171a24] border border-white/10 transition-all cursor-pointer disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
           >
-            <RotateCcw className="w-3.5 h-3.5" />
-            <span>Reset All</span>
+            <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
+            <span className="hidden xs:inline sm:inline">Reset All</span>
           </button>
         )}
 
@@ -71,16 +75,17 @@ export function WorkspaceHeader({
           type="button"
           onClick={onSubmit}
           disabled={isJudging}
-          className="flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-[#88BDA4] hover:bg-[#7aa892] text-zinc-950 font-medium text-xs disabled:opacity-40 disabled:pointer-events-none transition-colors shadow-sm"
+          className="inline-flex items-center gap-2 px-3.5 py-1.5 sm:px-5 sm:py-2 rounded-full bg-[#88BDA4] hover:bg-[#9cd1b8] text-[#090A0F] font-semibold text-xs tracking-wide shadow-md shadow-[#88BDA4]/20 disabled:opacity-40 disabled:pointer-events-none active:scale-[0.98] transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
+          title="Submit solution for AI judge dry-run evaluation"
         >
           {isJudging ? (
             <>
-              <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-950" />
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-[#090A0F]" aria-hidden="true" />
               <span>Evaluating...</span>
             </>
           ) : (
             <>
-              <ShieldCheck className="w-3.5 h-3.5 text-zinc-950" />
+              <ShieldCheck className="w-3.5 h-3.5 text-[#090A0F]" aria-hidden="true" />
               <span>Submit to Judge</span>
             </>
           )}

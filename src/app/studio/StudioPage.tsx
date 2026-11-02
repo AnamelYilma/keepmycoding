@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Code2, BookOpen, History, Layers, Terminal } from 'lucide-react';
 import { MasterPromptCard } from '@/components/home/MasterPromptCard';
 import { PasteChallengeBox } from '@/components/home/PasteChallengeBox';
 import { HistoryDrawer } from '@/components/home/HistoryDrawer';
@@ -38,7 +39,7 @@ function ActiveWorkspaceView({
 
   if (!activeFile) {
     return (
-      <div className="flex h-screen items-center justify-center bg-zinc-950 text-zinc-400 text-sm">
+      <div className="flex h-screen items-center justify-center bg-[#090A0F] text-zinc-400 text-sm">
         No files found in challenge.
       </div>
     );
@@ -176,74 +177,108 @@ export default function Home() {
 
   // Studio setup view
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100">
-      <header className="border-b border-zinc-800 bg-zinc-950/95">
+    <div className="min-h-screen bg-[#090A0F] text-zinc-100 relative selection:bg-[#88BDA4]/20 selection:text-[#88BDA4]">
+      {/* Subtle ambient lighting */}
+      <div className="ambient-glow ambient-glow-mint top-[-120px] left-1/2 -translate-x-1/2 w-[720px] h-[340px] opacity-25 pointer-events-none" />
+
+      {/* Modern Top Header */}
+      <header className="border-b border-white/8 bg-[#090A0F]/85 backdrop-blur-md sticky top-0 z-40">
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6">
-          <a href="/" className="text-sm font-semibold tracking-tight text-zinc-100">
-            KeepCoding <span className="ml-2 font-mono text-[10px] text-zinc-500">STUDIO</span>
+          <a href="/" className="group flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] rounded-lg">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-[#11131A] text-[#88BDA4] shadow-sm transition-colors group-hover:border-[#88BDA4]/40">
+              <Code2 className="h-4 w-4" aria-hidden="true" />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold tracking-tight text-zinc-100 group-hover:text-white transition-colors">
+                KeepCoding
+              </span>
+              <span className="rounded-full border border-[#88BDA4]/25 bg-[#88BDA4]/10 px-2 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wider text-[#88BDA4]">
+                STUDIO
+              </span>
+            </div>
           </a>
+
           <nav className="flex items-center gap-2 text-xs" aria-label="Studio navigation">
-            <a href="/" className="rounded-lg px-3 py-2 text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100">
+            <a
+              href="/"
+              className="hidden sm:inline-flex rounded-full px-3.5 py-1.5 text-zinc-400 border border-transparent hover:border-white/10 hover:bg-white/5 hover:text-zinc-100 transition-all font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
+            >
               Landing page
             </a>
             <button
               type="button"
               onClick={() => setIsHowItWorksOpen(true)}
-              className="rounded-lg px-3 py-2 text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100"
+              className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-zinc-400 border border-transparent hover:border-white/10 hover:bg-white/5 hover:text-zinc-100 transition-all font-medium cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
             >
-              How it works
+              <BookOpen className="h-3.5 w-3.5 text-zinc-400" aria-hidden="true" />
+              <span>How it works</span>
             </button>
             <button
               type="button"
               onClick={() => setIsHistoryOpen(true)}
-              className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-zinc-300 hover:border-zinc-700"
+              className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-[#11131A] px-3.5 py-1.5 text-zinc-300 hover:border-white/20 hover:bg-[#171a24] hover:text-zinc-100 transition-all font-medium cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
             >
-              History {historyCount > 0 ? `(${historyCount})` : ''}
+              <History className="h-3.5 w-3.5 text-zinc-400" aria-hidden="true" />
+              <span>History</span>
+              {historyCount > 0 && (
+                <span className="ml-1 rounded-full bg-[#88BDA4]/15 px-1.5 py-0.2 font-mono text-[10px] text-[#88BDA4] border border-[#88BDA4]/20">
+                  {historyCount}
+                </span>
+              )}
             </button>
           </nav>
         </div>
       </header>
 
-      <main className="mx-auto flex w-full max-w-4xl flex-col space-y-8 px-4 py-12 sm:px-6">
-        <div className="text-center">
-          <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-brand-primary">
-            The practice studio
-          </p>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight text-zinc-100 sm:text-4xl">
-            Make the next challenge yours.
+      {/* Main Content Area */}
+      <main className="mx-auto flex w-full max-w-4xl flex-col space-y-8 px-4 py-12 sm:px-6 relative z-10">
+        <div className="text-center space-y-3">
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-[#88BDA4]/25 bg-[#88BDA4]/10 px-3 py-1 font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-[#88BDA4]">
+            Deliberate Practice Workbench
+          </div>
+          <h1 className="text-3xl font-semibold tracking-tight text-zinc-100 sm:text-4xl">
+            Hands-on coding without distractions.
           </h1>
-          <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-zinc-400">
-            Generate a structured practice prompt with the track and difficulty you want, or paste a challenge you already have.
+          <p className="mx-auto max-w-xl text-sm leading-relaxed text-zinc-400">
+            Configure a structured prompt with your target track and tier to copy to your external AI, or paste your challenge block to begin active practice.
           </p>
         </div>
 
-        <div className="flex justify-center">
-          <div className="inline-flex flex-wrap justify-center gap-1 rounded-xl border border-zinc-800 bg-zinc-900 p-1">
-              <button
-                type="button"
-                onClick={() => setActiveTab('prompt')}
-                className={`rounded-lg px-4 py-2 text-xs font-semibold transition-all ${
-                  activeTab === 'prompt'
-                    ? 'bg-[#88BDA4] text-zinc-950 shadow-sm'
-                    : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
-                }`}
-              >
-                1. Get Practice Prompt
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('paste')}
-                className={`rounded-lg px-4 py-2 text-xs font-semibold transition-all ${
-                  activeTab === 'paste'
-                    ? 'bg-[#88BDA4] text-zinc-950 shadow-sm'
-                    : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
-                }`}
-              >
-                2. Paste & Start
-              </button>
+        {/* Elegant Segmented Pill Tab Control */}
+        <div className="flex justify-center" role="tablist" aria-label="Challenge input modes">
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-[#11131A] p-1.5 shadow-xl backdrop-blur-md">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'prompt'}
+              onClick={() => setActiveTab('prompt')}
+              className={`inline-flex items-center gap-2 rounded-full px-5 py-2 text-xs font-semibold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] ${
+                activeTab === 'prompt'
+                  ? 'bg-[#88BDA4] text-[#090A0F] shadow-sm'
+                  : 'text-zinc-400 hover:bg-white/5 hover:text-zinc-200'
+              }`}
+            >
+              <Layers className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>1. Configure Prompt</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'paste'}
+              onClick={() => setActiveTab('paste')}
+              className={`inline-flex items-center gap-2 rounded-full px-5 py-2 text-xs font-semibold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] ${
+                activeTab === 'paste'
+                  ? 'bg-[#88BDA4] text-[#090A0F] shadow-sm'
+                  : 'text-zinc-400 hover:bg-white/5 hover:text-zinc-200'
+              }`}
+            >
+              <Terminal className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>2. Paste & Start</span>
+            </button>
           </div>
         </div>
 
+        {/* Tab Card Panels */}
         {activeTab === 'prompt' ? (
           <MasterPromptCard onGoToWorkspace={() => setActiveTab('paste')} />
         ) : (
@@ -254,6 +289,7 @@ export default function Home() {
         )}
       </main>
 
+      {/* How it Works Modal */}
       <HowItWorksModal
         isOpen={isHowItWorksOpen}
         onClose={() => setIsHowItWorksOpen(false)}
@@ -263,6 +299,7 @@ export default function Home() {
         }}
       />
 
+      {/* History Slide-over Drawer */}
       <HistoryDrawer
         isOpen={isHistoryOpen}
         onClose={() => setIsHistoryOpen(false)}

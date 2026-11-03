@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { Code2, ArrowUp } from 'lucide-react';
 
 export default function MarketingFooter() {
@@ -10,8 +11,14 @@ export default function MarketingFooter() {
           {/* Brand column */}
           <div className="md:col-span-2 space-y-4">
             <Link href="/" className="flex items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] rounded-lg" aria-label="KeepCoding home">
-              <div className="w-8 h-8 rounded-xl bg-[#11131A] border border-white/[0.08] flex items-center justify-center text-[#88BDA4]">
-                <Code2 size={16} strokeWidth={2.2} aria-hidden="true" />
+              <div className="relative w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center shrink-0">
+                <Image
+                  src="/images/logo.png"
+                  alt="KeepCoding logo"
+                  width={32}
+                  height={32}
+                  className="object-contain w-full h-full drop-shadow-[0_2px_8px_rgba(136,189,164,0.35)]"
+                />
               </div>
               <span className="text-base font-semibold text-white tracking-tight">
                 KeepCoding
@@ -37,6 +44,11 @@ export default function MarketingFooter() {
                 <a href="#tracks" className="hover:text-white transition-colors">
                   Practice Tracks
                 </a>
+              </li>
+              <li>
+                <Link href="/prompt" className="hover:text-white transition-colors">
+                  Prompt Wizard
+                </Link>
               </li>
               <li>
                 <Link href="/studio" className="hover:text-white transition-colors">

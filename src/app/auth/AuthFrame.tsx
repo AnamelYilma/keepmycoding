@@ -19,7 +19,7 @@ export default function AuthFrame({
         <Link href="/" className="auth-brand" aria-label="KeepCoding home">
           <span className="auth-brand-mark">
             <Image
-              src="/images/logo.png"
+              src="/logo2nd.png"
               alt="KeepCoding logo"
               width={26}
               height={26}

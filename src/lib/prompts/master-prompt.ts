@@ -83,7 +83,8 @@ editableFiles: [comma-separated path(s) developer should edit, e.g. src/auth.ts]
 
 ---FILE: path/to/file.ext---
 [Source code for the file. For multi-file challenges, use multiple ---FILE: path--- blocks.
-Append (readonly) in the tag like ---FILE: path/config.ts (readonly)--- for read-only companion files.]
+Append (readonly) in the tag like ---FILE: path/config.ts (readonly)--- for read-only companion files.
+IMPORTANT: Put raw code directly under the ---FILE--- tag. DO NOT wrap the code in markdown backtick fences (no \`\`\`${options.language.toLowerCase()}) and DO NOT write the language name above the code.]
 
 ---TESTS---
 Input: [concrete input]
@@ -110,8 +111,9 @@ CRITICAL VALIDATION RULES:
 1. Maximum 10 code files.
 2. Every file must be under 1000 lines.
 3. Exactly 1 editable language (${options.language.toLowerCase()}).
-4. Reference solution must be under 300 lines.
-5. Code must be realistic, production-minded, and self-contained.
-6. Provide at least 2 distinct test cases.
+4. Under ---FILE: ...---, output clean raw code only without code fences (\`\`\`) or language headers.
+5. Reference solution must be under 300 lines.
+6. Code must be realistic, production-minded, and self-contained.
+7. Provide at least 2 distinct test cases.
 `;
 }

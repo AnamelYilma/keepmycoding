@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import {
-  Code2,
   BookOpen,
   History,
   Layers,
@@ -52,18 +52,26 @@ export function PromptWizardPage() {
       <header className="border-b border-white/8 bg-[#090A0F]/85 backdrop-blur-md sticky top-0 z-40">
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6">
           <Link
-            href="/"
+            href="/prompt"
             className="group flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] rounded-lg"
+            aria-label="KeepCoding Prompt Wizard home"
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-[#11131A] text-[#88BDA4] shadow-sm transition-colors group-hover:border-[#88BDA4]/40">
-              <Code2 className="h-4 w-4" aria-hidden="true" />
+            <div className="relative w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
+              <Image
+                src="/images/logo.png"
+                alt="KeepCoding logo"
+                width={32}
+                height={32}
+                priority
+                className="object-contain w-full h-full drop-shadow-[0_2px_8px_rgba(136,189,164,0.35)]"
+              />
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold tracking-tight text-zinc-100 group-hover:text-white transition-colors">
+            <div className="flex flex-col justify-center">
+              <span className="text-sm sm:text-base font-bold text-[#F4F4F5] tracking-tight leading-none group-hover:text-white transition-colors">
                 KeepCoding
               </span>
-              <span className="rounded-full border border-[#88BDA4]/25 bg-[#88BDA4]/10 px-2 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wider text-[#88BDA4]">
-                PROMPT WIZARD
+              <span className="text-[9px] font-mono tracking-widest text-[#88BDA4] mt-1 leading-none">
+                ZERO-AI GYM
               </span>
             </div>
           </Link>

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { CheckCircle2, Code2, FileCode, Lock, ShieldCheck, Terminal } from 'lucide-react';
 import './auth.css';
 
@@ -17,7 +18,14 @@ export default function AuthFrame({
       <header className="auth-header">
         <Link href="/" className="auth-brand" aria-label="KeepCoding home">
           <span className="auth-brand-mark">
-            <Code2 size={18} aria-hidden="true" />
+            <Image
+              src="/images/logo.png"
+              alt="KeepCoding logo"
+              width={26}
+              height={26}
+              priority
+              className="object-contain drop-shadow-[0_2px_8px_rgba(136,189,164,0.35)]"
+            />
           </span>
           <span className="auth-brand-name">KeepCoding</span>
         </Link>
@@ -81,59 +89,39 @@ export default function AuthFrame({
           {mode === 'signup' ? (
             <>
               <div className="auth-story-copy">
-                <p className="auth-eyebrow">
-                  <i /> PERSONALIZED PRACTICE
-                </p>
                 <h1>
                   Practice what you <em>actually build.</em>
                 </h1>
                 <p className="auth-story-lede">
-                  Select your engineering track and current level. KeepCoding calibrates isolated test
-                  suites and realistic multi-file architectures to your goals.
+                  Hands-on engineering tracks with isolated test suites and realistic multi-file architectures.
                 </p>
               </div>
 
-              <div className="auth-feature-showcase" aria-label="Curriculum tracks and difficulty levels">
+              <div className="auth-feature-showcase" aria-label="Curriculum tracks">
                 <div className="auth-showcase-card">
                   <div className="auth-showcase-label">ENGINEERING TRACKS</div>
                   <div className="auth-track-pills">
                     <span className="auth-track-pill">Web</span>
                     <span className="auth-track-pill">Mobile</span>
                     <span className="auth-track-pill">Backend</span>
-                    <span className="auth-track-pill">Blockchain</span>
-                    <span className="auth-track-pill">Data &amp; AI</span>
-                    <span className="auth-track-pill">DevOps</span>
-                  </div>
-                </div>
-
-                <div className="auth-showcase-card">
-                  <div className="auth-showcase-label">DIFFICULTY TIERS</div>
-                  <div className="auth-level-grid">
-                    <div className="auth-level-item">Beginner</div>
-                    <div className="auth-level-item">Junior</div>
-                    <div className="auth-level-item is-active">Intermediate</div>
-                    <div className="auth-level-item">Senior</div>
+                    <span className="auth-track-pill">Data</span>
                   </div>
                 </div>
 
                 <div className="auth-showcase-highlight">
                   <CheckCircle2 size={15} aria-hidden="true" />
-                  <span>Automated test-driven feedback on every challenge submission</span>
+                  <span>Automated test verification on every submission</span>
                 </div>
               </div>
             </>
           ) : mode === 'login' ? (
             <>
               <div className="auth-story-copy">
-                <p className="auth-eyebrow">
-                  <i /> ACTIVE WORKBENCH
-                </p>
                 <h1>
                   Build real <em>muscle memory.</em>
                 </h1>
                 <p className="auth-story-lede">
-                  Read specifications, inspect read-only contracts, and write the solution by hand.
-                  Instant automated grading verifies your code against realistic edge cases.
+                  Inspect specifications, solve edge cases by hand, and receive instant automated grading.
                 </p>
               </div>
 
@@ -144,7 +132,7 @@ export default function AuthFrame({
                   </span>
                   <div className="auth-feature-text">
                     <strong>Multi-File Codebases</strong>
-                    <span>Work in realistic architectures with separated editable and read-only files.</span>
+                    <span>Realistic architectures with separated editable and read-only files.</span>
                   </div>
                 </div>
 
@@ -153,18 +141,8 @@ export default function AuthFrame({
                     <CheckCircle2 size={16} aria-hidden="true" />
                   </span>
                   <div className="auth-feature-text">
-                    <strong>Instant Test-Driven Feedback</strong>
-                    <span>Evaluation runs syntax, logical contracts, and edge-case verifications instantly.</span>
-                  </div>
-                </div>
-
-                <div className="auth-feature-row">
-                  <span className="auth-feature-icon">
-                    <ShieldCheck size={16} aria-hidden="true" />
-                  </span>
-                  <div className="auth-feature-text">
-                    <strong>Continuous Skill Growth</strong>
-                    <span>Log completed challenges, build persistent streaks, and track real progression.</span>
+                    <strong>Instant Automated Feedback</strong>
+                    <span>Evaluation verifies logical contracts and edge cases immediately.</span>
                   </div>
                 </div>
               </div>
@@ -172,15 +150,11 @@ export default function AuthFrame({
           ) : (
             <>
               <div className="auth-story-copy">
-                <p className="auth-eyebrow">
-                  <i /> SECURE RECOVERY
-                </p>
                 <h1>
                   Get back into <em>your flow.</em>
                 </h1>
                 <p className="auth-story-lede">
-                  Verify your email address, configure a secure new password, and pick up your practice history
-                  without missing a step.
+                  Reset your password and continue your deliberate practice streak.
                 </p>
               </div>
 
@@ -191,17 +165,7 @@ export default function AuthFrame({
                   </span>
                   <div className="auth-feature-text">
                     <strong>Encrypted Authentication</strong>
-                    <span>Industry standard authentication backed by Supabase Auth security.</span>
-                  </div>
-                </div>
-
-                <div className="auth-feature-row">
-                  <span className="auth-feature-icon">
-                    <CheckCircle2 size={16} aria-hidden="true" />
-                  </span>
-                  <div className="auth-feature-text">
-                    <strong>Preserved Progress</strong>
-                    <span>Your completed challenges, code submissions, and practice streaks stay safe.</span>
+                    <span>Secure account sessions backed by Supabase Auth.</span>
                   </div>
                 </div>
               </div>

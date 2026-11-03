@@ -15,6 +15,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'KeepCoding | Daily Active Hands-on Coding Practice',
   description: 'Active practice for developers to preserve and sharpen hands-on coding intuition.',
+  icons: {
+    icon: '/logo.png',
+    apple: '/logo.png',
+  },
 };
 
 export default function RootLayout({

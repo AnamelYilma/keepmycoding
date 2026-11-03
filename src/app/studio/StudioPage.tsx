@@ -281,18 +281,18 @@ export default function Home() {
             </button>
 
             {userEmail ? (
-              <div className="flex items-center gap-2 pl-2 border-l border-white/10">
-                <span className="hidden md:inline-flex items-center gap-1.5 text-xs text-zinc-300 font-mono">
+              <div className="flex items-center gap-2.5 pl-3 border-l border-white/10">
+                <span className="hidden md:inline-flex items-center gap-1.5 text-xs text-zinc-300 font-mono px-2.5 py-1 rounded-full bg-[#11131A] border border-white/8">
                   <User size={13} className="text-[#88BDA4]" aria-hidden="true" />
                   <span className="max-w-[120px] truncate">{userEmail}</span>
                 </span>
                 <form action={signOutAction}>
                   <button
                     type="submit"
-                    className="inline-flex items-center gap-1.5 rounded-full border border-red-500/40 bg-red-950/40 px-3.5 py-1.5 text-xs font-semibold text-red-200 hover:bg-red-900/60 hover:text-white hover:border-red-400 transition-all cursor-pointer shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-[#11131A] px-3 py-1.5 text-xs font-medium text-zinc-400 hover:text-zinc-100 hover:bg-[#171a24] hover:border-white/20 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
                     title="Sign out of account"
                   >
-                    <LogOut size={13} aria-hidden="true" />
+                    <LogOut size={13} className="text-zinc-400" aria-hidden="true" />
                     <span>Sign out</span>
                   </button>
                 </form>

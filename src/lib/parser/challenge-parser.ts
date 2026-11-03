@@ -66,6 +66,34 @@ function cleanContent(content: string): string {
 }
 
 /**
+ * Cleans code file or reference content by stripping outer markdown backtick fences
+ * or preamble language markers (e.g. "typescript\n```typescript\n...```" or "```typescript\n...```").
+ */
+export function cleanCodeContent(rawContent: string): string {
+  let content = rawContent.trim();
+
+  // Strip leading language line before code fence or content (e.g. "typescript\n```typescript...")
+  content = content.replace(/^(?:typescript|javascript|python|go|html|css|json|sql|ts|js|py)\s*\r?\n+/i, '');
+
+  // Strip wrapping outer code fences (e.g. ```typescript ... ``` or ```ts ... ``` or ``` ... ```)
+  const fenceMatch = content.match(/^(`{3,})[a-zA-Z0-9_-]*\r?\n([\s\S]*)\r?\n\1\s*$/);
+  if (fenceMatch) {
+    content = fenceMatch[2];
+  } else {
+    // If still has leading fence
+    const leadingFence = content.match(/^(`{3,})[a-zA-Z0-9_-]*\r?\n([\s\S]*)$/);
+    if (leadingFence && !leadingFence[2].includes('```')) {
+      content = leadingFence[2];
+    }
+  }
+
+  // Strip any lingering closing code fence at the end
+  content = content.replace(/\r?\n`{3,}\s*$/, '');
+
+  return content.trim();
+}
+
+/**
  * Normalizes tag names to canonical values, supporting common AI variations.
  */
 export function normalizeTagName(rawTag: string): string {
@@ -397,10 +425,7 @@ export function parseChallenge(rawText: string): Challenge {
     let fileContent = sec.content;
     const ext = cleanPath.split('.').pop()?.toLowerCase();
     if (ext !== 'md' && ext !== 'markdown') {
-      const fenceMatch = fileContent.match(/^`{3,}[a-zA-Z0-9_-]*\r?\n([\s\S]*)\r?\n`{3,}$/);
-      if (fenceMatch) {
-        fileContent = fenceMatch[1];
-      }
+      fileContent = cleanCodeContent(fileContent);
     }
 
     files.push({
@@ -446,7 +471,7 @@ export function parseChallenge(rawText: string): Challenge {
 
   // If no files were tagged but text was provided, auto-wrap as a single editable code file
   if (files.length === 0 && rawText.trim().length > 0) {
-    const rawClean = stripOuterFences(rawText.trim());
+    const rawClean = cleanCodeContent(stripOuterFences(rawText.trim()));
     const defaultFile = 'solution.ts';
     files.push({
       path: defaultFile,
@@ -470,13 +495,8 @@ export function parseChallenge(rawText: string): Challenge {
     : 'Implement and complete the practice challenge in the editable files.';
 
   let reference = referenceSection && referenceSection.content.trim()
-    ? referenceSection.content.trim()
+    ? cleanCodeContent(referenceSection.content.trim())
     : 'Verify logic against test criteria.';
-
-  const refFenceMatch = reference.match(/^`{3,}[a-zA-Z0-9_-]*\r?\n([\s\S]*)\r?\n`{3,}$/);
-  if (refFenceMatch) {
-    reference = refFenceMatch[1];
-  }
 
   return {
     metadata,

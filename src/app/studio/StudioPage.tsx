@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { Code2, BookOpen, History, Layers, Terminal } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { Code2, BookOpen, History, Layers, Terminal, ArrowRight, LogOut, User } from 'lucide-react';
 import { MasterPromptCard } from '@/components/home/MasterPromptCard';
 import { PasteChallengeBox } from '@/components/home/PasteChallengeBox';
 import { HistoryDrawer } from '@/components/home/HistoryDrawer';
@@ -11,6 +12,8 @@ import { ResultModal } from '@/components/result/ResultModal';
 import { useWorkspaceFiles } from '@/hooks/useWorkspaceFiles';
 import { saveHistoryRecord, getHistory } from '@/lib/storage/history';
 import { Challenge, ChallengeFile, JudgeResult } from '@/lib/types/challenge';
+import { createSupabaseBrowserClient } from '@/lib/supabase/client';
+import { signOutAction } from '@/app/auth/actions';
 
 interface ActiveWorkspaceViewProps {
   challenge: Challenge;
@@ -74,9 +77,40 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<'prompt' | 'paste'>('prompt');
   const [isHistoryOpen, setIsHistoryOpen] = useState<boolean>(false);
   const [isHowItWorksOpen, setIsHowItWorksOpen] = useState<boolean>(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const [historyCount, setHistoryCount] = useState<number>(() => {
     return typeof window !== 'undefined' ? getHistory().length : 0;
   });
+
+  useEffect(() => {
+    try {
+      const supabase = createSupabaseBrowserClient();
+      supabase.auth.getUser().then(({ data }) => {
+        if (data?.user?.email) {
+          setUserEmail(data.user.email);
+        }
+      });
+    } catch {
+      // Supabase unconfigured or offline
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const stored = sessionStorage.getItem('pending_challenge');
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored) as Challenge;
+          sessionStorage.removeItem('pending_challenge');
+          if (parsed && parsed.files && parsed.files.length > 0) {
+            setActiveChallenge(parsed);
+          }
+        } catch (e) {
+          console.error('Failed to parse pending challenge', e);
+        }
+      }
+    }
+  }, []);
 
   const refreshHistoryCount = () => {
     setHistoryCount(getHistory().length);
@@ -199,12 +233,19 @@ export default function Home() {
           </a>
 
           <nav className="flex items-center gap-2 text-xs" aria-label="Studio navigation">
-            <a
+            <Link
               href="/"
               className="hidden sm:inline-flex rounded-full px-3.5 py-1.5 text-zinc-400 border border-transparent hover:border-white/10 hover:bg-white/5 hover:text-zinc-100 transition-all font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
             >
               Landing page
-            </a>
+            </Link>
+            <Link
+              href="/prompt"
+              className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-zinc-300 border border-white/10 bg-[#11131A] hover:border-white/20 hover:bg-[#171a24] hover:text-white transition-all font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
+            >
+              <Layers className="h-3.5 w-3.5 text-[#88BDA4]" aria-hidden="true" />
+              <span>Prompt Wizard</span>
+            </Link>
             <button
               type="button"
               onClick={() => setIsHowItWorksOpen(true)}
@@ -226,6 +267,32 @@ export default function Home() {
                 </span>
               )}
             </button>
+
+            {userEmail ? (
+              <div className="flex items-center gap-2 pl-2 border-l border-white/10">
+                <span className="hidden md:inline-flex items-center gap-1.5 text-xs text-zinc-300 font-mono">
+                  <User size={13} className="text-[#88BDA4]" aria-hidden="true" />
+                  <span className="max-w-[120px] truncate">{userEmail}</span>
+                </span>
+                <form action={signOutAction}>
+                  <button
+                    type="submit"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-[#11131A] px-3 py-1.5 text-zinc-400 hover:border-red-500/30 hover:bg-red-950/20 hover:text-red-300 transition-all font-medium cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+                    title="Sign out of account"
+                  >
+                    <LogOut size={13} aria-hidden="true" />
+                    <span>Sign out</span>
+                  </button>
+                </form>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-[#11131A] px-3.5 py-1.5 text-zinc-300 hover:border-white/20 hover:bg-[#171a24] hover:text-white transition-all font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
+              >
+                <span>Sign in</span>
+              </Link>
+            )}
           </nav>
         </div>
       </header>

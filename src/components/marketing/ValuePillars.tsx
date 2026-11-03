@@ -29,11 +29,8 @@ export default function ValuePillars() {
     <section id="how-it-works" className="py-14 sm:py-20 bg-[#090A0F] relative border-t border-white/[0.06]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 sm:space-y-12">
         
-        {/* Section Header */}
+        {/* Section Header (Clean & Minimalist without AI pill badges) */}
         <div className="max-w-2xl mx-auto text-center space-y-2.5">
-          <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-[#11131A] border border-white/[0.08] text-[11px] font-mono text-[#88BDA4]">
-            <span>PRACTICE LOOP</span>
-          </div>
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-white">
             How KeepCoding works
           </h2>
@@ -67,13 +64,13 @@ export default function ValuePillars() {
                     {pillar.title}
                   </h3>
 
-                  {/* Single clear description */}
+                  {/* Description */}
                   <p className="text-sm text-zinc-400 leading-relaxed font-sans">
                     {pillar.description}
                   </p>
                 </div>
 
-                {/* Compact bottom badge */}
+                {/* Compact bottom footer */}
                 <div className="pt-4 mt-5 border-t border-white/[0.06] flex items-center justify-between text-xs font-mono">
                   <span className="text-zinc-500">Focus</span>
                   <span className="text-[#88BDA4] font-medium">{pillar.metric}</span>

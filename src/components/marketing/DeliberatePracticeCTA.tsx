@@ -12,12 +12,6 @@ export default function DeliberatePracticeCTA() {
       <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="glass-card p-6 sm:p-10 text-center space-y-6 relative overflow-hidden border-[#88BDA4]/20 shadow-[0_12px_40px_rgba(0,0,0,0.6)]">
           
-          {/* Top pill */}
-          <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-[#171a24] border border-white/[0.08] text-[11px] font-mono text-[#88BDA4]">
-            <Code2 size={12} aria-hidden="true" />
-            <span>DELIBERATE PRACTICE</span>
-          </div>
-
           {/* Heading */}
           <div className="max-w-xl mx-auto space-y-2">
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
@@ -29,12 +23,19 @@ export default function DeliberatePracticeCTA() {
           </div>
 
           {/* Action button */}
-          <div className="flex items-center justify-center pt-1">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-1">
+            <Link
+              href="/prompt"
+              className="px-5 py-2.5 text-xs font-semibold inline-flex items-center justify-center gap-2 rounded-full bg-[#171a24] hover:bg-[#1f2330] text-zinc-200 hover:text-white border border-white/10 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
+            >
+              <span>1. Prompt Wizard</span>
+              <ArrowRight size={14} aria-hidden="true" />
+            </Link>
             <Link
               href="/studio"
               className="btn-primary px-6 py-2.5 text-xs font-semibold inline-flex items-center justify-center gap-2 rounded-full shadow-[0_4px_20px_rgba(136,189,164,0.25)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] focus-visible:ring-offset-2 focus-visible:ring-offset-[#090A0F]"
             >
-              <span>Launch Practice Studio</span>
+              <span>2. Launch Practice Studio</span>
               <ArrowRight size={14} aria-hidden="true" />
             </Link>
           </div>
@@ -43,7 +44,7 @@ export default function DeliberatePracticeCTA() {
           <div className="pt-5 border-t border-white/[0.06] flex flex-wrap items-center justify-center gap-6 text-xs font-mono text-zinc-400">
             <div className="flex items-center gap-1.5">
               <CheckCircle2 size={13} className="text-[#88BDA4]" aria-hidden="true" />
-              <span>Browser Sandbox</span>
+              <span>In-Browser Workbench</span>
             </div>
             <div className="flex items-center gap-1.5">
               <Terminal size={13} className="text-[#88BDA4]" aria-hidden="true" />

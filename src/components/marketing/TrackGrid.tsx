@@ -37,11 +37,8 @@ export default function TrackGrid() {
     <section id="tracks" className="py-14 sm:py-20 bg-[#090A0F] relative border-t border-white/[0.06]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 sm:space-y-12">
         
-        {/* Section Header */}
+        {/* Section Header (Clean & Minimalist without AI pill badges) */}
         <div className="max-w-2xl mx-auto text-center space-y-2.5">
-          <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-[#11131A] border border-white/[0.08] text-[11px] font-mono text-[#88BDA4]">
-            <span>TRACKS</span>
-          </div>
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-white">
             Core engineering domains
           </h2>
@@ -61,23 +58,15 @@ export default function TrackGrid() {
               >
                 <div className="space-y-4">
                   {/* Card top */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-lg bg-[#171a24] border border-white/[0.08] flex items-center justify-center text-[#88BDA4] group-hover:border-[#88BDA4]/40 transition-colors">
-                        <Icon size={18} strokeWidth={2} aria-hidden="true" />
-                      </div>
-                      <div>
-                        <span className="text-[10px] font-mono text-[#88BDA4] block uppercase">
-                          Track {track.id}
-                        </span>
-                        <h3 className="text-base font-bold text-white tracking-tight">
-                          {track.title}
-                        </h3>
-                      </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-[#171a24] border border-white/[0.08] flex items-center justify-center text-[#88BDA4] group-hover:border-[#88BDA4]/40 transition-colors">
+                      <Icon size={18} strokeWidth={2} aria-hidden="true" />
                     </div>
-                    <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-[#11131A] border border-white/[0.06] text-zinc-400">
-                      Tier 1-12
-                    </span>
+                    <div>
+                      <h3 className="text-base font-bold text-white tracking-tight">
+                        {track.title}
+                      </h3>
+                    </div>
                   </div>
 
                   {/* Summary */}
@@ -100,27 +89,19 @@ export default function TrackGrid() {
 
                 {/* Card CTA */}
                 <div className="pt-4 mt-5 border-t border-white/[0.06] flex items-center justify-between">
-                  <span className="text-[11px] font-mono text-zinc-500">
-                    Hands-on rep
-                  </span>
+                  <span className="text-xs font-mono text-zinc-500">Practice track</span>
                   <Link
-                    href="/studio"
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#88BDA4] hover:text-[#9cd1b8] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] rounded px-1 py-0.5"
+                    href={`/studio?track=${parseInt(track.id, 10)}`}
+                    className="inline-flex items-center gap-1.5 text-xs font-medium text-[#88BDA4] hover:text-[#9cd1b8] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] rounded px-1 py-0.5"
+                    aria-label={`Enter Track ${track.id}: ${track.title}`}
                   >
-                    <span>Practice Track {track.id}</span>
+                    <span>Enter track</span>
                     <ArrowRight size={13} aria-hidden="true" />
                   </Link>
                 </div>
               </div>
             );
           })}
-        </div>
-
-        {/* Global language callout */}
-        <div className="text-center">
-          <span className="text-xs font-mono text-zinc-500">
-            Supported languages: TypeScript, JavaScript, Python, Go
-          </span>
         </div>
 
       </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Copy, Check, Layers, ChevronDown, ChevronUp, ArrowRight } from 'lucide-react';
 import {
   generateMasterPrompt,
@@ -35,6 +35,35 @@ export function MasterPromptCard({ onGoToWorkspace }: MasterPromptCardProps) {
   const [language, setLanguage] = useState<string>('TypeScript');
   const [copied, setCopied] = useState<boolean>(false);
   const [showPreview, setShowPreview] = useState<boolean>(false);
+
+  // Custom Dropdown states
+  const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState<boolean>(false);
+  const [isLangDropdownOpen, setIsLangDropdownOpen] = useState<boolean>(false);
+  const typeDropdownRef = useRef<HTMLDivElement>(null);
+  const langDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (typeDropdownRef.current && !typeDropdownRef.current.contains(event.target as Node)) {
+        setIsTypeDropdownOpen(false);
+      }
+      if (langDropdownRef.current && !langDropdownRef.current.contains(event.target as Node)) {
+        setIsLangDropdownOpen(false);
+      }
+    }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setIsTypeDropdownOpen(false);
+        setIsLangDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   const activeTier = getTierForLevel(level);
 
@@ -181,7 +210,7 @@ export function MasterPromptCard({ onGoToWorkspace }: MasterPromptCardProps) {
             </div>
           </div>
 
-          {/* Level Slider */}
+          {/* Custom High-Contrast Level Slider */}
           <input
             id="difficulty-level-slider"
             aria-label="Difficulty level from 1 to 12"
@@ -190,7 +219,7 @@ export function MasterPromptCard({ onGoToWorkspace }: MasterPromptCardProps) {
             max="12"
             value={level}
             onChange={(e) => setLevel(parseInt(e.target.value, 10))}
-            className="w-full accent-[#88BDA4] bg-[#090A0F] h-2 rounded-lg appearance-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
+            className="w-full custom-slider cursor-pointer"
           />
 
           {/* Tier Pills */}
@@ -220,47 +249,129 @@ export function MasterPromptCard({ onGoToWorkspace }: MasterPromptCardProps) {
           </div>
         </div>
 
-        {/* Section C: Format & Language */}
+        {/* Section C: Format & Language with Custom Stylized Popover Dropdowns */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-white/6">
-          <div className="space-y-1.5">
-            <label htmlFor="challenge-type-select" className="text-xs font-mono font-semibold uppercase tracking-wider text-zinc-300 block">
+          {/* Custom Challenge Type Dropdown */}
+          <div className="space-y-1.5" ref={typeDropdownRef}>
+            <label className="text-xs font-mono font-semibold uppercase tracking-wider text-zinc-300 block">
               03. Challenge Type
             </label>
             <div className="relative">
-              <select
-                id="challenge-type-select"
-                value={type}
-                onChange={(e) => setType(e.target.value)}
-                className="w-full appearance-none bg-[#090A0F] border border-white/10 rounded-xl px-4 py-2.5 pr-10 text-xs font-medium text-zinc-200 focus:outline-none focus:border-[#88BDA4]/60 focus-visible:ring-2 focus-visible:ring-[#88BDA4] cursor-pointer transition-colors"
+              <button
+                type="button"
+                onClick={() => {
+                  setIsTypeDropdownOpen((prev) => !prev);
+                  setIsLangDropdownOpen(false);
+                }}
+                aria-haspopup="listbox"
+                aria-expanded={isTypeDropdownOpen}
+                className={`w-full flex items-center justify-between bg-[#161922] border-2 rounded-xl px-4 py-2.5 text-xs font-semibold text-white transition-all cursor-pointer ${
+                  isTypeDropdownOpen
+                    ? 'border-[#88BDA4] ring-2 ring-[#88BDA4]/20 bg-[#1b212e]'
+                    : 'border-zinc-700/80 hover:border-zinc-500 hover:bg-[#1a1f2b]'
+                }`}
               >
-                {CHALLENGE_TYPES.map((t) => (
-                  <option key={t} value={t} className="bg-[#11131A] text-zinc-200 py-1">
-                    {t}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="w-4 h-4 text-zinc-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true" />
+                <span>{type}</span>
+                <ChevronDown
+                  className={`w-4 h-4 text-[#88BDA4] transition-transform duration-200 ${
+                    isTypeDropdownOpen ? 'rotate-180' : ''
+                  }`}
+                  aria-hidden="true"
+                />
+              </button>
+
+              {isTypeDropdownOpen && (
+                <div
+                  role="listbox"
+                  className="absolute left-0 right-0 top-full mt-2 rounded-xl bg-[#0e1118] border-2 border-zinc-700/80 p-1.5 shadow-2xl z-50 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150 max-h-56 overflow-y-auto"
+                >
+                  {CHALLENGE_TYPES.map((t) => {
+                    const isSelected = type === t;
+                    return (
+                      <button
+                        key={t}
+                        type="button"
+                        role="option"
+                        aria-selected={isSelected}
+                        onClick={() => {
+                          setType(t);
+                          setIsTypeDropdownOpen(false);
+                        }}
+                        className={`w-full flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                          isSelected
+                            ? 'bg-[#1e2636] text-white border border-[#88BDA4]/40 font-semibold'
+                            : 'text-zinc-300 hover:bg-[#151922] hover:text-white'
+                        }`}
+                      >
+                        <span>{t}</span>
+                        {isSelected && <Check className="w-4 h-4 text-[#88BDA4]" aria-hidden="true" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <label htmlFor="challenge-lang-select" className="text-xs font-mono font-semibold uppercase tracking-wider text-zinc-300 block">
+          {/* Custom Language Dropdown */}
+          <div className="space-y-1.5" ref={langDropdownRef}>
+            <label className="text-xs font-mono font-semibold uppercase tracking-wider text-zinc-300 block">
               04. Primary Language
             </label>
             <div className="relative">
-              <select
-                id="challenge-lang-select"
-                value={language}
-                onChange={(e) => setLanguage(e.target.value)}
-                className="w-full appearance-none bg-[#090A0F] border border-white/10 rounded-xl px-4 py-2.5 pr-10 text-xs font-medium text-zinc-200 focus:outline-none focus:border-[#88BDA4]/60 focus-visible:ring-2 focus-visible:ring-[#88BDA4] cursor-pointer transition-colors"
+              <button
+                type="button"
+                onClick={() => {
+                  setIsLangDropdownOpen((prev) => !prev);
+                  setIsTypeDropdownOpen(false);
+                }}
+                aria-haspopup="listbox"
+                aria-expanded={isLangDropdownOpen}
+                className={`w-full flex items-center justify-between bg-[#161922] border-2 rounded-xl px-4 py-2.5 text-xs font-semibold text-white transition-all cursor-pointer ${
+                  isLangDropdownOpen
+                    ? 'border-[#88BDA4] ring-2 ring-[#88BDA4]/20 bg-[#1b212e]'
+                    : 'border-zinc-700/80 hover:border-zinc-500 hover:bg-[#1a1f2b]'
+                }`}
               >
-                {SUPPORTED_LANGUAGES.map((lang) => (
-                  <option key={lang} value={lang} className="bg-[#11131A] text-zinc-200 py-1">
-                    {lang}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="w-4 h-4 text-zinc-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true" />
+                <span>{language}</span>
+                <ChevronDown
+                  className={`w-4 h-4 text-[#88BDA4] transition-transform duration-200 ${
+                    isLangDropdownOpen ? 'rotate-180' : ''
+                  }`}
+                  aria-hidden="true"
+                />
+              </button>
+
+              {isLangDropdownOpen && (
+                <div
+                  role="listbox"
+                  className="absolute left-0 right-0 top-full mt-2 rounded-xl bg-[#0e1118] border-2 border-zinc-700/80 p-1.5 shadow-2xl z-50 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150 max-h-56 overflow-y-auto"
+                >
+                  {SUPPORTED_LANGUAGES.map((lang) => {
+                    const isSelected = language === lang;
+                    return (
+                      <button
+                        key={lang}
+                        type="button"
+                        role="option"
+                        aria-selected={isSelected}
+                        onClick={() => {
+                          setLanguage(lang);
+                          setIsLangDropdownOpen(false);
+                        }}
+                        className={`w-full flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                          isSelected
+                            ? 'bg-[#1e2636] text-white border border-[#88BDA4]/40 font-semibold'
+                            : 'text-zinc-300 hover:bg-[#151922] hover:text-white'
+                        }`}
+                      >
+                        <span>{lang}</span>
+                        {isSelected && <Check className="w-4 h-4 text-[#88BDA4]" aria-hidden="true" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </div>

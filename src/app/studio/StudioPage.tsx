@@ -289,7 +289,7 @@ export default function Home() {
                 <form action={signOutAction}>
                   <button
                     type="submit"
-                    className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-[#11131A] px-3 py-1.5 text-zinc-400 hover:border-red-500/30 hover:bg-red-950/20 hover:text-red-300 transition-all font-medium cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-red-500/40 bg-red-950/40 px-3.5 py-1.5 text-xs font-semibold text-red-200 hover:bg-red-900/60 hover:text-white hover:border-red-400 transition-all cursor-pointer shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
                     title="Sign out of account"
                   >
                     <LogOut size={13} aria-hidden="true" />
@@ -320,7 +320,7 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Clean, Modern Workflow Tabs with Distinct Colors & Gap */}
+        {/* Clean, Modern Workflow Tabs with High Contrast & Visual Differentiation */}
         <div className="flex justify-center" role="tablist" aria-label="Studio workflow steps">
           <div className="grid grid-cols-2 max-w-xl w-full gap-4">
             <button
@@ -330,33 +330,36 @@ export default function Home() {
               onClick={() => setActiveTab('prompt')}
               className={`flex items-center gap-3.5 p-4 rounded-2xl transition-all cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] ${
                 activeTab === 'prompt'
-                  ? 'bg-[#151922] border-2 border-[#88BDA4] shadow-xl shadow-[#88BDA4]/10'
-                  : 'bg-[#0e1017] border border-white/10 hover:border-white/20 hover:bg-[#12151f] opacity-75 hover:opacity-100'
+                  ? 'bg-[#181f2a] border-2 border-[#88BDA4] shadow-xl shadow-[#88BDA4]/15 ring-2 ring-[#88BDA4]/20'
+                  : 'bg-[#161922] border-2 border-zinc-700/80 hover:border-zinc-500 hover:bg-[#1c212e] shadow-md'
               }`}
             >
               <div
                 className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
                   activeTab === 'prompt'
-                    ? 'bg-[#88BDA4] text-[#090A0F] shadow-md shadow-[#88BDA4]/25'
-                    : 'bg-[#171a24] border border-white/10 text-zinc-400'
+                    ? 'bg-[#88BDA4] text-[#090A0F] shadow-md shadow-[#88BDA4]/30'
+                    : 'bg-[#222736] border border-zinc-600/60 text-zinc-300'
                 }`}
               >
                 <Layers className="h-5 w-5" aria-hidden="true" />
               </div>
               <div className="min-w-0">
                 <div
-                  className={`text-[10px] font-mono font-semibold uppercase tracking-wider ${
-                    activeTab === 'prompt' ? 'text-[#88BDA4]' : 'text-zinc-500'
+                  className={`text-[10px] font-mono font-bold uppercase tracking-wider ${
+                    activeTab === 'prompt' ? 'text-[#88BDA4]' : 'text-zinc-400'
                   }`}
                 >
                   Step 1
                 </div>
                 <div
-                  className={`text-sm font-semibold truncate ${
-                    activeTab === 'prompt' ? 'text-white' : 'text-zinc-300'
+                  className={`text-sm font-bold truncate ${
+                    activeTab === 'prompt' ? 'text-white' : 'text-zinc-100'
                   }`}
                 >
                   Configure Prompt
+                </div>
+                <div className="text-[11px] text-zinc-400 mt-0.5 font-medium truncate">
+                  {activeTab === 'prompt' ? 'Currently Editing' : 'Click to Configure'}
                 </div>
               </div>
             </button>
@@ -368,33 +371,36 @@ export default function Home() {
               onClick={() => setActiveTab('paste')}
               className={`flex items-center gap-3.5 p-4 rounded-2xl transition-all cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] ${
                 activeTab === 'paste'
-                  ? 'bg-[#151922] border-2 border-[#88BDA4] shadow-xl shadow-[#88BDA4]/10'
-                  : 'bg-[#0e1017] border border-white/10 hover:border-white/20 hover:bg-[#12151f] opacity-75 hover:opacity-100'
+                  ? 'bg-[#181f2a] border-2 border-[#88BDA4] shadow-xl shadow-[#88BDA4]/15 ring-2 ring-[#88BDA4]/20'
+                  : 'bg-[#161922] border-2 border-zinc-700/80 hover:border-zinc-500 hover:bg-[#1c212e] shadow-md'
               }`}
             >
               <div
                 className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
                   activeTab === 'paste'
-                    ? 'bg-[#88BDA4] text-[#090A0F] shadow-md shadow-[#88BDA4]/25'
-                    : 'bg-[#171a24] border border-white/10 text-zinc-400'
+                    ? 'bg-[#88BDA4] text-[#090A0F] shadow-md shadow-[#88BDA4]/30'
+                    : 'bg-[#222736] border border-zinc-600/60 text-zinc-300'
                 }`}
               >
                 <Terminal className="h-5 w-5" aria-hidden="true" />
               </div>
               <div className="min-w-0">
                 <div
-                  className={`text-[10px] font-mono font-semibold uppercase tracking-wider ${
-                    activeTab === 'paste' ? 'text-[#88BDA4]' : 'text-zinc-500'
+                  className={`text-[10px] font-mono font-bold uppercase tracking-wider ${
+                    activeTab === 'paste' ? 'text-[#88BDA4]' : 'text-zinc-400'
                   }`}
                 >
                   Step 2
                 </div>
                 <div
-                  className={`text-sm font-semibold truncate ${
-                    activeTab === 'paste' ? 'text-white' : 'text-zinc-300'
+                  className={`text-sm font-bold truncate ${
+                    activeTab === 'paste' ? 'text-white' : 'text-zinc-100'
                   }`}
                 >
                   Paste & Workspace
+                </div>
+                <div className="text-[11px] text-zinc-400 mt-0.5 font-medium truncate">
+                  {activeTab === 'paste' ? 'Currently Editing' : 'Click to Paste & Enter'}
                 </div>
               </div>
             </button>

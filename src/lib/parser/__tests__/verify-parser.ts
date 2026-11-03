@@ -439,6 +439,53 @@ assert(caseVariedResult.challenge?.metadata.editableLanguage === 'typescript', '
 assert(caseVariedResult.challenge?.metadata.editableFiles[0] === 'src/service.ts', 'Parses Editable Files with space');
 assert(caseVariedResult.challenge?.tests.length === 1, 'Parses asterisk bulleted tests');
 
+// Test 14: Cleans preamble language markers and fenced code blocks in files and references
+const fencedChallenge = `---METADATA---
+track: 1
+level: 2
+type: Fix
+editableLanguage: typescript
+editableFiles: src/session.ts
+
+---TASK---
+Implement secure session manager.
+
+---FILE: src/session.ts---
+typescript
+\`\`\`typescript
+export function createSession(userId: string): string {
+  return "token";
+}
+\`\`\`
+
+---TESTS---
+Input: "usr_1"
+Expected: "token"
+
+---REFERENCE---
+typescript
+\`\`\`typescript
+export function createSession(userId: string): string {
+  return "token";
+}
+\`\`\`
+`;
+
+const fencedResult = validateRawChallenge(fencedChallenge);
+assert(fencedResult.valid === true, 'Accepts challenge with language prefix and code fence in file');
+assert(
+  fencedResult.challenge?.files[0].content === 'export function createSession(userId: string): string {\n  return "token";\n}',
+  'Strips preamble "typescript" and markdown fence from file content'
+);
+assert(
+  !fencedResult.challenge?.files[0].content.includes('```'),
+  'File content contains no markdown backticks'
+);
+assert(
+  !fencedResult.challenge?.files[0].content.startsWith('typescript'),
+  'File content does not start with bare "typescript" string'
+);
+
 console.log(`\n--- Verification Summary: ${passedTests}/${totalTests} tests passed ---`);
 
 if (passedTests !== totalTests) {

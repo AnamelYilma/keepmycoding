@@ -33,7 +33,7 @@ export default function MarketingNav({
         >
           <div className="relative w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
             <Image
-              src="/images/logo.png"
+              src="/logo2nd.png"
               alt="KeepCoding logo"
               width={32}
               height={32}

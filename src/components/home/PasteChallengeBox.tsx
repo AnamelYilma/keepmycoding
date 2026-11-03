@@ -25,6 +25,7 @@ export function PasteChallengeBox({ onStartChallenge, onGoToPrompt }: PasteChall
   const [rawText, setRawText] = useState<string>('');
   const [selectedSampleId, setSelectedSampleId] = useState<string>('');
   const [isSampleDropdownOpen, setIsSampleDropdownOpen] = useState<boolean>(false);
+  const [inputWarning, setInputWarning] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const gutterRef = useRef<HTMLDivElement>(null);
@@ -60,6 +61,7 @@ export function PasteChallengeBox({ onStartChallenge, onGoToPrompt }: PasteChall
   const handleSelectSample = (sampleId: string) => {
     setSelectedSampleId(sampleId);
     setIsSampleDropdownOpen(false);
+    setInputWarning(null);
     const sample = SAMPLE_CHALLENGES.find((s) => s.id === sampleId);
     if (sample) {
       setRawText(sample.raw);
@@ -67,32 +69,35 @@ export function PasteChallengeBox({ onStartChallenge, onGoToPrompt }: PasteChall
   };
 
   const handleQuickSample = () => {
+    setInputWarning(null);
     if (SAMPLE_CHALLENGES.length > 0) {
       setSelectedSampleId(SAMPLE_CHALLENGES[0].id);
       setRawText(SAMPLE_CHALLENGES[0].raw);
     }
   };
 
-  const handleQuickLaunchSample = () => {
-    if (SAMPLE_CHALLENGES.length > 0) {
-      const sample = SAMPLE_CHALLENGES[0];
-      setSelectedSampleId(sample.id);
-      setRawText(sample.raw);
-      const val = validateRawChallenge(sample.raw);
-      if (val.valid && val.challenge) {
-        onStartChallenge(val.challenge);
+  const handleLaunch = () => {
+    if (!rawText.trim()) {
+      setInputWarning('Editor is empty. Paste your AI challenge block below, or click "Load Sample" to load a challenge first.');
+      if (textareaRef.current) {
+        textareaRef.current.focus();
       }
+      return;
+    }
+    setInputWarning(null);
+    const val = validateRawChallenge(rawText);
+    if (val.valid && val.challenge) {
+      onStartChallenge(val.challenge);
     }
   };
 
   const handleStart = () => {
-    if (validation && validation.valid && validation.challenge) {
-      onStartChallenge(validation.challenge);
-    }
+    handleLaunch();
   };
 
   const handleClear = () => {
     setRawText('');
+    setInputWarning(null);
   };
 
   const handleScroll = () => {
@@ -128,25 +133,16 @@ export function PasteChallengeBox({ onStartChallenge, onGoToPrompt }: PasteChall
           </div>
         </div>
 
-        {/* 2. Utilitarian Action Toolbar: Dedicated toolbar line with unified button styling */}
+        {/* 2. Utilitarian Action Toolbar: Clear instructions and intuitive loading */}
         <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-white/5">
           <div className="flex items-center gap-2 flex-wrap">
             <button
               type="button"
-              onClick={handleQuickLaunchSample}
+              onClick={handleQuickSample}
               className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#88BDA4] hover:bg-[#9cd1b8] text-[#090A0F] font-semibold text-xs transition-all cursor-pointer shadow-sm active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
             >
               <BookOpen className="w-3.5 h-3.5 text-[#090A0F]" aria-hidden="true" />
-              <span>Launch Sample</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleQuickSample}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#090A0F] hover:bg-[#151821] text-zinc-300 border border-white/10 text-xs font-medium transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
-            >
-              <BookOpen className="w-3.5 h-3.5 text-zinc-400" aria-hidden="true" />
-              <span>Paste Sample</span>
+              <span>Load Sample</span>
             </button>
 
             {/* Custom Popover Dropdown */}
@@ -240,14 +236,54 @@ export function PasteChallengeBox({ onStartChallenge, onGoToPrompt }: PasteChall
         </div>
       </div>
 
-      {/* 3. Editor Surface with Line Numbers */}
+      {/* 3. Editor Surface with Guidance and Line Numbers */}
       <div className="p-6 sm:p-7 space-y-4">
-        <div className="relative flex rounded-xl border border-white/10 bg-[#07080C] focus-within:border-[#88BDA4]/60 focus-within:ring-1 focus-within:ring-[#88BDA4]/30 transition-all overflow-hidden shadow-inner">
+        {/* Visual Guided Stepper for Users */}
+        <div className="p-3.5 rounded-xl bg-[#141824] border border-zinc-700/80 text-xs text-zinc-300 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-sm">
+          <div className="flex items-center gap-3">
+            <span className="w-6 h-6 rounded-full bg-[#88BDA4] text-[#090A0F] font-bold text-xs flex items-center justify-center shrink-0">
+              ?
+            </span>
+            <div className="leading-relaxed">
+              <span className="font-semibold text-white">How to use: </span>
+              <span>
+                Paste your AI-generated challenge text into the editor below, or click <strong className="text-[#88BDA4]">&quot;Load Sample&quot;</strong> above to load a demo instantly.
+              </span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleQuickSample}
+            className="self-start md:self-auto shrink-0 inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#222838] hover:bg-[#2b3347] text-xs font-semibold text-white border border-zinc-600/80 transition-colors cursor-pointer"
+          >
+            <BookOpen className="w-3.5 h-3.5 text-[#88BDA4]" aria-hidden="true" />
+            <span>Load Quick Demo</span>
+          </button>
+        </div>
+
+        {/* Warning notification if user attempts to launch without any input */}
+        {inputWarning && (
+          <div className="p-3.5 rounded-xl bg-amber-950/40 border border-amber-500/40 text-xs text-amber-200 flex items-center justify-between gap-3 shadow-md animate-in fade-in duration-150">
+            <div className="flex items-center gap-2.5">
+              <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
+              <span>{inputWarning}</span>
+            </div>
+            <button
+              type="button"
+              onClick={handleQuickSample}
+              className="underline hover:text-white font-semibold cursor-pointer shrink-0"
+            >
+              Load Sample Now
+            </button>
+          </div>
+        )}
+
+        <div className="relative flex rounded-xl border-2 border-zinc-700/80 bg-[#07080C] focus-within:border-[#88BDA4] focus-within:ring-2 focus-within:ring-[#88BDA4]/30 transition-all overflow-hidden shadow-inner">
           {/* Gutter */}
           <div
             ref={gutterRef}
             aria-hidden="true"
-            className="w-12 py-4 pl-2 pr-3.5 font-mono text-[11px] font-medium text-zinc-500 bg-[#10131c] border-r border-white/8 select-none text-right overflow-hidden shrink-0 leading-[1.625rem]"
+            className="w-12 py-4 pl-2 pr-3.5 font-mono text-[11px] font-semibold text-zinc-400 bg-[#121622] border-r-2 border-zinc-700/80 select-none text-right overflow-hidden shrink-0 leading-[1.625rem]"
           >
             {Array.from({ length: linesCount }, (_, i) => (
               <div key={i + 1}>{i + 1}</div>
@@ -260,7 +296,10 @@ export function PasteChallengeBox({ onStartChallenge, onGoToPrompt }: PasteChall
             onScroll={handleScroll}
             rows={12}
             value={rawText}
-            onChange={(e) => setRawText(e.target.value)}
+            onChange={(e) => {
+              setRawText(e.target.value);
+              if (inputWarning) setInputWarning(null);
+            }}
             aria-label="Raw challenge specification block"
             placeholder={`---METADATA---
 track: 1
@@ -295,32 +334,32 @@ Describe task specifications here...
 
         {/* Live Validation Bar */}
         {isEmpty ? (
-          <div className="p-3.5 rounded-xl bg-[#0d0f17] border border-white/8 text-xs text-zinc-300 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-inner">
+          <div className="p-3.5 rounded-xl bg-[#141824] border border-zinc-700/80 text-xs text-zinc-300 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-inner">
             <span className="flex items-center gap-2">
-              <span className="inline-block w-2 h-2 rounded-full bg-zinc-600 animate-pulse" />
-              <span>Awaiting challenge input. Paste AI output above or click &quot;Launch Sample&quot;.</span>
+              <span className="inline-block w-2.5 h-2.5 rounded-full bg-zinc-500 animate-pulse" />
+              <span>Awaiting challenge input. Paste AI output above or click &quot;Load Sample&quot;.</span>
             </span>
-            <span className="font-mono text-[11px] text-zinc-400 font-medium">0 characters</span>
+            <span className="font-mono text-[11px] text-zinc-400 font-semibold">0 characters</span>
           </div>
         ) : isValid && validation.challenge ? (
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-[#0c1214] border border-[#88BDA4]/40 text-xs shadow-md">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-[#0e1616] border-2 border-[#88BDA4] text-xs shadow-md">
             <div className="flex items-center gap-3">
-              <div className="w-7 h-7 rounded-lg bg-[#88BDA4]/15 border border-[#88BDA4]/40 flex items-center justify-center text-[#88BDA4] shrink-0">
-                <CheckCircle2 className="w-4 h-4 text-[#88BDA4]" aria-hidden="true" />
+              <div className="w-7 h-7 rounded-lg bg-[#88BDA4] text-[#090A0F] flex items-center justify-center shrink-0 shadow-sm">
+                <CheckCircle2 className="w-4 h-4 text-[#090A0F]" aria-hidden="true" />
               </div>
               <div className="flex items-center gap-2 sm:gap-2.5 text-zinc-200 font-mono text-xs flex-wrap">
-                <span className="text-[#88BDA4] font-semibold">Valid Challenge</span>
-                <span className="text-zinc-600">|</span>
-                <span className="rounded-md bg-white/5 border border-white/10 px-2 py-0.5 text-zinc-200">
+                <span className="text-[#88BDA4] font-bold">Valid Challenge</span>
+                <span className="text-zinc-500">|</span>
+                <span className="rounded-md bg-white/10 border border-white/15 px-2 py-0.5 text-zinc-100 font-semibold">
                   Track {validation.challenge.metadata.track}
                 </span>
-                <span className="rounded-md bg-[#88BDA4]/10 border border-[#88BDA4]/25 px-2 py-0.5 text-[#88BDA4] font-medium">
+                <span className="rounded-md bg-[#88BDA4]/15 border border-[#88BDA4]/40 px-2 py-0.5 text-[#88BDA4] font-bold">
                   Level {validation.challenge.metadata.level}
                 </span>
-                <span className="rounded-md bg-white/5 border border-white/10 px-2 py-0.5 text-zinc-300">
+                <span className="rounded-md bg-white/10 border border-white/15 px-2 py-0.5 text-zinc-200">
                   {validation.challenge.metadata.editableLanguage}
                 </span>
-                <span className="text-zinc-400">
+                <span className="text-zinc-300">
                   {validation.challenge.files.length} {validation.challenge.files.length === 1 ? 'file' : 'files'}
                 </span>
               </div>
@@ -329,7 +368,7 @@ Describe task specifications here...
             <button
               type="button"
               onClick={handleStart}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#171a24] hover:bg-[#1f2330] text-[#88BDA4] border border-[#88BDA4]/30 font-mono text-xs font-semibold transition-all cursor-pointer self-start sm:self-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#88BDA4] hover:bg-[#9cd1b8] text-[#090A0F] font-mono text-xs font-bold transition-all cursor-pointer self-start sm:self-auto shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
             >
               <span>Launch Workspace</span>
               <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />

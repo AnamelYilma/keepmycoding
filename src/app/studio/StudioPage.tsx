@@ -320,40 +320,40 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Clean, Modern Workflow Tabs */}
+        {/* Clean, Modern Workflow Tabs with Distinct Colors & Gap */}
         <div className="flex justify-center" role="tablist" aria-label="Studio workflow steps">
-          <div className="grid grid-cols-2 max-w-lg w-full gap-2 p-1.5 rounded-2xl bg-[#11131A] border border-white/10 shadow-2xl">
+          <div className="grid grid-cols-2 max-w-xl w-full gap-4">
             <button
               type="button"
               role="tab"
               aria-selected={activeTab === 'prompt'}
               onClick={() => setActiveTab('prompt')}
-              className={`flex items-center gap-3 p-3 rounded-xl transition-all cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] ${
+              className={`flex items-center gap-3.5 p-4 rounded-2xl transition-all cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] ${
                 activeTab === 'prompt'
-                  ? 'bg-[#1b202c] border border-[#88BDA4]/40 shadow-lg'
-                  : 'border border-transparent hover:bg-white/[0.04] text-zinc-400'
+                  ? 'bg-[#151922] border-2 border-[#88BDA4] shadow-xl shadow-[#88BDA4]/10'
+                  : 'bg-[#0e1017] border border-white/10 hover:border-white/20 hover:bg-[#12151f] opacity-75 hover:opacity-100'
               }`}
             >
               <div
-                className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
                   activeTab === 'prompt'
-                    ? 'bg-[#88BDA4] text-[#090A0F]'
-                    : 'bg-[#090A0F] border border-white/10 text-zinc-400'
+                    ? 'bg-[#88BDA4] text-[#090A0F] shadow-md shadow-[#88BDA4]/25'
+                    : 'bg-[#171a24] border border-white/10 text-zinc-400'
                 }`}
               >
-                <Layers className="h-4 w-4" aria-hidden="true" />
+                <Layers className="h-5 w-5" aria-hidden="true" />
               </div>
               <div className="min-w-0">
                 <div
-                  className={`text-[10px] font-mono uppercase tracking-wider ${
-                    activeTab === 'prompt' ? 'text-[#88BDA4]' : 'text-zinc-400'
+                  className={`text-[10px] font-mono font-semibold uppercase tracking-wider ${
+                    activeTab === 'prompt' ? 'text-[#88BDA4]' : 'text-zinc-500'
                   }`}
                 >
                   Step 1
                 </div>
                 <div
-                  className={`text-xs font-semibold truncate ${
-                    activeTab === 'prompt' ? 'text-zinc-100' : 'text-zinc-300'
+                  className={`text-sm font-semibold truncate ${
+                    activeTab === 'prompt' ? 'text-white' : 'text-zinc-300'
                   }`}
                 >
                   Configure Prompt
@@ -366,32 +366,32 @@ export default function Home() {
               role="tab"
               aria-selected={activeTab === 'paste'}
               onClick={() => setActiveTab('paste')}
-              className={`flex items-center gap-3 p-3 rounded-xl transition-all cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] ${
+              className={`flex items-center gap-3.5 p-4 rounded-2xl transition-all cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] ${
                 activeTab === 'paste'
-                  ? 'bg-[#1b202c] border border-[#88BDA4]/40 shadow-lg'
-                  : 'border border-transparent hover:bg-white/[0.04] text-zinc-400'
+                  ? 'bg-[#151922] border-2 border-[#88BDA4] shadow-xl shadow-[#88BDA4]/10'
+                  : 'bg-[#0e1017] border border-white/10 hover:border-white/20 hover:bg-[#12151f] opacity-75 hover:opacity-100'
               }`}
             >
               <div
-                className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
                   activeTab === 'paste'
-                    ? 'bg-[#88BDA4] text-[#090A0F]'
-                    : 'bg-[#090A0F] border border-white/10 text-zinc-400'
+                    ? 'bg-[#88BDA4] text-[#090A0F] shadow-md shadow-[#88BDA4]/25'
+                    : 'bg-[#171a24] border border-white/10 text-zinc-400'
                 }`}
               >
-                <Terminal className="h-4 w-4" aria-hidden="true" />
+                <Terminal className="h-5 w-5" aria-hidden="true" />
               </div>
               <div className="min-w-0">
                 <div
-                  className={`text-[10px] font-mono uppercase tracking-wider ${
-                    activeTab === 'paste' ? 'text-[#88BDA4]' : 'text-zinc-400'
+                  className={`text-[10px] font-mono font-semibold uppercase tracking-wider ${
+                    activeTab === 'paste' ? 'text-[#88BDA4]' : 'text-zinc-500'
                   }`}
                 >
                   Step 2
                 </div>
                 <div
-                  className={`text-xs font-semibold truncate ${
-                    activeTab === 'paste' ? 'text-zinc-100' : 'text-zinc-300'
+                  className={`text-sm font-semibold truncate ${
+                    activeTab === 'paste' ? 'text-white' : 'text-zinc-300'
                   }`}
                 >
                   Paste & Workspace

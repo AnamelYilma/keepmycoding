@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Code2, BookOpen, History, Layers, Terminal, ArrowRight, LogOut, User } from 'lucide-react';
+import Image from 'next/image';
+import { BookOpen, History, Layers, Terminal, ArrowRight, LogOut, User } from 'lucide-react';
 import { MasterPromptCard } from '@/components/home/MasterPromptCard';
 import { PasteChallengeBox } from '@/components/home/PasteChallengeBox';
 import { HistoryDrawer } from '@/components/home/HistoryDrawer';
@@ -215,22 +216,33 @@ export default function Home() {
       {/* Subtle ambient lighting */}
       <div className="ambient-glow ambient-glow-mint top-[-120px] left-1/2 -translate-x-1/2 w-[720px] h-[340px] opacity-25 pointer-events-none" />
 
-      {/* Modern Top Header */}
+      {/* Modern Top Header matching landing page */}
       <header className="border-b border-white/8 bg-[#090A0F]/85 backdrop-blur-md sticky top-0 z-40">
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6">
-          <a href="/" className="group flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] rounded-lg">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-[#11131A] text-[#88BDA4] shadow-sm transition-colors group-hover:border-[#88BDA4]/40">
-              <Code2 className="h-4 w-4" aria-hidden="true" />
+          <Link
+            href="/studio"
+            className="group flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] rounded-lg"
+            aria-label="KeepCoding Studio home"
+          >
+            <div className="relative w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
+              <Image
+                src="/images/logo.png"
+                alt="KeepCoding logo"
+                width={32}
+                height={32}
+                priority
+                className="object-contain w-full h-full drop-shadow-[0_2px_8px_rgba(136,189,164,0.35)]"
+              />
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold tracking-tight text-zinc-100 group-hover:text-white transition-colors">
+            <div className="flex flex-col justify-center">
+              <span className="text-sm sm:text-base font-bold text-[#F4F4F5] tracking-tight leading-none group-hover:text-white transition-colors">
                 KeepCoding
               </span>
-              <span className="rounded-full border border-[#88BDA4]/25 bg-[#88BDA4]/10 px-2 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wider text-[#88BDA4]">
-                STUDIO
+              <span className="text-[9px] font-mono tracking-widest text-[#88BDA4] mt-1 leading-none">
+                ZERO-AI GYM
               </span>
             </div>
-          </a>
+          </Link>
 
           <nav className="flex items-center gap-2 text-xs" aria-label="Studio navigation">
             <Link
@@ -249,7 +261,7 @@ export default function Home() {
             <button
               type="button"
               onClick={() => setIsHowItWorksOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-zinc-400 border border-transparent hover:border-white/10 hover:bg-white/5 hover:text-zinc-100 transition-all font-medium cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
+              className="hidden md:inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-zinc-400 border border-transparent hover:border-white/10 hover:bg-white/5 hover:text-zinc-100 transition-all font-medium cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
             >
               <BookOpen className="h-3.5 w-3.5 text-zinc-400" aria-hidden="true" />
               <span>How it works</span>
@@ -298,11 +310,8 @@ export default function Home() {
       </header>
 
       {/* Main Content Area */}
-      <main className="mx-auto flex w-full max-w-4xl flex-col space-y-8 px-4 py-12 sm:px-6 relative z-10">
-        <div className="text-center space-y-3">
-          <div className="inline-flex items-center gap-1.5 rounded-full border border-[#88BDA4]/25 bg-[#88BDA4]/10 px-3 py-1 font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-[#88BDA4]">
-            Deliberate Practice Workbench
-          </div>
+      <main className="mx-auto flex w-full max-w-4xl flex-col space-y-8 px-4 py-10 sm:px-6 relative z-10">
+        <div className="text-center space-y-2">
           <h1 className="text-3xl font-semibold tracking-tight text-zinc-100 sm:text-4xl">
             Hands-on coding without distractions.
           </h1>

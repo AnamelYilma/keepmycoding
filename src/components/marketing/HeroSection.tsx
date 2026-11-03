@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Terminal } from 'lucide-react';
 import InteractiveHeroWorkbench from './InteractiveHeroWorkbench';
 import MarketingNav from './MarketingNav';
 
@@ -49,8 +48,8 @@ export default function HeroSection({ nav }: HeroSectionProps) {
     const w_tr_calc = Math.max(220, Math.min(360, Math.round(W * 0.22)));
     const h_tr_calc = Math.max(68, Math.min(96, Math.round(H * 0.11)));
 
-    const w_bl_calc = Math.max(320, Math.min(540, Math.round(W * 0.30)));
-    const h_bl_calc = Math.max(240, Math.min(420, Math.round(H * 0.34)));
+    const w_bl_calc = Math.max(320, Math.min(520, Math.round(W * 0.30)));
+    const h_bl_calc = Math.max(220, Math.min(360, Math.round(H * 0.32)));
 
     // Continuous closed SVG path outlining the image and tracing all 3 notches with exact arcs
     const d = [
@@ -172,29 +171,29 @@ export default function HeroSection({ nav }: HeroSectionProps) {
           {/* Top Notches (Logo + Auth) & Centered Floating Nav */}
           {nav || <MarketingNav topLeftWidth={w_tl} topRightWidth={w_tr} />}
 
-          {/* BOTTOM-LEFT NOTCH: Sits on solid #090A0F, minimal content */}
+          {/* BOTTOM-LEFT NOTCH: Sits on solid #090A0F, minimal content, 2 clean lines */}
           <div
-            className="absolute bottom-0 left-0 z-20 flex flex-col justify-end p-6 sm:p-8 lg:p-10 pointer-events-auto"
+            className="absolute bottom-0 left-0 z-20 flex flex-col justify-end p-5 sm:p-7 lg:p-8 pointer-events-auto"
             style={{
               width: `${w_bl}px`,
               height: `${h_bl}px`
             }}
           >
-            {/* Headline: 2 lines */}
-            <h1 className="text-[clamp(40px,4.6vw,76px)] font-extrabold tracking-tight leading-[1.02]">
-              <span className="text-[#F4F4F5] block">Carve Your</span>
-              <span className="text-[#88BDA4] block">Code.</span>
+            {/* Headline: Exactly 2 clean non-wrapping lines */}
+            <h1 className="text-[clamp(28px,3.2vw,50px)] font-extrabold tracking-tight leading-[1.06]">
+              <span className="text-[#F4F4F5] block whitespace-nowrap">Carve Your</span>
+              <span className="text-[#88BDA4] block whitespace-nowrap">Code.</span>
             </h1>
 
             {/* ONE button: Start Practicing */}
-            <div className="mt-5 sm:mt-6">
+            <div className="mt-4 sm:mt-5">
               <Link
                 href="/studio"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#88BDA4] hover:bg-[#9cd1b8] text-[#090A0F] font-semibold text-sm shadow-[0_2px_16px_rgba(136,189,164,0.35)] transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#88BDA4] hover:bg-[#9cd1b8] text-[#090A0F] font-semibold text-xs sm:text-sm shadow-[0_2px_16px_rgba(136,189,164,0.35)] transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
               >
                 <span>Start Practicing</span>
                 <span
-                  className="w-5 h-5 rounded-full bg-[#090A0F] text-[#88BDA4] flex items-center justify-center text-[10px] font-bold"
+                  className="w-4 h-4 rounded-full bg-[#090A0F] text-[#88BDA4] flex items-center justify-center text-[9px] font-bold"
                   aria-hidden="true"
                 >
                   ↗
@@ -205,31 +204,19 @@ export default function HeroSection({ nav }: HeroSectionProps) {
         </div>
       </section>
 
-      {/* 2. Interactive Preview Seated Below Hero (Untouched) */}
+      {/* 2. Interactive Preview Seated Below Hero (Clean, Minimalist) */}
       <section
         id="interactive-preview"
-        className="relative py-20 sm:py-28 bg-[#090A0F] border-t border-white/[0.08] scroll-mt-20"
+        className="relative py-16 sm:py-24 bg-[#090A0F] border-t border-white/[0.08] scroll-mt-20"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-          <div className="max-w-3xl mx-auto text-center space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#11131A] border border-white/[0.08] text-[11px] font-mono text-[#88BDA4]">
-              <Terminal size={12} aria-hidden="true" />
-              <span>LIVE INTERACTIVE SIMULATION</span>
-            </div>
+          <div className="max-w-2xl mx-auto text-center space-y-2.5">
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-[#F4F4F5]">
               Try running a test before entering the studio
             </h2>
-            <p className="text-sm sm:text-base text-zinc-400 max-w-2xl mx-auto">
-              Experience the KeepCoding practice loop right now. Toggle the bug fix in the editor below and run tests to see deterministic verification feedback.
-            </p>
           </div>
 
           <div className="pt-2 max-w-5xl mx-auto">
-            <div className="text-center mb-3">
-              <span className="text-[11px] font-mono tracking-wider uppercase text-zinc-400">
-                Interactive Preview: Try running a test below
-              </span>
-            </div>
             <InteractiveHeroWorkbench />
           </div>
         </div>

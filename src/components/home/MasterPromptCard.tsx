@@ -112,7 +112,7 @@ export function MasterPromptCard({ onGoToWorkspace }: MasterPromptCardProps) {
   };
 
   return (
-    <div className="bg-[#11131A] border border-white/10 rounded-2xl shadow-2xl relative overflow-hidden">
+    <div className="bg-[#11131A] border border-white/10 rounded-2xl shadow-2xl relative">
       {/* 1. Header Bar: Clean title, clear mission, and prominent copy action */}
       <div className="p-6 sm:p-7 border-b border-white/8 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

@@ -116,7 +116,7 @@ export function PasteChallengeBox({ onStartChallenge, onGoToPrompt }: PasteChall
   }, [rawText]);
 
   return (
-    <div className="bg-[#11131A] border border-white/10 rounded-2xl shadow-2xl relative overflow-hidden">
+    <div className="bg-[#11131A] border border-white/10 rounded-2xl shadow-2xl relative">
       {/* 1. Header Row: Title & Action Summary */}
       <div className="p-6 sm:p-7 border-b border-white/8 space-y-4">
         <div className="flex items-center gap-3">
@@ -177,7 +177,7 @@ export function PasteChallengeBox({ onStartChallenge, onGoToPrompt }: PasteChall
                 <div
                   role="listbox"
                   aria-label="Sample challenges"
-                  className="absolute left-0 sm:left-auto sm:right-0 top-full mt-2 w-72 sm:w-80 rounded-xl bg-[#0e1017] border border-white/15 p-1.5 shadow-2xl z-50 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150"
+                  className="absolute left-0 top-full mt-2 w-72 sm:w-80 rounded-xl bg-[#0e1118] border-2 border-zinc-700/80 p-1.5 shadow-2xl z-50 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150"
                 >
                   <div className="px-2.5 py-1.5 text-[10px] font-mono uppercase tracking-wider text-zinc-400 border-b border-white/8 mb-1">
                     Preset Challenges

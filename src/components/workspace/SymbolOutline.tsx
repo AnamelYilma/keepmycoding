@@ -12,9 +12,10 @@ interface SymbolItem {
 interface SymbolOutlineProps {
   content: string;
   filePath: string;
+  onSelectSymbol?: (lineNumber: number) => void;
 }
 
-export function SymbolOutline({ content, filePath }: SymbolOutlineProps) {
+export function SymbolOutline({ content, filePath, onSelectSymbol }: SymbolOutlineProps) {
   const fileName = useMemo(() => {
     return filePath ? filePath.split('/').pop() || filePath : '';
   }, [filePath]);
@@ -89,19 +90,22 @@ export function SymbolOutline({ content, filePath }: SymbolOutlineProps) {
       ) : (
         <div className="max-h-48 overflow-y-auto space-y-0.5 pr-0.5">
           {symbols.map((sym, idx) => (
-            <div
+            <button
               key={`${sym.name}-${idx}`}
-              className="flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs text-zinc-400 hover:text-zinc-200 hover:bg-white/5 transition-colors"
+              type="button"
+              onClick={() => onSelectSymbol?.(sym.lineNumber)}
+              title={`Jump to line ${sym.lineNumber} (${sym.name})`}
+              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs text-zinc-400 hover:text-zinc-100 hover:bg-white/10 active:bg-white/15 transition-colors cursor-pointer text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#88BDA4]"
             >
               <div className="flex items-center gap-1.5 truncate">
                 <Code2 className="w-3 h-3 text-[#88BDA4] shrink-0" aria-hidden="true" />
                 <span className="font-mono text-[11px] truncate">{sym.name}</span>
               </div>
-              <span className="text-[10px] font-mono text-zinc-400 flex items-center gap-0.5">
+              <span className="text-[10px] font-mono text-zinc-400 flex items-center gap-0.5 shrink-0">
                 <Hash className="w-2.5 h-2.5 inline" aria-hidden="true" />
                 {sym.lineNumber}
               </span>
-            </div>
+            </button>
           ))}
         </div>
       )}

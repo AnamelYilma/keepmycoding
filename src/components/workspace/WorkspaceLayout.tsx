@@ -41,6 +41,17 @@ export function WorkspaceLayout({
   onBack,
 }: WorkspaceLayoutProps) {
   const [mobileTab, setMobileTab] = useState<'editor' | 'task' | 'files'>('editor');
+  const [targetLine, setTargetLine] = useState<number | null>(null);
+
+  const handleSelectSymbol = (lineNumber: number) => {
+    // Switch to editor tab on mobile if currently in files tab
+    setMobileTab('editor');
+    // Ensure state updates even if clicking the exact same line twice
+    setTargetLine(null);
+    requestAnimationFrame(() => {
+      setTargetLine(lineNumber);
+    });
+  };
 
   return (
     <div className="flex flex-col h-screen bg-[#090A0F] text-zinc-100 overflow-hidden">
@@ -124,6 +135,7 @@ export function WorkspaceLayout({
           <SymbolOutline
             content={activeFile.content}
             filePath={activeFile.path}
+            onSelectSymbol={handleSelectSymbol}
           />
         </aside>
 
@@ -137,6 +149,7 @@ export function WorkspaceLayout({
             file={activeFile}
             onChange={(val) => onUpdateFileContent(activeFile.path, val)}
             isDirty={isFileDirty(activeFile.path)}
+            targetLine={targetLine}
           />
         </div>
 

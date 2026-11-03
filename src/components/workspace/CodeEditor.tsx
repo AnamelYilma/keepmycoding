@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo } from 'react';
-import CodeMirror from '@uiw/react-codemirror';
+import { useMemo, useRef, useEffect } from 'react';
+import CodeMirror, { ReactCodeMirrorRef, EditorView } from '@uiw/react-codemirror';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { javascript } from '@codemirror/lang-javascript';
 import { python } from '@codemirror/lang-python';
@@ -15,9 +15,28 @@ interface CodeEditorProps {
   file: ChallengeFile;
   onChange: (newContent: string) => void;
   isDirty: boolean;
+  targetLine?: number | null;
 }
 
-export function CodeEditor({ file, onChange, isDirty }: CodeEditorProps) {
+export function CodeEditor({ file, onChange, isDirty, targetLine }: CodeEditorProps) {
+  const editorRef = useRef<ReactCodeMirrorRef>(null);
+
+  // Jump and scroll to line when targetLine changes
+  useEffect(() => {
+    if (!targetLine || !editorRef.current?.view) return;
+
+    const view = editorRef.current.view;
+    const doc = view.state.doc;
+    const clampedLine = Math.min(Math.max(1, targetLine), doc.lines);
+    const line = doc.line(clampedLine);
+
+    view.dispatch({
+      selection: { anchor: line.from },
+      scrollIntoView: true,
+      effects: EditorView.scrollIntoView(line.from, { y: 'center' }),
+    });
+    view.focus();
+  }, [targetLine]);
   const languageExtension = useMemo(() => {
     const ext = file.path.split('.').pop()?.toLowerCase();
     switch (ext) {
@@ -90,6 +109,7 @@ export function CodeEditor({ file, onChange, isDirty }: CodeEditorProps) {
       {/* CodeMirror Workspace */}
       <div className="flex-1 overflow-auto font-mono text-[13px] bg-[#090A0F]">
         <CodeMirror
+          ref={editorRef}
           value={file.content}
           height="100%"
           theme={oneDark}

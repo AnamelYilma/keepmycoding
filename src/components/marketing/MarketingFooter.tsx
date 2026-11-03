@@ -13,7 +13,7 @@ export default function MarketingFooter() {
             <Link href="/" className="flex items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] rounded-lg" aria-label="KeepCoding home">
               <div className="relative w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center shrink-0">
                 <Image
-                  src="/images/logo.png"
+                  src="/logo2nd.png"
                   alt="KeepCoding logo"
                   width={32}
                   height={32}

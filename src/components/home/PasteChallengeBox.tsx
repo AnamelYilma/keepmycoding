@@ -8,6 +8,7 @@ import {
   RotateCcw,
   BookOpen,
   ChevronLeft,
+  ChevronDown,
 } from 'lucide-react';
 import { validateRawChallenge } from '@/lib/parser/challenge-validator';
 import { ValidationFeedback } from './ValidationFeedback';
@@ -80,23 +81,25 @@ export function PasteChallengeBox({ onStartChallenge, onGoToPrompt }: PasteChall
   }, [rawText]);
 
   return (
-    <div className="bg-[#11131A]/90 backdrop-blur-md border border-white/8 rounded-2xl p-6 sm:p-8 space-y-7 shadow-xl relative overflow-hidden">
-      {/* Box Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/8">
-        <div className="space-y-1.5">
+    <div className="bg-[#11131A]/95 backdrop-blur-md border border-white/10 rounded-2xl p-6 sm:p-8 space-y-7 shadow-2xl relative overflow-hidden">
+      {/* Box Header: Fully responsive flex layout */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 pb-6 border-b border-white/8">
+        <div className="space-y-1">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#090A0F] border border-white/10 flex items-center justify-center text-[#88BDA4] shadow-sm">
+            <div className="w-8 h-8 rounded-lg bg-[#090A0F] border border-white/10 flex items-center justify-center text-[#88BDA4] shadow-sm">
               <Terminal className="w-4 h-4" aria-hidden="true" />
             </div>
-            <h2 className="text-base font-semibold text-zinc-100">Step 2: Paste Challenge Block & Enter Workspace</h2>
+            <h2 className="text-base sm:text-lg font-semibold text-zinc-100 whitespace-normal">
+              Step 2: Paste Challenge Block & Enter Workspace
+            </h2>
           </div>
-          <p className="text-xs text-zinc-400 leading-relaxed max-w-xl">
+          <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed max-w-xl">
             Paste the raw response from your AI containing tagged challenge blocks, or click &quot;Launch Sample Demo&quot; to test immediately.
           </p>
         </div>
 
-        {/* Top Controls: 1-Click Sample & Clear */}
-        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
+        {/* Top Controls: 1-Click Sample & Clear with custom stylized dropdown */}
+        <div className="flex items-center gap-2 flex-wrap shrink-0">
           <button
             type="button"
             onClick={handleQuickLaunchSample}
@@ -115,23 +118,27 @@ export function PasteChallengeBox({ onStartChallenge, onGoToPrompt }: PasteChall
             <span>Paste Sample</span>
           </button>
 
-          <select
-            onChange={(e) => {
-              if (e.target.value) handleSelectSample(e.target.value);
-            }}
-            defaultValue=""
-            aria-label="Select sample challenge"
-            className="bg-[#090A0F] border border-white/10 rounded-full px-3.5 py-2 text-xs text-zinc-300 hover:text-zinc-100 focus:outline-none focus:border-[#88BDA4]/40 focus-visible:ring-2 focus-visible:ring-[#88BDA4] transition-colors cursor-pointer"
-          >
-            <option value="" disabled className="bg-[#090A0F] text-zinc-400">
-              More Samples...
-            </option>
-            {SAMPLE_CHALLENGES.map((sample) => (
-              <option key={sample.id} value={sample.id} className="bg-[#090A0F] text-zinc-200">
-                {sample.label}
+          {/* Styled custom dropdown */}
+          <div className="relative">
+            <select
+              onChange={(e) => {
+                if (e.target.value) handleSelectSample(e.target.value);
+              }}
+              defaultValue=""
+              aria-label="Select sample challenge"
+              className="appearance-none bg-[#090A0F] border border-white/10 rounded-full pl-3.5 pr-8 py-2 text-xs font-medium text-zinc-300 hover:text-zinc-100 hover:border-white/20 focus:outline-none focus:border-[#88BDA4]/60 focus-visible:ring-2 focus-visible:ring-[#88BDA4] transition-all cursor-pointer shadow-inner"
+            >
+              <option value="" disabled className="bg-[#11131A] text-zinc-400">
+                More Samples...
               </option>
-            ))}
-          </select>
+              {SAMPLE_CHALLENGES.map((sample) => (
+                <option key={sample.id} value={sample.id} className="bg-[#11131A] text-zinc-200 py-1">
+                  {sample.label}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="w-3.5 h-3.5 text-zinc-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true" />
+          </div>
 
           <button
             type="button"
@@ -147,17 +154,17 @@ export function PasteChallengeBox({ onStartChallenge, onGoToPrompt }: PasteChall
         </div>
       </div>
 
-      {/* Editor Frame with Line Numbers */}
+      {/* Editor Frame with Line Numbers & Distinct High-Contrast Gutter */}
       <div className="space-y-3.5">
-        <div className="relative flex rounded-2xl border border-white/10 bg-[#090A0F] focus-within:border-[#88BDA4]/50 focus-within:ring-1 focus-within:ring-[#88BDA4]/30 transition-all overflow-hidden shadow-inner">
-          {/* Gutter */}
+        <div className="relative flex rounded-2xl border border-white/10 bg-[#07080C] focus-within:border-[#88BDA4]/60 focus-within:ring-1 focus-within:ring-[#88BDA4]/30 transition-all overflow-hidden shadow-2xl">
+          {/* Distinct Gutter */}
           <div
             ref={gutterRef}
             aria-hidden="true"
-            className="w-11 py-4 pl-2 pr-3 font-mono text-[11px] text-zinc-500 bg-[#0b0d13] border-r border-white/6 select-none text-right overflow-hidden shrink-0 leading-[1.625rem]"
+            className="w-12 py-4 pl-2 pr-3.5 font-mono text-[11px] font-medium text-zinc-500 bg-[#12151f] border-r border-white/10 select-none text-right overflow-hidden shrink-0 leading-[1.625rem]"
           >
             {Array.from({ length: linesCount }, (_, i) => (
-              <div key={i + 1}>{i + 1}</div>
+              <div key={i + 1} className="hover:text-zinc-300 transition-colors">{i + 1}</div>
             ))}
           </div>
 
@@ -187,7 +194,7 @@ Describe task specifications here...
 
 ---REFERENCE---
 // Correct reference answer...`}
-            className="w-full bg-transparent p-4 text-xs font-mono text-zinc-200 placeholder:text-zinc-500 focus:outline-none resize-y leading-[1.625rem] min-h-[260px]"
+            className="w-full bg-[#07080C] p-4 text-xs font-mono text-zinc-100 placeholder:text-zinc-500 focus:outline-none resize-y leading-[1.625rem] min-h-[280px]"
             spellCheck={false}
             onKeyDown={(e) => {
               if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
@@ -200,28 +207,31 @@ Describe task specifications here...
           />
         </div>
 
-        {/* Live Validation Status Card */}
+        {/* Live Validation Status Card: High contrast & crisp hierarchy */}
         {isEmpty ? (
-          <div className="p-3.5 rounded-xl bg-[#090A0F] border border-white/6 text-xs text-zinc-400 flex items-center justify-between">
-            <span>Awaiting challenge input. Paste AI output above or click &quot;Launch Sample Demo&quot;.</span>
-            <span className="font-mono text-[11px] text-zinc-400">0 characters</span>
+          <div className="p-3.5 rounded-xl bg-[#0d0f17] border border-white/8 text-xs text-zinc-300 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-inner">
+            <span className="flex items-center gap-2">
+              <span className="inline-block w-2 h-2 rounded-full bg-zinc-600 animate-pulse" />
+              <span>Awaiting challenge input. Paste AI output above or click &quot;Launch Sample Demo&quot;.</span>
+            </span>
+            <span className="font-mono text-[11px] text-zinc-400 font-medium">0 characters</span>
           </div>
         ) : isValid && validation.challenge ? (
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-[#090A0F] border border-[#88BDA4]/30 text-xs shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-[#0c1214] border border-[#88BDA4]/40 text-xs shadow-md">
             <div className="flex items-center gap-3">
-              <div className="w-6 h-6 rounded-full bg-[#11131A] border border-[#88BDA4]/40 flex items-center justify-center text-[#88BDA4] shrink-0">
+              <div className="w-7 h-7 rounded-lg bg-[#88BDA4]/15 border border-[#88BDA4]/40 flex items-center justify-center text-[#88BDA4] shrink-0">
                 <CheckCircle2 className="w-4 h-4 text-[#88BDA4]" aria-hidden="true" />
               </div>
-              <div className="flex items-center gap-2 sm:gap-2.5 text-zinc-300 font-mono text-xs flex-wrap">
+              <div className="flex items-center gap-2 sm:gap-2.5 text-zinc-200 font-mono text-xs flex-wrap">
                 <span className="text-[#88BDA4] font-semibold">Valid Challenge</span>
-                <span className="text-zinc-500">|</span>
-                <span className="rounded-full bg-white/5 border border-white/10 px-2 py-0.5 text-zinc-200">
+                <span className="text-zinc-600">|</span>
+                <span className="rounded-md bg-white/5 border border-white/10 px-2 py-0.5 text-zinc-200">
                   Track {validation.challenge.metadata.track}
                 </span>
-                <span className="rounded-full bg-white/5 border border-white/10 px-2 py-0.5 text-[#88BDA4]">
+                <span className="rounded-md bg-[#88BDA4]/10 border border-[#88BDA4]/25 px-2 py-0.5 text-[#88BDA4] font-medium">
                   Level {validation.challenge.metadata.level}
                 </span>
-                <span className="rounded-full bg-white/5 border border-white/10 px-2 py-0.5 text-zinc-300">
+                <span className="rounded-md bg-white/5 border border-white/10 px-2 py-0.5 text-zinc-300">
                   {validation.challenge.metadata.editableLanguage}
                 </span>
                 <span className="text-zinc-400">
@@ -233,7 +243,7 @@ Describe task specifications here...
             <button
               type="button"
               onClick={handleStart}
-              className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#171a24] hover:bg-[#1f2330] text-[#88BDA4] border border-[#88BDA4]/30 font-mono text-xs font-semibold transition-all cursor-pointer self-start sm:self-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#171a24] hover:bg-[#1f2330] text-[#88BDA4] border border-[#88BDA4]/30 font-mono text-xs font-semibold transition-all cursor-pointer self-start sm:self-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
             >
               <span>Launch Workspace</span>
               <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />

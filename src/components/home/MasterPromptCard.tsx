@@ -83,17 +83,17 @@ export function MasterPromptCard({ onGoToWorkspace }: MasterPromptCardProps) {
   };
 
   return (
-    <div className="bg-[#11131A]/90 backdrop-blur-md border border-white/8 rounded-2xl p-6 sm:p-8 space-y-7 shadow-xl relative overflow-hidden">
+    <div className="bg-[#11131A]/95 backdrop-blur-md border border-white/10 rounded-2xl p-6 sm:p-8 space-y-8 shadow-2xl relative overflow-hidden">
       {/* Card Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/8">
-        <div className="space-y-1.5">
+        <div className="space-y-1">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#090A0F] border border-white/10 flex items-center justify-center text-[#88BDA4] shadow-sm">
+            <div className="w-8 h-8 rounded-lg bg-[#090A0F] border border-white/10 flex items-center justify-center text-[#88BDA4] shadow-sm">
               <Layers className="w-4 h-4" aria-hidden="true" />
             </div>
-            <h2 className="text-base font-semibold text-zinc-100">Step 1: Configure & Copy Master Prompt</h2>
+            <h2 className="text-base sm:text-lg font-semibold text-zinc-100">Step 1: Configure & Copy Master Prompt</h2>
           </div>
-          <p className="text-xs text-zinc-400 leading-relaxed max-w-xl">
+          <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed max-w-xl">
             Pick your track, difficulty tier, and format. Paste the generated prompt to your preferred external AI to get a tagged practice challenge.
           </p>
         </div>
@@ -111,8 +111,8 @@ export function MasterPromptCard({ onGoToWorkspace }: MasterPromptCardProps) {
       {/* Focus Track Selection */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <label className="text-xs font-medium text-zinc-200">1. Focus Track</label>
-          <span className="text-[11px] text-zinc-400 font-mono">Track {track} of 4 selected</span>
+          <label className="text-xs font-semibold text-zinc-200 uppercase tracking-wider">1. Focus Track</label>
+          <span className="text-xs text-zinc-400 font-mono">Track {track} of 4 selected</span>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {Object.entries(TRACK_DEFINITIONS).map(([key, info]) => {
@@ -123,26 +123,26 @@ export function MasterPromptCard({ onGoToWorkspace }: MasterPromptCardProps) {
                 key={key}
                 type="button"
                 onClick={() => setTrack(trkNum)}
-                className={`text-left p-4 rounded-xl border text-xs transition-all relative cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] ${
+                className={`text-left p-4 rounded-xl border transition-all relative cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] ${
                   isSelected
-                    ? 'bg-[#171a24] border-[#88BDA4]/40 text-zinc-100 shadow-md ring-1 ring-[#88BDA4]/30'
-                    : 'bg-[#090A0F] border-white/6 text-zinc-400 hover:border-white/15 hover:text-zinc-200 hover:bg-[#12151e]'
+                    ? 'bg-[#171a24] border-[#88BDA4]/50 text-zinc-100 shadow-lg ring-1 ring-[#88BDA4]/30'
+                    : 'bg-[#090A0F] border-white/8 text-zinc-400 hover:border-white/20 hover:text-zinc-200 hover:bg-[#12151e]'
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-[10px] uppercase tracking-wider text-zinc-400">
+                  <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
                     Track {trkNum}
                   </span>
                   {isSelected && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-mono text-[#88BDA4] bg-[#88BDA4]/15 px-2 py-0.5 rounded-full border border-[#88BDA4]/25">
-                      Active
+                    <span className="inline-flex items-center gap-1 text-[11px] font-mono font-medium text-[#88BDA4] bg-[#88BDA4]/15 px-2 py-0.5 rounded-full border border-[#88BDA4]/25">
+                      Selected
                     </span>
                   )}
                 </div>
-                <div className="font-medium text-sm text-zinc-200 mt-1.5">
+                <div className="font-semibold text-sm text-zinc-100 mt-2">
                   {info.title}
                 </div>
-                <div className="text-[11px] text-zinc-400 mt-1 line-clamp-1 leading-relaxed">
+                <div className="text-xs text-zinc-400 mt-1 leading-relaxed">
                   {info.summary}
                 </div>
               </button>
@@ -152,13 +152,15 @@ export function MasterPromptCard({ onGoToWorkspace }: MasterPromptCardProps) {
       </div>
 
       {/* Difficulty Level & Tiers */}
-      <div className="space-y-3.5 pt-1">
-        <div className="flex items-center justify-between">
-          <label htmlFor="difficulty-level-slider" className="text-xs font-medium text-zinc-200">2. Difficulty Level</label>
+      <div className="space-y-4 pt-1">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+          <label htmlFor="difficulty-level-slider" className="text-xs font-semibold text-zinc-200 uppercase tracking-wider">2. Difficulty Level</label>
           <div className="flex items-center gap-2">
-            <span className="text-xs font-mono font-medium text-[#88BDA4]">Level {level} / 12</span>
-            <span className="text-zinc-500 text-xs">|</span>
-            <span className="text-xs text-zinc-300 font-medium">{activeTier.label}: {activeTier.desc}</span>
+            <span className="text-xs font-mono font-semibold text-[#88BDA4] bg-[#88BDA4]/10 border border-[#88BDA4]/20 px-2 py-0.5 rounded">
+              Level {level} / 12
+            </span>
+            <span className="text-zinc-600 text-xs">|</span>
+            <span className="text-xs text-zinc-300 font-medium">{activeTier.label}</span>
           </div>
         </div>
 
@@ -175,7 +177,7 @@ export function MasterPromptCard({ onGoToWorkspace }: MasterPromptCardProps) {
         />
 
         {/* 4 Intuitive Level Tier Pills */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           {LEVEL_TIERS.map((tier) => {
             const isCurrentTier = activeTier.range === tier.range;
             return (
@@ -183,13 +185,13 @@ export function MasterPromptCard({ onGoToWorkspace }: MasterPromptCardProps) {
                 key={tier.range}
                 type="button"
                 onClick={() => setLevel(tier.defaultLevel)}
-                className={`text-left p-3 rounded-xl border text-xs transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] ${
+                className={`text-left p-3.5 rounded-xl border text-xs transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] ${
                   isCurrentTier
-                    ? 'bg-[#171a24] border-[#88BDA4]/40 text-zinc-100 ring-1 ring-[#88BDA4]/30'
-                    : 'bg-[#090A0F] border-white/6 text-zinc-400 hover:border-white/15 hover:text-zinc-300 hover:bg-[#12151e]'
+                    ? 'bg-[#171a24] border-[#88BDA4]/50 text-zinc-100 ring-1 ring-[#88BDA4]/30 shadow-md'
+                    : 'bg-[#090A0F] border-white/8 text-zinc-400 hover:border-white/20 hover:text-zinc-200 hover:bg-[#12151e]'
                 }`}
               >
-                <div className="font-mono text-[10px] text-zinc-400">Tier {tier.range}</div>
+                <div className="font-mono text-[11px] font-semibold text-zinc-400">Tier {tier.range}</div>
                 <div className="font-medium text-xs text-zinc-200 truncate mt-1">{tier.label}</div>
               </button>
             );
@@ -200,37 +202,43 @@ export function MasterPromptCard({ onGoToWorkspace }: MasterPromptCardProps) {
       {/* Challenge Type & Primary Language */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
         {/* Challenge Type */}
-        <div className="space-y-1.5">
-          <label htmlFor="challenge-type-select" className="text-xs font-medium text-zinc-200 block">3. Challenge Type</label>
-          <select
-            id="challenge-type-select"
-            value={type}
-            onChange={(e) => setType(e.target.value)}
-            className="w-full bg-[#090A0F] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-zinc-200 focus:outline-none focus:border-[#88BDA4]/50 focus:ring-1 focus:ring-[#88BDA4]/30 focus-visible:ring-2 focus-visible:ring-[#88BDA4] cursor-pointer transition-colors"
-          >
-            {CHALLENGE_TYPES.map((t) => (
-              <option key={t} value={t} className="bg-[#090A0F] text-zinc-200">
-                {t}
-              </option>
-            ))}
-          </select>
+        <div className="space-y-2">
+          <label htmlFor="challenge-type-select" className="text-xs font-semibold text-zinc-200 uppercase tracking-wider block">3. Challenge Type</label>
+          <div className="relative">
+            <select
+              id="challenge-type-select"
+              value={type}
+              onChange={(e) => setType(e.target.value)}
+              className="w-full appearance-none bg-[#090A0F] border border-white/10 rounded-xl px-4 py-2.5 pr-10 text-xs font-medium text-zinc-200 focus:outline-none focus:border-[#88BDA4]/60 focus:ring-1 focus:ring-[#88BDA4]/30 focus-visible:ring-2 focus-visible:ring-[#88BDA4] cursor-pointer transition-colors shadow-inner"
+            >
+              {CHALLENGE_TYPES.map((t) => (
+                <option key={t} value={t} className="bg-[#11131A] text-zinc-200 py-1">
+                  {t}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="w-4 h-4 text-zinc-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true" />
+          </div>
         </div>
 
         {/* Language */}
-        <div className="space-y-1.5">
-          <label htmlFor="challenge-lang-select" className="text-xs font-medium text-zinc-200 block">4. Primary Language</label>
-          <select
-            id="challenge-lang-select"
-            value={language}
-            onChange={(e) => setLanguage(e.target.value)}
-            className="w-full bg-[#090A0F] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-zinc-200 focus:outline-none focus:border-[#88BDA4]/50 focus:ring-1 focus:ring-[#88BDA4]/30 focus-visible:ring-2 focus-visible:ring-[#88BDA4] cursor-pointer transition-colors"
-          >
-            {SUPPORTED_LANGUAGES.map((lang) => (
-              <option key={lang} value={lang} className="bg-[#090A0F] text-zinc-200">
-                {lang}
-              </option>
-            ))}
-          </select>
+        <div className="space-y-2">
+          <label htmlFor="challenge-lang-select" className="text-xs font-semibold text-zinc-200 uppercase tracking-wider block">4. Primary Language</label>
+          <div className="relative">
+            <select
+              id="challenge-lang-select"
+              value={language}
+              onChange={(e) => setLanguage(e.target.value)}
+              className="w-full appearance-none bg-[#090A0F] border border-white/10 rounded-xl px-4 py-2.5 pr-10 text-xs font-medium text-zinc-200 focus:outline-none focus:border-[#88BDA4]/60 focus:ring-1 focus:ring-[#88BDA4]/30 focus-visible:ring-2 focus-visible:ring-[#88BDA4] cursor-pointer transition-colors shadow-inner"
+            >
+              {SUPPORTED_LANGUAGES.map((lang) => (
+                <option key={lang} value={lang} className="bg-[#11131A] text-zinc-200 py-1">
+                  {lang}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="w-4 h-4 text-zinc-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true" />
+          </div>
         </div>
       </div>
 

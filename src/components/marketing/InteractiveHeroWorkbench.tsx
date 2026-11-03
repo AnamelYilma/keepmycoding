@@ -291,7 +291,7 @@ export default function InteractiveHeroWorkbench() {
               </div>
               <p className="text-[11px] mt-1 text-zinc-400">
                 {isRunning
-                  ? 'Running test assertions in sandbox...'
+                  ? 'Running test assertions...'
                   : isAllPassed 
                     ? 'Valid: expired tokens reject and active tokens pass.' 
                     : 'Buggy: comparison flags future tokens as expired.'}
@@ -330,7 +330,7 @@ export default function InteractiveHeroWorkbench() {
           </div>
 
           <div className="pt-3 border-t border-white/[0.08] flex items-center justify-between text-[11px] font-mono">
-            <span className="text-zinc-400">Sandbox Judge</span>
+            <span className="text-zinc-400">Automated Judge</span>
             <span className="text-[#88BDA4]">Deterministic</span>
           </div>
         </div>

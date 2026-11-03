@@ -112,3 +112,11 @@ export async function updatePasswordAction(_previousState: AuthActionResult, for
   if (error) return { error: authError(error, 'We could not update your password. Request a fresh reset link and try again.') };
   redirect('/studio');
 }
+
+export async function signOutAction(): Promise<void> {
+  if (isSupabaseConfigured()) {
+    const supabase = await createSupabaseServerClient();
+    await supabase.auth.signOut();
+  }
+  redirect('/');
+}

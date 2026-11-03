@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 
@@ -30,8 +31,15 @@ export default function MarketingNav({
           className="flex items-center gap-2.5 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] rounded-lg"
           aria-label="KeepCoding home"
         >
-          <div className="w-8 h-8 rounded-lg bg-[#88BDA4] text-[#090A0F] flex items-center justify-center font-mono text-xs font-extrabold shadow-sm group-hover:scale-105 transition-transform shrink-0">
-            KC
+          <div className="relative w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
+            <Image
+              src="/images/logo.png"
+              alt="KeepCoding logo"
+              width={32}
+              height={32}
+              priority
+              className="object-contain w-full h-full drop-shadow-[0_2px_8px_rgba(136,189,164,0.35)]"
+            />
           </div>
           <div className="flex flex-col justify-center">
             <span className="text-sm sm:text-base font-bold text-[#F4F4F5] tracking-tight leading-none">
@@ -46,7 +54,7 @@ export default function MarketingNav({
 
       {/* 2. TOP-MIDDLE: Floating nav pill sitting directly on the image */}
       <nav
-        className="hidden md:flex items-center gap-5 lg:gap-7 absolute top-3 sm:top-4 left-1/2 -translate-x-1/2 pointer-events-auto px-5 py-2 rounded-full bg-[#11131A]/90 border border-white/[0.08] shadow-lg backdrop-blur-md"
+        className="hidden md:flex items-center gap-5 lg:gap-7 absolute top-3 sm:top-4 left-1/2 -translate-x-1/2 pointer-events-auto px-5 py-2 rounded-full bg-[#11131A]/75 border border-white/[0.08] shadow-lg backdrop-blur-xl"
         aria-label="Main navigation"
       >
         <a
@@ -61,12 +69,12 @@ export default function MarketingNav({
         >
           4 Tracks
         </a>
-        <a
-          href="#interactive-preview"
+        <Link
+          href="/prompt"
           className="text-xs sm:text-sm font-medium text-[#F4F4F5]/90 hover:text-[#88BDA4] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] rounded-md px-1 py-0.5"
         >
-          Practice Loop
-        </a>
+          Prompt Wizard
+        </Link>
         <Link
           href="/studio"
           className="text-xs sm:text-sm font-medium text-[#F4F4F5]/90 hover:text-[#88BDA4] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] rounded-md px-1 py-0.5"
@@ -137,13 +145,13 @@ export default function MarketingNav({
             >
               4 Tracks
             </a>
-            <a
-              href="#interactive-preview"
+            <Link
+              href="/prompt"
               onClick={() => setMobileMenuOpen(false)}
               className="min-h-[44px] flex items-center px-3 py-2 text-sm font-medium text-[#F4F4F5] hover:text-white hover:bg-[#11131A] rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
             >
-              Practice Loop
-            </a>
+              Prompt Wizard
+            </Link>
             <Link
               href="/studio"
               onClick={() => setMobileMenuOpen(false)}

@@ -12,7 +12,25 @@ import { getHistory } from '@/lib/storage/history';
 
 interface MasterPromptCardProps {
   onGoToWorkspace?: () => void;
+  nextStepLabel?: string;
+  onQuickLoadSample?: () => void;
+  selectedTrack?: number;
+  selectedLevel?: number;
+  selectedType?: string;
+  selectedLanguage?: string;
+  onOptionsChange?: (options: { track: number; level: number; type: string; language: string }) => void;
 }
+
+const CATEGORIES = ['All', 'Frontend', 'Backend', 'Security', 'Systems & Architecture'] as const;
+
+const CHALLENGE_TYPE_DESCRIPTIONS: Record<string, string> = {
+  'Fix Bug': 'Find and repair broken conditions, inversions, or regressions',
+  'Build Logic': 'Implement missing functions, algorithms, or components',
+  'Refactor': 'Clean up and optimize code structure without altering behavior',
+  'Find Bug': 'Spot hidden logic flaws, security vulnerabilities, or bad invariants',
+  'Edge Cases': 'Harden logic against extreme bounds, nulls, and exploits',
+  'Explain & Analyze': 'Diagnose execution flow and system mechanics in text',
+};
 
 const LEVEL_TIERS = [
   { range: '1 to 3', defaultLevel: 2, label: 'Pure functions', desc: 'Input-output algorithms and pure logic' },
@@ -28,13 +46,48 @@ function getTierForLevel(lvl: number) {
   return LEVEL_TIERS[3];
 }
 
-export function MasterPromptCard({ onGoToWorkspace }: MasterPromptCardProps) {
-  const [track, setTrack] = useState<number>(1);
-  const [level, setLevel] = useState<number>(2);
-  const [type, setType] = useState<string>('Fix');
-  const [language, setLanguage] = useState<string>('TypeScript');
+export function MasterPromptCard({
+  onGoToWorkspace,
+  nextStepLabel,
+  selectedTrack,
+  selectedLevel,
+  selectedType,
+  selectedLanguage,
+  onOptionsChange,
+}: MasterPromptCardProps) {
+  const [track, setTrack] = useState<number>(selectedTrack ?? 1);
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [level, setLevel] = useState<number>(selectedLevel ?? 2);
+  const [type, setType] = useState<string>(selectedType ?? 'Fix Bug');
+  const [language, setLanguage] = useState<string>(selectedLanguage ?? 'TypeScript');
   const [copied, setCopied] = useState<boolean>(false);
   const [showPreview, setShowPreview] = useState<boolean>(false);
+
+  // Sync with prop changes if provided
+  useEffect(() => {
+    if (selectedTrack !== undefined) setTrack(selectedTrack);
+  }, [selectedTrack]);
+
+  useEffect(() => {
+    if (selectedLevel !== undefined) setLevel(selectedLevel);
+  }, [selectedLevel]);
+
+  useEffect(() => {
+    if (selectedType !== undefined) setType(selectedType);
+  }, [selectedType]);
+
+  useEffect(() => {
+    if (selectedLanguage !== undefined) setLanguage(selectedLanguage);
+  }, [selectedLanguage]);
+
+  const notifyChange = (t: number, lvl: number, typ: string, lang: string) => {
+    onOptionsChange?.({
+      track: t,
+      level: lvl,
+      type: typ,
+      language: lang,
+    });
+  };
 
   // Custom Dropdown states
   const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState<boolean>(false);
@@ -113,20 +166,17 @@ export function MasterPromptCard({ onGoToWorkspace }: MasterPromptCardProps) {
 
   return (
     <div className="bg-[#11131A] border border-white/10 rounded-2xl shadow-2xl relative">
-      {/* 1. Header Bar: Clean title, clear mission, and prominent copy action */}
-      <div className="p-6 sm:p-7 border-b border-white/8 space-y-4">
+      {/* 1. Header Bar: Title and Copy Action */}
+      <div className="p-6 sm:p-7 border-b border-white/8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#090A0F] border border-white/10 flex items-center justify-center text-[#88BDA4] shadow-sm">
+            <div className="w-9 h-9 rounded-xl bg-[#090A0F] border border-white/10 flex items-center justify-center text-[#88BDA4] shadow-sm shrink-0">
               <Layers className="w-4 h-4" aria-hidden="true" />
             </div>
             <div>
               <h2 className="text-base sm:text-lg font-semibold text-zinc-100">
                 Configure Practice Prompt
               </h2>
-              <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">
-                Select your focus track and difficulty level, then copy the prompt to your external AI.
-              </p>
             </div>
           </div>
 
@@ -148,50 +198,75 @@ export function MasterPromptCard({ onGoToWorkspace }: MasterPromptCardProps) {
       {/* 2. Structured Settings Sections */}
       <div className="p-6 sm:p-7 space-y-7">
         {/* Section A: Focus Track */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
+        <div className="space-y-3.5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <span className="text-xs font-mono font-semibold uppercase tracking-wider text-zinc-300">
               01. Practice Track
             </span>
             <span className="text-xs font-mono text-[#88BDA4]">
-              Track {track} of 4 selected
+              Track {track} of {Object.keys(TRACK_DEFINITIONS).length} selected
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {Object.entries(TRACK_DEFINITIONS).map(([key, info]) => {
-              const trkNum = parseInt(key, 10);
-              const isSelected = track === trkNum;
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setTrack(trkNum)}
-                  className={`text-left p-4 rounded-xl border transition-all relative cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] ${
-                    isSelected
-                      ? 'bg-[#181d28] border-2 border-[#88BDA4] text-white shadow-md'
-                      : 'bg-[#090A0F] border-white/8 text-zinc-400 hover:border-white/20 hover:text-zinc-200 hover:bg-[#11141c]'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
-                      Track {trkNum}
-                    </span>
-                    {isSelected && (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-mono font-semibold text-[#88BDA4] bg-[#88BDA4]/15 px-2 py-0.5 rounded-md border border-[#88BDA4]/30">
-                        Selected
-                      </span>
-                    )}
-                  </div>
-                  <div className="font-semibold text-sm text-zinc-100 mt-2">
-                    {info.title}
-                  </div>
-                  <div className="text-xs text-zinc-400 mt-1 line-clamp-1 leading-relaxed">
-                    {info.summary}
-                  </div>
-                </button>
-              );
-            })}
+          {/* Domain Category Filter Tabs */}
+          <div className="flex flex-wrap gap-1.5 pt-1 pb-1">
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setSelectedCategory(cat)}
+                className={`px-3 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#88BDA4] ${
+                  selectedCategory === cat
+                    ? 'bg-[#88BDA4]/15 text-[#88BDA4] border border-[#88BDA4]/40 font-semibold'
+                    : 'bg-[#090A0F] text-zinc-400 border border-white/8 hover:text-zinc-200 hover:border-white/20'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[340px] overflow-y-auto pr-1">
+            {Object.entries(TRACK_DEFINITIONS)
+              .filter(([_, info]) => selectedCategory === 'All' || info.category === selectedCategory)
+              .map(([key, info]) => {
+                const trkNum = parseInt(key, 10);
+                const isSelected = track === trkNum;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setTrack(trkNum)}
+                    className={`text-left p-4 rounded-xl border transition-all relative cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] ${
+                      isSelected
+                        ? 'bg-[#181d28] border-2 border-[#88BDA4] text-white shadow-md'
+                        : 'bg-[#090A0F] border-white/8 text-zinc-400 hover:border-white/20 hover:text-zinc-200 hover:bg-[#11141c]'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
+                          Track {trkNum}
+                        </span>
+                        <span className="text-[10px] font-mono text-zinc-500 uppercase px-1.5 py-0.5 rounded bg-white/5">
+                          {info.category}
+                        </span>
+                      </div>
+                      {isSelected && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-mono font-semibold text-[#88BDA4] bg-[#88BDA4]/15 px-2 py-0.5 rounded-md border border-[#88BDA4]/30">
+                          Selected
+                        </span>
+                      )}
+                    </div>
+                    <div className="font-semibold text-sm text-zinc-100 mt-2">
+                      {info.title}
+                    </div>
+                    <div className="text-xs text-zinc-400 mt-1 line-clamp-2 leading-relaxed">
+                      {info.summary}
+                    </div>
+                  </button>
+                );
+              })}
           </div>
         </div>
 
@@ -295,15 +370,23 @@ export function MasterPromptCard({ onGoToWorkspace }: MasterPromptCardProps) {
                         aria-selected={isSelected}
                         onClick={() => {
                           setType(t);
+                          notifyChange(track, level, t, language);
                           setIsTypeDropdownOpen(false);
                         }}
-                        className={`w-full flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                        className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-medium transition-colors cursor-pointer text-left ${
                           isSelected
                             ? 'bg-[#1e2636] text-white border border-[#88BDA4]/40 font-semibold'
                             : 'text-zinc-300 hover:bg-[#151922] hover:text-white'
                         }`}
                       >
-                        <span>{t}</span>
+                        <div className="flex-1 min-w-0 pr-2">
+                          <div className="text-zinc-100 font-medium">{t}</div>
+                          {CHALLENGE_TYPE_DESCRIPTIONS[t] && (
+                            <div className="text-[10px] text-zinc-400 truncate mt-0.5 font-normal">
+                              {CHALLENGE_TYPE_DESCRIPTIONS[t]}
+                            </div>
+                          )}
+                        </div>
                         {isSelected && <Check className="w-4 h-4 text-[#88BDA4]" aria-hidden="true" />}
                       </button>
                     );
@@ -357,6 +440,7 @@ export function MasterPromptCard({ onGoToWorkspace }: MasterPromptCardProps) {
                         aria-selected={isSelected}
                         onClick={() => {
                           setLanguage(lang);
+                          notifyChange(track, level, type, lang);
                           setIsLangDropdownOpen(false);
                         }}
                         className={`w-full flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
@@ -377,7 +461,7 @@ export function MasterPromptCard({ onGoToWorkspace }: MasterPromptCardProps) {
         </div>
       </div>
 
-      {/* 3. Footer Bar: Preview Toggle & Forward Link to Step 2 */}
+      {/* 3. Footer Bar: Preview Toggle on Left, Two Buttons on Right (Copy & Next) */}
       <div className="p-6 sm:p-7 pt-4 bg-[#0d0f17] border-t border-white/8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <button
           type="button"
@@ -392,16 +476,31 @@ export function MasterPromptCard({ onGoToWorkspace }: MasterPromptCardProps) {
           <span>{showPreview ? 'Hide prompt preview' : 'Preview prompt text'}</span>
         </button>
 
-        {onGoToWorkspace && (
+        <div className="flex flex-wrap items-center gap-3">
           <button
+            onClick={handleCopyPrompt}
             type="button"
-            onClick={onGoToWorkspace}
-            className="inline-flex items-center gap-1.5 text-xs text-zinc-300 hover:text-[#88BDA4] transition-colors font-medium cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] rounded"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-white/12 bg-[#181d2a] hover:bg-[#202738] text-white font-semibold text-xs tracking-wide shadow-sm active:scale-[0.98] transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
           >
-            <span>Ready with your challenge block? Proceed to Step 2</span>
-            <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
+            {copied ? (
+              <Check className="w-4 h-4 text-[#88BDA4]" aria-hidden="true" />
+            ) : (
+              <Copy className="w-4 h-4 text-[#88BDA4]" aria-hidden="true" />
+            )}
+            <span>{copied ? 'Copied Prompt' : 'Copy Prompt'}</span>
           </button>
-        )}
+
+          {onGoToWorkspace && (
+            <button
+              type="button"
+              onClick={onGoToWorkspace}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#88BDA4] hover:bg-[#9cd1b8] text-[#090A0F] font-semibold text-xs tracking-wide shadow-md shadow-[#88BDA4]/20 active:scale-[0.98] transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
+            >
+              <span>{nextStepLabel || 'Next: Paste Challenge to Start Practice'}</span>
+              <ArrowRight className="w-4 h-4 text-[#090A0F]" aria-hidden="true" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Collapsible Prompt Preview */}

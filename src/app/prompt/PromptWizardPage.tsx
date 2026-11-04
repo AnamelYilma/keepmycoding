@@ -10,7 +10,6 @@ import {
   Layers,
   Terminal,
   ArrowRight,
-  Sparkle,
   Copy,
   Check,
   CheckCircle2,
@@ -26,6 +25,12 @@ import { Challenge } from '@/lib/types/challenge';
 export function PromptWizardPage() {
   const router = useRouter();
   const [activeStep, setActiveStep] = useState<1 | 2 | 3>(1);
+  const [promptOptions, setPromptOptions] = useState({
+    track: 1,
+    level: 2,
+    type: 'Fix Bug',
+    language: 'TypeScript',
+  });
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isHowItWorksOpen, setIsHowItWorksOpen] = useState(false);
   const [historyCount, setHistoryCount] = useState<number>(() => {
@@ -199,7 +204,15 @@ export function PromptWizardPage() {
         {/* Step Views */}
         {activeStep === 1 && (
           <div className="space-y-4">
-            <MasterPromptCard onGoToWorkspace={() => setActiveStep(2)} />
+            <MasterPromptCard
+              selectedTrack={promptOptions.track}
+              selectedLevel={promptOptions.level}
+              selectedType={promptOptions.type}
+              selectedLanguage={promptOptions.language}
+              onOptionsChange={setPromptOptions}
+              onGoToWorkspace={() => setActiveStep(2)}
+              nextStepLabel="Next: External AI Guidance"
+            />
             <div className="flex justify-end">
               <button
                 type="button"
@@ -282,6 +295,7 @@ export function PromptWizardPage() {
         {activeStep === 3 && (
           <div className="space-y-4">
             <PasteChallengeBox
+              promptOptions={promptOptions}
               onStartChallenge={handleStartChallenge}
               onGoToPrompt={() => setActiveStep(1)}
             />

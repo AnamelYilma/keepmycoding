@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { BookOpen, History, Layers, Terminal, ArrowRight, LogOut, User } from 'lucide-react';
 import { MasterPromptCard } from '@/components/home/MasterPromptCard';
 import { PasteChallengeBox } from '@/components/home/PasteChallengeBox';
+import { StudioFlowPipeline } from '@/components/home/StudioFlowPipeline';
 import { HistoryDrawer } from '@/components/home/HistoryDrawer';
 import { HowItWorksModal } from '@/components/home/HowItWorksModal';
 import { WorkspaceLayout } from '@/components/workspace/WorkspaceLayout';
@@ -13,6 +14,7 @@ import { ResultModal } from '@/components/result/ResultModal';
 import { useWorkspaceFiles } from '@/hooks/useWorkspaceFiles';
 import { saveHistoryRecord, getHistory } from '@/lib/storage/history';
 import { Challenge, ChallengeFile, JudgeResult } from '@/lib/types/challenge';
+import { evaluateSubmissionLocally } from '@/lib/judge/local-evaluator';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import { signOutAction } from '@/app/auth/actions';
 
@@ -76,6 +78,12 @@ export default function Home() {
 
   // Home View State: Segmented tab, Guest Modal & History slide-over
   const [activeTab, setActiveTab] = useState<'prompt' | 'paste'>('prompt');
+  const [promptOptions, setPromptOptions] = useState({
+    track: 1,
+    level: 2,
+    type: 'Fix Bug',
+    language: 'TypeScript',
+  });
   const [isHistoryOpen, setIsHistoryOpen] = useState<boolean>(false);
   const [isHowItWorksOpen, setIsHowItWorksOpen] = useState<boolean>(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
@@ -310,7 +318,7 @@ export default function Home() {
       </header>
 
       {/* Main Content Area */}
-      <main className="mx-auto flex w-full max-w-4xl flex-col space-y-8 px-4 py-10 sm:px-6 relative z-10">
+      <main className="mx-auto flex w-full max-w-4xl flex-col space-y-7 px-4 py-8 sm:px-6 relative z-10">
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-semibold tracking-tight text-zinc-100 sm:text-4xl">
             Hands-on coding without distractions.
@@ -320,7 +328,10 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Sleek Segmented Control */}
+        {/* 1. Step Flow Text Box for Fast Scan */}
+        <StudioFlowPipeline />
+
+        {/* 2. Sleek Segmented Control */}
         <div className="flex justify-center" role="tablist" aria-label="Studio workflow steps">
           <div className="inline-flex p-1.5 rounded-full bg-[#12151e] border border-white/12 shadow-lg">
             <button
@@ -357,9 +368,18 @@ export default function Home() {
 
         {/* Tab Card Panels */}
         {activeTab === 'prompt' ? (
-          <MasterPromptCard onGoToWorkspace={() => setActiveTab('paste')} />
+          <MasterPromptCard
+            selectedTrack={promptOptions.track}
+            selectedLevel={promptOptions.level}
+            selectedType={promptOptions.type}
+            selectedLanguage={promptOptions.language}
+            onOptionsChange={setPromptOptions}
+            onGoToWorkspace={() => setActiveTab('paste')}
+            nextStepLabel="Next: Paste Challenge to Start Practice"
+          />
         ) : (
           <PasteChallengeBox
+            promptOptions={promptOptions}
             onStartChallenge={handleStartChallenge}
             onGoToPrompt={() => setActiveTab('prompt')}
           />

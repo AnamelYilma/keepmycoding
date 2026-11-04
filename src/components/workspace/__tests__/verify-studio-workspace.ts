@@ -17,6 +17,8 @@ const targetFiles = [
   'src/app/studio/StudioPage.tsx',
   'src/components/home/MasterPromptCard.tsx',
   'src/components/home/PasteChallengeBox.tsx',
+  'src/components/home/StudioFlowPipeline.tsx',
+  'src/components/home/ExternalAIGuideModal.tsx',
   'src/components/home/ValidationFeedback.tsx',
   'src/components/home/HistoryDrawer.tsx',
   'src/components/home/HowItWorksModal.tsx',
@@ -77,5 +79,19 @@ assert(resultModalContent.includes('XCircle'), 'ResultModal has XCircle icon');
 const headerContent = fs.readFileSync(path.join(projectRoot, 'src/components/workspace/WorkspaceHeader.tsx'), 'utf8');
 assert(headerContent.includes('Submit to Judge'), 'WorkspaceHeader has Submit to Judge button');
 assert(headerContent.includes('rounded-full'), 'WorkspaceHeader uses rounded-full pill buttons');
+
+// Verify StudioFlowPipeline is a lean, fast-scan step flow text box
+const pipelineContent = fs.readFileSync(path.join(projectRoot, 'src/components/home/StudioFlowPipeline.tsx'), 'utf8');
+assert(pipelineContent.includes('1. Choose option'), 'StudioFlowPipeline includes Step 1 Choose option');
+assert(pipelineContent.includes('2. Copy prompt'), 'StudioFlowPipeline includes Step 2 Copy prompt');
+assert(pipelineContent.includes('3. Give to your AI'), 'StudioFlowPipeline includes Step 3 Give to your AI');
+assert(pipelineContent.includes('4. Paste back'), 'StudioFlowPipeline includes Step 4 Paste back');
+assert(pipelineContent.includes('5. Load &amp; practice') || pipelineContent.includes('5. Load & practice'), 'StudioFlowPipeline includes Step 5 Load & practice');
+
+// Verify MasterPromptCard header is minimal without useless filler text or extra buttons
+const promptCardContent = fs.readFileSync(path.join(projectRoot, 'src/components/home/MasterPromptCard.tsx'), 'utf8');
+assert(promptCardContent.includes('Configure Practice Prompt'), 'MasterPromptCard includes title');
+assert(!promptCardContent.includes('Select your focus track and difficulty level'), 'MasterPromptCard removed useless filler subtext');
+assert(!promptCardContent.includes('Skip to Paste'), 'MasterPromptCard removed useless Skip to Paste button');
 
 console.log('--- Studio & Workspace Ergonomics Verification: All checks passed! ---');

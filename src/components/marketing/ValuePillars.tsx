@@ -1,79 +1,102 @@
-import { FileCode, Terminal, ShieldCheck } from 'lucide-react';
+'use client';
 
-const PILLARS = [
+import { useState } from 'react';
+import { Layers, Terminal, ShieldCheck, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
+
+const STEPS = [
   {
     step: '01',
-    title: 'Choose a track',
-    description: 'Select focused engineering scenarios from 4 domains across 12 progressive tiers.',
-    metric: 'Levels 1 to 12',
-    icon: FileCode,
+    title: 'Choose a Domain',
+    detail: 'Pick from 4 core engineering domains across 12 progressive tiers.',
+    tag: 'Tiers 01 to 12',
+    icon: Layers,
   },
   {
     step: '02',
-    title: 'Type the fix by hand',
-    description: 'Solve the bug in an isolated browser editor with zero AI auto-fill and locked reference guards.',
-    metric: 'Zero auto-complete',
+    title: 'Write Code by Hand',
+    detail: 'Solve the bug in an isolated editor with zero AI auto-fill and locked reference files.',
+    tag: 'Pure Muscle Memory',
     icon: Terminal,
   },
   {
     step: '03',
-    title: 'Verify with tests',
-    description: 'Run automated assertions to inspect exact input/output diffs and immediate pass/fail verdict.',
-    metric: 'Instant feedback',
+    title: 'Verify with Tests',
+    detail: 'Automated test assertions grade your implementation against edge cases in milliseconds.',
+    tag: 'Instant Feedback',
     icon: ShieldCheck,
   },
 ];
 
 export default function ValuePillars() {
+  const [activeStep, setActiveStep] = useState<number>(1);
+
   return (
-    <section id="how-it-works" className="py-14 sm:py-20 bg-[#090A0F] relative border-t border-white/[0.06]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 sm:space-y-12">
+    <section id="how-it-works" className="py-20 sm:py-28 bg-[#090A0F] relative border-t border-white/10">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 sm:space-y-16">
         
-        {/* Section Header (Clean & Minimalist without AI pill badges) */}
-        <div className="max-w-2xl mx-auto text-center space-y-2.5">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-white">
-            How KeepCoding works
+        {/* Section Header: Minimal & Confident */}
+        <div className="max-w-xl space-y-2">
+          <div className="text-xs font-mono font-bold text-[#88BDA4] uppercase tracking-wider">
+            Practice Loop
+          </div>
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-[#F4F4F5]">
+            How KeepCoding works.
           </h2>
-          <p className="text-sm sm:text-base text-zinc-400 font-sans max-w-lg mx-auto">
-            Three steps. Zero auto-complete. Built for muscle memory over passive reading.
+          <p className="text-sm text-zinc-400 font-sans">
+            Three simple steps designed to build durable muscle memory.
           </p>
         </div>
 
-        {/* 3 Step Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-6">
-          {PILLARS.map((pillar) => {
-            const Icon = pillar.icon;
+        {/* 3 Step Bento Cards with Interactive Hover State */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {STEPS.map((s, idx) => {
+            const Icon = s.icon;
+            const isHovered = activeStep === idx;
+
             return (
               <div
-                key={pillar.step}
-                className="glass-card p-6 flex flex-col justify-between group hover:-translate-y-0.5 transition-all duration-200"
+                key={s.step}
+                onMouseEnter={() => setActiveStep(idx)}
+                className={`p-7 rounded-2xl transition-all duration-200 flex flex-col justify-between space-y-6 border cursor-pointer ${
+                  isHovered
+                    ? 'bg-[#141724] border-[#88BDA4]/40 shadow-xl shadow-[#88BDA4]/5 -translate-y-1'
+                    : 'bg-[#12151e] border-white/10 hover:border-white/20'
+                }`}
               >
-                <div className="space-y-4">
-                  {/* Top card header */}
+                <div className="space-y-5">
                   <div className="flex items-center justify-between">
-                    <div className="w-10 h-10 rounded-xl bg-[#171a24] border border-white/[0.08] flex items-center justify-center text-[#88BDA4] group-hover:border-[#88BDA4]/40 transition-colors">
-                      <Icon size={20} strokeWidth={2} aria-hidden="true" />
-                    </div>
-                    <span className="text-[11px] font-mono text-zinc-400 px-2 py-0.5 rounded bg-[#090A0F] border border-white/[0.06]">
-                      STEP {pillar.step}
+                    <span className={`text-2xl font-mono font-bold transition-colors ${
+                      isHovered ? 'text-[#88BDA4]' : 'text-zinc-500'
+                    }`}>
+                      {s.step}
                     </span>
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
+                      isHovered
+                        ? 'bg-[#88BDA4] text-[#090A0F]'
+                        : 'bg-[#181d2a] border border-white/10 text-zinc-400'
+                    }`}>
+                      <Icon size={18} strokeWidth={2} aria-hidden="true" />
+                    </div>
                   </div>
 
-                  {/* Title */}
-                  <h3 className="text-lg font-bold text-white tracking-tight">
-                    {pillar.title}
-                  </h3>
-
-                  {/* Description */}
-                  <p className="text-sm text-zinc-400 leading-relaxed font-sans">
-                    {pillar.description}
-                  </p>
+                  <div className="space-y-1.5">
+                    <h3 className="text-lg font-bold text-white tracking-tight">
+                      {s.title}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed font-sans">
+                      {s.detail}
+                    </p>
+                  </div>
                 </div>
 
-                {/* Compact bottom footer */}
-                <div className="pt-4 mt-5 border-t border-white/[0.06] flex items-center justify-between text-xs font-mono">
-                  <span className="text-zinc-500">Focus</span>
-                  <span className="text-[#88BDA4] font-medium">{pillar.metric}</span>
+                <div className="pt-4 border-t border-white/8 flex items-center justify-between text-xs font-mono">
+                  <span className="text-zinc-500">Method</span>
+                  <span className={`font-medium transition-colors ${
+                    isHovered ? 'text-[#88BDA4]' : 'text-zinc-300'
+                  }`}>
+                    {s.tag}
+                  </span>
                 </div>
               </div>
             );

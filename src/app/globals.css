@@ -156,6 +156,20 @@ html {
   box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.6), 0 0 20px -5px rgba(136, 189, 164, 0.15);
 }
 
+/* Subtle spotlight interaction for container frames */
+.spotlight-card {
+  position: relative;
+  background: #12151e;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-2xl);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.2s ease;
+}
+
+.spotlight-card:hover {
+  border-color: rgba(136, 189, 164, 0.4);
+  box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.7), 0 0 24px -6px rgba(136, 189, 164, 0.15);
+}
+
 /* Modern pill CTA */
 .btn-primary {
   display: inline-flex;

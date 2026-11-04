@@ -64,22 +64,10 @@ export default function MarketingNav({
           How It Works
         </a>
         <a
-          href="#why-hand-coding"
-          className="text-xs sm:text-sm font-medium text-[#F4F4F5]/90 hover:text-[#88BDA4] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] rounded-md px-1 py-0.5"
-        >
-          Why Hand-Code
-        </a>
-        <a
           href="#tracks"
           className="text-xs sm:text-sm font-medium text-[#F4F4F5]/90 hover:text-[#88BDA4] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] rounded-md px-1 py-0.5"
         >
           4 Tracks
-        </a>
-        <a
-          href="#curriculum"
-          className="text-xs sm:text-sm font-medium text-[#F4F4F5]/90 hover:text-[#88BDA4] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] rounded-md px-1 py-0.5"
-        >
-          12 Tiers
         </a>
         <Link
           href="/prompt"
@@ -151,25 +139,11 @@ export default function MarketingNav({
               How It Works
             </a>
             <a
-              href="#why-hand-coding"
-              onClick={() => setMobileMenuOpen(false)}
-              className="min-h-[44px] flex items-center px-3 py-2 text-sm font-medium text-[#F4F4F5] hover:text-white hover:bg-[#11131A] rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
-            >
-              Why Hand-Code
-            </a>
-            <a
               href="#tracks"
               onClick={() => setMobileMenuOpen(false)}
               className="min-h-[44px] flex items-center px-3 py-2 text-sm font-medium text-[#F4F4F5] hover:text-white hover:bg-[#11131A] rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
             >
               4 Tracks
-            </a>
-            <a
-              href="#curriculum"
-              onClick={() => setMobileMenuOpen(false)}
-              className="min-h-[44px] flex items-center px-3 py-2 text-sm font-medium text-[#F4F4F5] hover:text-white hover:bg-[#11131A] rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
-            >
-              12 Tiers
             </a>
             <Link
               href="/prompt"

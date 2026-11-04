@@ -4,102 +4,93 @@ import { Lock, Layers, Cpu, ShieldCheck, ArrowRight } from 'lucide-react';
 const TRACKS = [
   {
     id: '01',
+    num: 1,
     title: 'Identity & Access',
     icon: Lock,
-    summary: 'Token expiration, session lifecycles, and permission checks.',
-    topics: ['JWT Validation', 'Sessions', 'Permissions'],
+    summary: 'Token expiration boundaries, session lifecycles, and authorization guards.',
+    focus: 'JWT & Sessions',
   },
   {
     id: '02',
+    num: 2,
     title: 'Interactive UI & State',
     icon: Layers,
-    summary: 'Debouncing, race condition defense, and event teardown.',
-    topics: ['Race Conditions', 'Debounce', 'Async State'],
+    summary: 'Debouncing handlers, race condition defense, and async state tearing.',
+    focus: 'Concurrency & Race Conditions',
   },
   {
     id: '03',
+    num: 3,
     title: 'APIs & Persistence',
     icon: Cpu,
-    summary: 'Rate limiting buckets, cursor pagination, and idempotent APIs.',
-    topics: ['Rate Limiting', 'Pagination', 'Idempotency'],
+    summary: 'Token bucket rate limiting, cursor pagination, and idempotent mutations.',
+    focus: 'Rate Limiting & Idempotency',
   },
   {
     id: '04',
+    num: 4,
     title: 'Data Security',
     icon: ShieldCheck,
-    summary: 'Timing attack mitigation, sanitization, and input safety.',
-    topics: ['Constant Time', 'Sanitization', 'Safety Bounds'],
+    summary: 'Timing attack prevention, input sanitization, and constant-time verification.',
+    focus: 'Timing Safety & Sanitization',
   },
 ];
 
 export default function TrackGrid() {
   return (
-    <section id="tracks" className="py-14 sm:py-20 bg-[#090A0F] relative border-t border-white/[0.06]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 sm:space-y-12">
+    <section id="tracks" className="py-20 sm:py-32 bg-[#090A0F] relative border-t border-white/10">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
         
-        {/* Section Header (Clean & Minimalist without AI pill badges) */}
-        <div className="max-w-2xl mx-auto text-center space-y-2.5">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-white">
-            Core engineering domains
+        {/* Section Heading */}
+        <div className="max-w-xl space-y-3">
+          <div className="text-xs font-mono font-bold text-[#88BDA4] uppercase tracking-wider">
+            Curriculum Domains
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#F4F4F5]">
+            Four core engineering tracks.
           </h2>
-          <p className="text-sm sm:text-base text-zinc-400 font-sans max-w-lg mx-auto">
-            Four focused tracks from basic pure functions to production resilience.
+          <p className="text-sm sm:text-base text-zinc-400 font-sans leading-relaxed">
+            12 progressive tiers targeting real production failure modes.
           </p>
         </div>
 
-        {/* 2x2 Track Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 lg:gap-6">
+        {/* 2x2 Spacious Track Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
           {TRACKS.map((track) => {
             const Icon = track.icon;
             return (
-              <div
+              <Link
                 key={track.id}
-                className="glass-card p-6 flex flex-col justify-between group hover:-translate-y-0.5 transition-all duration-200"
+                href={`/studio?track=${track.num}`}
+                className="p-6 sm:p-8 rounded-2xl bg-[#12151e] border border-white/10 hover:border-[#88BDA4]/40 transition-all duration-200 group flex flex-col justify-between space-y-6 shadow-lg hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
               >
                 <div className="space-y-4">
-                  {/* Card top */}
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-[#171a24] border border-white/[0.08] flex items-center justify-center text-[#88BDA4] group-hover:border-[#88BDA4]/40 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono font-bold text-[#88BDA4]">
+                      TRACK {track.id}
+                    </span>
+                    <div className="w-9 h-9 rounded-lg bg-[#181d2a] border border-white/10 flex items-center justify-center text-zinc-400 group-hover:text-[#88BDA4] transition-colors">
                       <Icon size={18} strokeWidth={2} aria-hidden="true" />
-                    </div>
-                    <div>
-                      <h3 className="text-base font-bold text-white tracking-tight">
-                        {track.title}
-                      </h3>
                     </div>
                   </div>
 
-                  {/* Summary */}
+                  <h3 className="text-xl font-bold text-white tracking-tight group-hover:text-[#88BDA4] transition-colors">
+                    {track.title}
+                  </h3>
+
                   <p className="text-sm text-zinc-400 leading-relaxed font-sans">
                     {track.summary}
                   </p>
-
-                  {/* Topic tags */}
-                  <div className="flex flex-wrap gap-1.5">
-                    {track.topics.map((topic, i) => (
-                      <span
-                        key={i}
-                        className="text-[11px] font-mono px-2 py-0.5 rounded bg-[#090A0F] border border-white/[0.06] text-zinc-400"
-                      >
-                        {topic}
-                      </span>
-                    ))}
-                  </div>
                 </div>
 
-                {/* Card CTA */}
-                <div className="pt-4 mt-5 border-t border-white/[0.06] flex items-center justify-between">
-                  <span className="text-xs font-mono text-zinc-500">Practice track</span>
-                  <Link
-                    href={`/studio?track=${parseInt(track.id, 10)}`}
-                    className="inline-flex items-center gap-1.5 text-xs font-medium text-[#88BDA4] hover:text-[#9cd1b8] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] rounded px-1 py-0.5"
-                    aria-label={`Enter Track ${track.id}: ${track.title}`}
-                  >
+                <div className="pt-4 border-t border-white/8 flex items-center justify-between text-xs font-mono">
+                  <span className="text-zinc-500">{track.focus}</span>
+                  <span className="inline-flex items-center gap-1 font-semibold text-[#88BDA4] group-hover:translate-x-0.5 transition-transform">
                     <span>Enter track</span>
                     <ArrowRight size={13} aria-hidden="true" />
-                  </Link>
+                  </span>
                 </div>
-              </div>
+              </Link>
             );
           })}
         </div>

@@ -26,6 +26,11 @@ function authError(error: { code?: string; message?: string }, fallback: string)
   if (error.code === 'user_already_exists') return 'An account may already exist for this email. Try signing in or resetting your password.';
   if (error.code === 'over_email_send_rate_limit') return 'Too many email requests. Wait a little and try again.';
   if (error.code === 'same_password') return 'Choose a password you have not used before.';
+  if (error.code === 'email_address_invalid') return 'Enter a valid email address.';
+  if (error.code === 'signup_disabled') return 'Sign-ups are currently disabled.';
+  if (error.message && !error.message.includes('apiKey') && !error.message.includes('token') && !error.message.includes('password')) {
+    return error.message;
+  }
   return fallback;
 }
 
@@ -78,7 +83,20 @@ export async function signUpAction(_previousState: AuthActionResult, formData: F
   });
 
   if (error) return { error: authError(error, 'We could not create your account. Please try again.') };
+
+  // Detect Supabase anti-enumeration empty identities for existing accounts
+  if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+    return { error: 'An account may already exist for this email. Try signing in or resetting your password.' };
+  }
+
   if (data.session) redirect('/studio');
+
+  // Attempt immediate sign-in if confirmations are disabled or auto-confirmed
+  const signInRes = await supabase.auth.signInWithPassword({ email, password });
+  if (signInRes.data?.session) {
+    redirect('/studio');
+  }
+
   return { success: 'Check your inbox for a confirmation link. Confirm your email to finish creating your account.' };
 }
 

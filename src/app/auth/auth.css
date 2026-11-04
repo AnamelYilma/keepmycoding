@@ -1,16 +1,16 @@
 /* KeepCoding Auth Flow: Obsidian & Mint Design System */
 .auth-page {
   --auth-canvas: #090a0f;
-  --auth-surface: #11131a;
-  --auth-surface-elevated: #171a24;
-  --auth-surface-hover: #1f2330;
+  --auth-surface: #12151e;
+  --auth-surface-elevated: #181d2a;
+  --auth-surface-hover: #222738;
   --auth-mint: #88bda4;
   --auth-mint-hover: #9cd1b8;
   --auth-mint-glow: rgba(136, 189, 164, 0.35);
-  --auth-mint-subtle: rgba(136, 189, 164, 0.1);
-  --auth-mint-border: rgba(136, 189, 164, 0.25);
-  --auth-line: rgba(255, 255, 255, 0.08);
-  --auth-line-hover: rgba(255, 255, 255, 0.16);
+  --auth-mint-subtle: rgba(136, 189, 164, 0.12);
+  --auth-mint-border: rgba(136, 189, 164, 0.35);
+  --auth-line: rgba(255, 255, 255, 0.12);
+  --auth-line-hover: rgba(255, 255, 255, 0.22);
   --auth-text-primary: #f4f4f5;
   --auth-text-secondary: #a1a1aa;
   --auth-text-muted: #a1a1aa;
@@ -188,60 +188,10 @@
   pointer-events: none;
 }
 
-/* Side Story Header & Badges */
-.auth-story-top {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.auth-story-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 4px 12px;
-  background: var(--auth-mint-subtle);
-  border: 1px solid var(--auth-mint-border);
-  border-radius: var(--auth-radius-full);
-  color: var(--auth-mint);
-  font-size: 11px;
-  font-weight: 550;
-  font-family: var(--font-mono), monospace;
-  letter-spacing: 0.04em;
-}
-
-.auth-story-tag {
-  color: var(--auth-text-muted);
-  font: 10px var(--font-mono), monospace;
-  letter-spacing: 0.1em;
-}
-
 /* Side Story Typography */
 .auth-story-copy {
   position: relative;
   z-index: 1;
-}
-
-.auth-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0 0 10px;
-  color: var(--auth-mint);
-  font: 11px var(--font-mono), monospace;
-  letter-spacing: 0.12em;
-  font-weight: 600;
-}
-
-.auth-eyebrow i {
-  width: 6px;
-  height: 6px;
-  border-radius: var(--auth-radius-full);
-  background: var(--auth-mint);
-  box-shadow: 0 0 6px var(--auth-mint);
 }
 
 .auth-story h1 {
@@ -445,43 +395,6 @@
   color: var(--auth-text-secondary);
   font-size: 13px;
   line-height: 1.55;
-}
-
-/* Login Practice Sequence (Read -> Write -> Verify) */
-.auth-practice-sequence {
-  margin: 0 0 20px;
-  padding: 8px 10px;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid var(--auth-line);
-  border-radius: var(--auth-radius-xl);
-  list-style: none;
-}
-
-.auth-practice-sequence li {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 6px;
-}
-
-.auth-practice-sequence li > span {
-  display: inline-block;
-  padding: 2px 6px;
-  border-radius: var(--auth-radius-full);
-  background: var(--auth-mint-subtle);
-  color: var(--auth-mint);
-  font: 10px var(--font-mono), monospace;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-
-.auth-practice-sequence li > strong {
-  color: #e4e4e7;
-  font-size: 11px;
-  font-weight: 500;
 }
 
 /* Feedback Messages */

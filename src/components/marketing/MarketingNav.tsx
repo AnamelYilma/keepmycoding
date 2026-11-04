@@ -54,11 +54,17 @@ export default function MarketingNav({
 
       {/* 2. TOP-MIDDLE: Floating nav pill sitting directly on the image */}
       <nav
-        className="hidden md:flex items-center gap-5 lg:gap-7 absolute top-3 sm:top-4 left-1/2 -translate-x-1/2 pointer-events-auto px-5 py-2 rounded-full bg-[#11131A]/75 border border-white/[0.08] shadow-lg backdrop-blur-xl"
+        className="hidden md:flex items-center gap-5 lg:gap-7 absolute top-3 sm:top-4 left-1/2 -translate-x-1/2 pointer-events-auto px-5 py-2 rounded-full bg-[#131622]/90 border border-white/[0.14] shadow-xl backdrop-blur-xl"
         aria-label="Main navigation"
       >
         <a
           href="#how-it-works"
+          className="text-xs sm:text-sm font-medium text-[#F4F4F5]/90 hover:text-[#88BDA4] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] rounded-md px-1 py-0.5"
+        >
+          How It Works
+        </a>
+        <a
+          href="#why-hand-coding"
           className="text-xs sm:text-sm font-medium text-[#F4F4F5]/90 hover:text-[#88BDA4] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] rounded-md px-1 py-0.5"
         >
           Why Hand-Code
@@ -68,6 +74,12 @@ export default function MarketingNav({
           className="text-xs sm:text-sm font-medium text-[#F4F4F5]/90 hover:text-[#88BDA4] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] rounded-md px-1 py-0.5"
         >
           4 Tracks
+        </a>
+        <a
+          href="#curriculum"
+          className="text-xs sm:text-sm font-medium text-[#F4F4F5]/90 hover:text-[#88BDA4] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] rounded-md px-1 py-0.5"
+        >
+          12 Tiers
         </a>
         <Link
           href="/prompt"
@@ -136,6 +148,13 @@ export default function MarketingNav({
               onClick={() => setMobileMenuOpen(false)}
               className="min-h-[44px] flex items-center px-3 py-2 text-sm font-medium text-[#F4F4F5] hover:text-white hover:bg-[#11131A] rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
             >
+              How It Works
+            </a>
+            <a
+              href="#why-hand-coding"
+              onClick={() => setMobileMenuOpen(false)}
+              className="min-h-[44px] flex items-center px-3 py-2 text-sm font-medium text-[#F4F4F5] hover:text-white hover:bg-[#11131A] rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
+            >
               Why Hand-Code
             </a>
             <a
@@ -144,6 +163,13 @@ export default function MarketingNav({
               className="min-h-[44px] flex items-center px-3 py-2 text-sm font-medium text-[#F4F4F5] hover:text-white hover:bg-[#11131A] rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
             >
               4 Tracks
+            </a>
+            <a
+              href="#curriculum"
+              onClick={() => setMobileMenuOpen(false)}
+              className="min-h-[44px] flex items-center px-3 py-2 text-sm font-medium text-[#F4F4F5] hover:text-white hover:bg-[#11131A] rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
+            >
+              12 Tiers
             </a>
             <Link
               href="/prompt"

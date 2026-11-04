@@ -39,20 +39,17 @@ export function WorkspaceHeader({
 
         <div className="h-4 w-[1px] bg-white/10 shrink-0" />
 
-        <div className="flex items-center gap-1.5 sm:gap-2 overflow-hidden">
-          <span className="text-xs px-2.5 py-1 rounded-full bg-[#11131A] border border-white/10 text-zinc-200 font-medium shrink-0">
-            Track {metadata.track}
-          </span>
-          <span className="text-xs px-2.5 py-1 rounded-full bg-[#171a24] border border-[#88BDA4]/30 text-[#88BDA4] font-mono font-medium shrink-0">
-            Lvl {metadata.level}
-          </span>
-          <span className="hidden sm:inline-flex text-xs px-2.5 py-1 rounded-full bg-[#11131A] border border-white/10 text-zinc-300 font-medium shrink-0">
-            {metadata.type}
-          </span>
+        <div className="flex items-center gap-1.5 text-xs font-mono text-zinc-400 overflow-hidden">
+          <span className="text-zinc-200 font-semibold">Track {metadata.track}</span>
+          <span className="text-zinc-600">/</span>
+          <span className="text-[#88BDA4] font-semibold">Level {metadata.level}</span>
+          <span className="text-zinc-600 hidden sm:inline-flex">/</span>
+          <span className="text-zinc-300 hidden sm:inline-flex">{metadata.type}</span>
           {metadata.editableLanguage && (
-            <span className="hidden md:inline-flex text-xs px-2.5 py-1 rounded-full bg-[#11131A] border border-white/10 text-zinc-400 font-mono shrink-0">
-              {metadata.editableLanguage}
-            </span>
+            <>
+              <span className="text-zinc-600 hidden md:inline-flex">/</span>
+              <span className="text-zinc-400 hidden md:inline-flex">{metadata.editableLanguage}</span>
+            </>
           )}
         </div>
       </div>

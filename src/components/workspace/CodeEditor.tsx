@@ -70,14 +70,14 @@ export function CodeEditor({ file, onChange, isDirty, targetLine }: CodeEditorPr
   }, [languageExtension]);
 
   return (
-    <div className="flex flex-col h-full bg-[#11131A]/85 backdrop-blur-md border border-white/8 rounded-xl overflow-hidden shadow-lg">
+    <div className="flex flex-col h-full bg-[#12151e] border border-white/12 rounded-xl overflow-hidden shadow-lg">
       {/* File Header Bar */}
-      <div className="flex items-center justify-between px-4 py-2.5 bg-[#090A0F]/90 border-b border-white/8 text-xs">
+      <div className="flex items-center justify-between px-4 py-2.5 bg-[#090A0F] border-b border-white/12 text-xs">
         <div className="flex items-center gap-2.5">
           <FileCode className="w-4 h-4 text-[#88BDA4]" aria-hidden="true" />
           <span className="font-mono font-medium text-zinc-100">{file.path}</span>
           {isDirty && (
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20 font-mono font-medium" aria-label="Modified">
+            <span className="text-[10px] px-2 py-0.5 rounded bg-[#241d13] text-amber-400 border border-amber-500/40 font-mono font-medium" aria-label="Modified">
               Modified
             </span>
           )}
@@ -85,14 +85,14 @@ export function CodeEditor({ file, onChange, isDirty, targetLine }: CodeEditorPr
 
         <div className="flex items-center gap-2">
           {!file.isEditable ? (
-            <span className="inline-flex items-center gap-1.5 text-[11px] text-zinc-400 font-mono px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10">
+            <span className="inline-flex items-center gap-1.5 text-[11px] text-zinc-400 font-mono px-2 py-0.5 rounded bg-[#181d2a] border border-white/10">
               <Lock className="w-3 h-3 text-zinc-400" aria-hidden="true" />
-              Read-only
+              <span>Read-only</span>
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1.5 text-[11px] text-[#88BDA4] font-mono px-2.5 py-0.5 rounded-full bg-[#88BDA4]/10 border border-[#88BDA4]/25">
-              <Check className="w-3 h-3 text-[#88BDA4]" aria-hidden="true" />
-              Editable
+            <span className="inline-flex items-center gap-1.5 text-[11px] text-zinc-200 font-mono px-2 py-0.5 rounded bg-[#181d2a] border border-white/10">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#88BDA4]" />
+              <span>Editable</span>
             </span>
           )}
         </div>

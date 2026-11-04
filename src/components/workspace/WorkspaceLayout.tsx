@@ -120,7 +120,7 @@ export function WorkspaceLayout({
           aria-label="Files and symbols"
           className={`${
             mobileTab === 'files' ? 'flex flex-1' : 'hidden'
-          } md:flex md:col-span-3 lg:col-span-2 flex-col bg-[#11131A]/85 backdrop-blur-md border border-white/8 rounded-xl p-3 overflow-y-auto space-y-4 shadow-lg min-h-0`}
+          } md:flex md:col-span-3 lg:col-span-2 flex-col bg-[#12151e] border border-white/12 rounded-xl p-3 overflow-y-auto space-y-4 shadow-lg min-h-0`}
         >
           <FileList
             files={files}

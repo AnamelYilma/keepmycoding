@@ -15,10 +15,10 @@ export function TaskGuidePane({ task, tests, language }: TaskGuidePaneProps) {
   const [hintsOpen, setHintsOpen] = useState<boolean>(false);
 
   return (
-    <div className="flex flex-col h-full bg-[#11131A]/85 backdrop-blur-md border border-white/8 rounded-xl overflow-hidden text-xs shadow-lg">
+    <div className="flex flex-col h-full bg-[#12151e] border border-white/12 rounded-xl overflow-hidden text-xs shadow-lg">
       {/* Sleek Segmented Pill Tabs */}
-      <div className="border-b border-white/8 bg-[#090A0F]/90 px-3 py-2 flex items-center justify-between">
-        <div className="inline-flex items-center gap-1 p-1 rounded-full bg-[#11131A] border border-white/10" role="tablist" aria-label="Task guide view">
+      <div className="border-b border-white/12 bg-[#090A0F] px-3 py-2 flex items-center justify-between">
+        <div className="inline-flex items-center gap-1 p-1 rounded-full bg-[#181d2a] border border-white/12" role="tablist" aria-label="Task guide view">
           <button
             type="button"
             role="tab"

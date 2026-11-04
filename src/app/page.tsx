@@ -2,7 +2,9 @@ import type { Metadata } from 'next';
 import MarketingNav from '@/components/marketing/MarketingNav';
 import HeroSection from '@/components/marketing/HeroSection';
 import ValuePillars from '@/components/marketing/ValuePillars';
+import WhyHandCoding from '@/components/marketing/WhyHandCoding';
 import TrackGrid from '@/components/marketing/TrackGrid';
+import CurriculumProgression from '@/components/marketing/CurriculumProgression';
 import DeliberatePracticeCTA from '@/components/marketing/DeliberatePracticeCTA';
 import MarketingFooter from '@/components/marketing/MarketingFooter';
 
@@ -18,7 +20,9 @@ export default function HomePage() {
       <main className="flex-1">
         <HeroSection nav={<MarketingNav />} />
         <ValuePillars />
+        <WhyHandCoding />
         <TrackGrid />
+        <CurriculumProgression />
         <DeliberatePracticeCTA />
       </main>
       <MarketingFooter />

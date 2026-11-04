@@ -60,31 +60,6 @@ export default function AuthFrame({
               : 'Return to your account'
           }
         >
-          {/* Top Pill Badge */}
-          <div className="auth-story-top">
-            <div className="auth-story-badge">
-              {mode === 'signup' ? (
-                <>
-                  <Terminal size={13} aria-hidden="true" />
-                  <span>Tailored Curriculum</span>
-                </>
-              ) : mode === 'login' ? (
-                <>
-                  <Code2 size={13} aria-hidden="true" />
-                  <span>Developer Workbench</span>
-                </>
-              ) : (
-                <>
-                  <Lock size={13} aria-hidden="true" />
-                  <span>Account Security</span>
-                </>
-              )}
-            </div>
-            <span className="auth-story-tag">
-              {mode === 'signup' ? 'SETUP' : mode === 'login' ? 'DELIBERATE PRACTICE' : 'RECOVERY'}
-            </span>
-          </div>
-
           {/* Copy and Feature Visuals */}
           {mode === 'signup' ? (
             <>
@@ -100,11 +75,14 @@ export default function AuthFrame({
               <div className="auth-feature-showcase" aria-label="Curriculum tracks">
                 <div className="auth-showcase-card">
                   <div className="auth-showcase-label">ENGINEERING TRACKS</div>
-                  <div className="auth-track-pills">
-                    <span className="auth-track-pill">Web</span>
-                    <span className="auth-track-pill">Mobile</span>
-                    <span className="auth-track-pill">Backend</span>
-                    <span className="auth-track-pill">Data</span>
+                  <div className="flex items-center gap-2 text-xs font-mono text-zinc-300 pt-1">
+                    <span>Web</span>
+                    <span className="text-zinc-600">/</span>
+                    <span>Mobile</span>
+                    <span className="text-zinc-600">/</span>
+                    <span>Backend</span>
+                    <span className="text-zinc-600">/</span>
+                    <span>Data</span>
                   </div>
                 </div>
 

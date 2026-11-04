@@ -61,36 +61,9 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
   return (
     <>
       <div className="auth-form-heading">
-        <p className="auth-eyebrow">
-          <i />{' '}
-          {isSignup
-            ? 'CREATE YOUR ACCOUNT'
-            : isLogin
-            ? 'WELCOME BACK'
-            : isForgot
-            ? 'PASSWORD RECOVERY'
-            : 'SET NEW PASSWORD'}
-        </p>
         <h2>{title}</h2>
         <p>{description}</p>
       </div>
-
-      {isLogin && (
-        <ol className="auth-practice-sequence" aria-label="The KeepCoding practice loop">
-          <li>
-            <span>01</span>
-            <strong>Read Spec</strong>
-          </li>
-          <li>
-            <span>02</span>
-            <strong>Write Code</strong>
-          </li>
-          <li>
-            <span>03</span>
-            <strong>Verify Tests</strong>
-          </li>
-        </ol>
-      )}
 
       {state.error && (
         <div className="auth-feedback auth-feedback--error" role="alert">

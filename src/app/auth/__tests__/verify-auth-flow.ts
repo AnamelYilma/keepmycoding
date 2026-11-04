@@ -95,8 +95,15 @@ assert(formContent.includes('auth-submit'), 'AuthForm includes primary submit bu
 assert(formContent.includes('auth-password-toggle'), 'AuthForm includes password visibility toggle');
 assert(formContent.includes('AlertCircle'), 'AuthForm uses utilitarian AlertCircle icon for errors');
 assert(formContent.includes('CheckCircle2'), 'AuthForm uses utilitarian CheckCircle2 icon for success');
+assert(formContent.includes('Continue as guest'), 'AuthForm offers unblocked guest studio access');
 
-// 7. Verify zero secret leakage
+// 7. Verify actions.ts resilience and open access
+const actionsContent = fs.readFileSync(path.join(projectRoot, 'src/app/auth/actions.ts'), 'utf8');
+assert(actionsContent.includes('identities.length === 0'), 'actions.ts detects Supabase anti-enumeration empty identities');
+assert(actionsContent.includes('signInWithPassword'), 'actions.ts attempts automatic session creation on sign-up');
+assert(actionsContent.includes('email_address_invalid'), 'actions.ts handles email_address_invalid code');
+
+// 8. Verify zero secret leakage
 for (const clientFile of ['src/app/auth/AuthFrame.tsx', 'src/app/auth/AuthForm.tsx', 'src/app/auth/link-error/page.tsx']) {
   const content = fs.readFileSync(path.join(projectRoot, clientFile), 'utf8');
   assert(!content.includes('process.env.SUPABASE_SERVICE_ROLE_KEY'), `No secret service role key in ${clientFile}`);

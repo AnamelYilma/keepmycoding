@@ -124,7 +124,7 @@ export default function InteractiveHeroWorkbench() {
             <div>
               <h3 className="text-sm font-semibold text-white">Fix Token Expiration Logic</h3>
               <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
-                A security token must be flagged as expired if its expiration timestamp is earlier than or equal to the current unix time.
+                Flag token as expired when its timestamp is earlier than or equal to current unix time.
               </p>
             </div>
 

@@ -42,8 +42,8 @@ export default function HeroSection({ nav }: HeroSectionProps) {
     const r = 26; // notch curve radius
 
     // Notches sizing based on percentages with sensible min/max bounds
-    const w_tl_calc = Math.max(220, Math.min(340, Math.round(W * 0.17)));
-    const h_tl_calc = Math.max(68, Math.min(96, Math.round(H * 0.11)));
+    const w_tl_calc = Math.max(240, Math.min(360, Math.round(W * 0.18)));
+    const h_tl_calc = Math.max(72, Math.min(96, Math.round(H * 0.11)));
 
     const w_tr_calc = Math.max(220, Math.min(360, Math.round(W * 0.22)));
     const h_tr_calc = Math.max(68, Math.min(96, Math.round(H * 0.11)));

@@ -1,106 +1,152 @@
 'use client';
 
-import { useState } from 'react';
-import { Layers, Terminal, ShieldCheck, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
-
-const STEPS = [
-  {
-    step: '01',
-    title: 'Choose a Domain',
-    detail: 'Pick from 4 core engineering domains across 12 progressive tiers.',
-    tag: 'Tiers 01 to 12',
-    icon: Layers,
-  },
-  {
-    step: '02',
-    title: 'Write Code by Hand',
-    detail: 'Solve the bug in an isolated editor with zero AI auto-fill and locked reference files.',
-    tag: 'Pure Muscle Memory',
-    icon: Terminal,
-  },
-  {
-    step: '03',
-    title: 'Verify with Tests',
-    detail: 'Automated test assertions grade your implementation against edge cases in milliseconds.',
-    tag: 'Instant Feedback',
-    icon: ShieldCheck,
-  },
-];
+import { ArrowRight, CheckCircle2, AlertTriangle } from 'lucide-react';
 
 export default function ValuePillars() {
-  const [activeStep, setActiveStep] = useState<number>(1);
-
   return (
-    <section id="how-it-works" className="py-20 sm:py-28 bg-[#090A0F] relative border-t border-white/10">
+    <section id="how-it-works" className="py-20 sm:py-28 bg-[#090A0F] relative border-t border-white/[0.08] scroll-mt-20">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 sm:space-y-16">
         
-        {/* Section Header: Minimal & Confident */}
-        <div className="max-w-xl space-y-2">
-          <div className="text-xs font-mono font-bold text-[#88BDA4] uppercase tracking-wider">
-            Practice Loop
-          </div>
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-[#F4F4F5]">
-            How KeepCoding works.
+        {/* Section Heading: Clean, bold, zero fluff */}
+        <div className="max-w-xl space-y-2.5">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-[#F4F4F5]">
+            The Practice Loop
           </h2>
-          <p className="text-sm text-zinc-400 font-sans">
-            Three simple steps designed to build durable muscle memory.
+          <p className="text-sm sm:text-base text-zinc-400 font-sans">
+            Three deliberate steps. Zero autocompletion. Real muscle memory.
           </p>
         </div>
 
-        {/* 3 Step Bento Cards with Interactive Hover State */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {STEPS.map((s, idx) => {
-            const Icon = s.icon;
-            const isHovered = activeStep === idx;
+        {/* 3-Stage Connected Pipeline */}
+        <div className="relative">
+          <div 
+            className="hidden lg:block absolute top-10 left-16 right-16 h-px border-t border-dashed border-white/10 z-0" 
+            aria-hidden="true" 
+          />
 
-            return (
-              <div
-                key={s.step}
-                onMouseEnter={() => setActiveStep(idx)}
-                className={`p-7 rounded-2xl transition-all duration-200 flex flex-col justify-between space-y-6 border cursor-pointer ${
-                  isHovered
-                    ? 'bg-[#141724] border-[#88BDA4]/40 shadow-xl shadow-[#88BDA4]/5 -translate-y-1'
-                    : 'bg-[#12151e] border-white/10 hover:border-white/20'
-                }`}
-              >
-                <div className="space-y-5">
-                  <div className="flex items-center justify-between">
-                    <span className={`text-2xl font-mono font-bold transition-colors ${
-                      isHovered ? 'text-[#88BDA4]' : 'text-zinc-500'
-                    }`}>
-                      {s.step}
-                    </span>
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
-                      isHovered
-                        ? 'bg-[#88BDA4] text-[#090A0F]'
-                        : 'bg-[#181d2a] border border-white/10 text-zinc-400'
-                    }`}>
-                      <Icon size={18} strokeWidth={2} aria-hidden="true" />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <h3 className="text-lg font-bold text-white tracking-tight">
-                      {s.title}
-                    </h3>
-                    <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed font-sans">
-                      {s.detail}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t border-white/8 flex items-center justify-between text-xs font-mono">
-                  <span className="text-zinc-500">Method</span>
-                  <span className={`font-medium transition-colors ${
-                    isHovered ? 'text-[#88BDA4]' : 'text-zinc-300'
-                  }`}>
-                    {s.tag}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative z-10">
+            
+            {/* Step 01 */}
+            <div className="p-6 sm:p-7 rounded-2xl bg-[#11131A] border border-white/[0.08] flex flex-col justify-between space-y-5 hover:border-white/[0.18] transition-colors">
+              <div className="space-y-3.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-3xl font-mono font-extrabold text-[#88BDA4]">01</span>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#181d2a] text-zinc-400 border border-white/[0.06]">
+                    CONTRACT
                   </span>
                 </div>
+
+                <div className="space-y-1">
+                  <h3 className="text-lg font-bold text-white tracking-tight">
+                    Read Spec
+                  </h3>
+                  <p className="text-xs text-zinc-400 font-sans">
+                    Real failure modes &amp; locked types.
+                  </p>
+                </div>
+
+                {/* Minimal Micro-Visual */}
+                <div className="p-3 rounded-xl bg-[#090A0F] border border-white/[0.06] font-mono text-[11px] space-y-1.5">
+                  <div className="flex items-center gap-1.5 text-rose-400 font-semibold text-[11px]">
+                    <AlertTriangle size={13} aria-hidden="true" />
+                    <span>JWT Clock Skew Bug</span>
+                  </div>
+                  <div className="text-zinc-500 text-[10px]">
+                    Target: Reject expired tokens
+                  </div>
+                </div>
               </div>
-            );
-          })}
+
+              <div className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider">
+                Phase 1 // Spec
+              </div>
+            </div>
+
+            {/* Step 02 (Elevated Centerpiece) */}
+            <div className="p-6 sm:p-7 rounded-2xl bg-[#141724] border border-[#88BDA4]/40 shadow-xl shadow-[#88BDA4]/5 flex flex-col justify-between space-y-5">
+              <div className="space-y-3.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-3xl font-mono font-extrabold text-[#88BDA4]">02</span>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#88BDA4]/15 text-[#88BDA4] font-semibold border border-[#88BDA4]/30">
+                    ZERO-AI
+                  </span>
+                </div>
+
+                <div className="space-y-1">
+                  <h3 className="text-lg font-bold text-white tracking-tight">
+                    Fix by Hand
+                  </h3>
+                  <p className="text-xs text-zinc-300 font-sans">
+                    No ghosts. Pure keyboard recall.
+                  </p>
+                </div>
+
+                {/* Minimal Code Visual */}
+                <div className="p-3 rounded-xl bg-[#090A0F] border border-[#88BDA4]/20 font-mono text-[11px] space-y-1">
+                  <div className="text-zinc-500 text-[10px]">token-validator.ts</div>
+                  <div className="text-[#F4F4F5] bg-[#171a24] px-1.5 py-0.5 rounded border-l-2 border-[#88BDA4]">
+                    return token.exp <span className="text-[#88BDA4] font-bold">&lt;=</span> now;
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-[10px] font-mono text-[#88BDA4] uppercase tracking-wider">
+                Phase 2 // Recall
+              </div>
+            </div>
+
+            {/* Step 03 */}
+            <div className="p-6 sm:p-7 rounded-2xl bg-[#11131A] border border-white/[0.08] flex flex-col justify-between space-y-5 hover:border-white/[0.18] transition-colors">
+              <div className="space-y-3.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-3xl font-mono font-extrabold text-[#88BDA4]">03</span>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#0e1713] text-emerald-400 font-semibold border border-emerald-500/20">
+                    AUTOMATED
+                  </span>
+                </div>
+
+                <div className="space-y-1">
+                  <h3 className="text-lg font-bold text-white tracking-tight">
+                    Run Tests
+                  </h3>
+                  <p className="text-xs text-zinc-400 font-sans">
+                    Instant sub-millisecond assertions.
+                  </p>
+                </div>
+
+                {/* Minimal Result Visual */}
+                <div className="p-3 rounded-xl bg-[#090A0F] border border-white/[0.06] font-mono text-[11px] space-y-1">
+                  <div className="flex items-center justify-between text-emerald-400 font-semibold">
+                    <span className="flex items-center gap-1.5">
+                      <CheckCircle2 size={13} aria-hidden="true" />
+                      <span>PASS (14ms)</span>
+                    </span>
+                    <span className="text-[10px] text-zinc-500">2/2 edge cases</span>
+                  </div>
+                  <div className="text-zinc-500 text-[10px]">
+                    Reflex reinforced
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider">
+                Phase 3 // Verdict
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        {/* Section Closure Link */}
+        <div className="flex items-center justify-center pt-1">
+          <Link
+            href="/studio"
+            className="inline-flex items-center gap-2 text-xs font-mono font-semibold text-[#88BDA4] hover:text-[#9cd1b8] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#88BDA4] px-2 py-1 rounded"
+          >
+            <span>Launch Practice Studio</span>
+            <ArrowRight size={13} aria-hidden="true" />
+          </Link>
         </div>
 
       </div>

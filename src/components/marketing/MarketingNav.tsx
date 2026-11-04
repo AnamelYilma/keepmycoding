@@ -22,30 +22,30 @@ export default function MarketingNav({
       <div
         className="absolute top-0 left-0 flex items-center pl-4 sm:pl-6 pr-4 pointer-events-auto h-[68px] sm:h-[72px]"
         style={{
-          width: topLeftWidth ? `${topLeftWidth}px` : '17%',
-          minWidth: '220px',
+          width: topLeftWidth ? `${topLeftWidth}px` : '18%',
+          minWidth: '240px',
         }}
       >
         <Link
           href="/"
-          className="flex items-center gap-2.5 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] rounded-lg"
+          className="flex items-center gap-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] rounded-lg"
           aria-label="KeepCoding home"
         >
-          <div className="relative w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
+          <div className="relative w-10 h-10 sm:w-11 sm:h-11 rounded-xl overflow-hidden flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
             <Image
               src="/logo2nd.png"
               alt="KeepCoding logo"
-              width={32}
-              height={32}
+              width={44}
+              height={44}
               priority
-              className="object-contain w-full h-full drop-shadow-[0_2px_8px_rgba(136,189,164,0.35)]"
+              className="object-contain w-full h-full drop-shadow-[0_2px_12px_rgba(136,189,164,0.4)]"
             />
           </div>
           <div className="flex flex-col justify-center">
-            <span className="text-sm sm:text-base font-bold text-[#F4F4F5] tracking-tight leading-none">
+            <span className="text-base sm:text-lg font-bold text-[#F4F4F5] tracking-tight leading-none">
               KeepCoding
             </span>
-            <span className="text-[9px] font-mono tracking-widest text-[#88BDA4] mt-1 leading-none">
+            <span className="text-[10px] sm:text-[11px] font-mono tracking-wider text-[#88BDA4] mt-1 font-semibold leading-none">
               ZERO-AI GYM
             </span>
           </div>

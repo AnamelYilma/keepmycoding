@@ -1,7 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { BookOpen, CheckCircle2, ChevronDown, ChevronRight, HelpCircle } from 'lucide-react';
+import {
+  BookOpen,
+  CheckCircle2,
+  ChevronDown,
+  ChevronRight,
+  HelpCircle,
+  FileCode,
+  ShieldCheck,
+  Terminal,
+} from 'lucide-react';
 import { ChallengeTest } from '@/lib/types/challenge';
 
 interface TaskGuidePaneProps {
@@ -10,9 +19,71 @@ interface TaskGuidePaneProps {
   language: string;
 }
 
+interface TaskSection {
+  title: string;
+  content: string;
+}
+
+function parseTaskSections(rawTask: string): TaskSection[] {
+  const normalized = rawTask.replace(/\r\n/g, '\n').trim();
+  const headerRegex = /(?:^|\n)(?:#{1,4}\s*)?([A-Z][A-Z0-9 &/_()-]{2,45}):(?:\s*\n|\s+)/g;
+  const matches: Array<{ title: string; index: number; length: number }> = [];
+  let match: RegExpExecArray | null;
+
+  while ((match = headerRegex.exec(normalized)) !== null) {
+    matches.push({
+      title: match[1].trim(),
+      index: match.index,
+      length: match[0].length,
+    });
+  }
+
+  if (matches.length < 2) {
+    return [];
+  }
+
+  const sections: TaskSection[] = [];
+  for (let i = 0; i < matches.length; i++) {
+    const current = matches[i];
+    const start = current.index + current.length;
+    const end = i + 1 < matches.length ? matches[i + 1].index : normalized.length;
+    sections.push({
+      title: current.title,
+      content: normalized.slice(start, end).trim(),
+    });
+  }
+
+  return sections;
+}
+
+function getSectionIcon(title: string) {
+  const upper = title.toUpperCase();
+  if (upper.includes('GOAL') || upper.includes('OBJECTIVE')) {
+    return <Terminal className="w-3.5 h-3.5 text-[#88BDA4]" aria-hidden="true" />;
+  }
+  if (upper.includes('WHERE') || upper.includes('TARGET') || upper.includes('FILE')) {
+    return <FileCode className="w-3.5 h-3.5 text-[#88BDA4]" aria-hidden="true" />;
+  }
+  if (
+    upper.includes('EDGE') ||
+    upper.includes('INVARIANT') ||
+    upper.includes('SECURITY') ||
+    upper.includes('FAILURE') ||
+    upper.includes('CONSTRAINT')
+  ) {
+    return <ShieldCheck className="w-3.5 h-3.5 text-[#88BDA4]" aria-hidden="true" />;
+  }
+  if (upper.includes('APPROACH') || upper.includes('STEP') || upper.includes('ACCEPTANCE')) {
+    return <CheckCircle2 className="w-3.5 h-3.5 text-[#88BDA4]" aria-hidden="true" />;
+  }
+  return <BookOpen className="w-3.5 h-3.5 text-[#88BDA4]" aria-hidden="true" />;
+}
+
 export function TaskGuidePane({ task, tests, language }: TaskGuidePaneProps) {
   const [activeTab, setActiveTab] = useState<'task' | 'cheatsheet'>('task');
   const [hintsOpen, setHintsOpen] = useState<boolean>(false);
+
+  const structuredSections = parseTaskSections(task);
 
   return (
     <div className="flex flex-col h-full bg-[#12151e] border border-white/12 rounded-xl overflow-hidden text-xs shadow-lg">
@@ -59,14 +130,82 @@ export function TaskGuidePane({ task, tests, language }: TaskGuidePaneProps) {
         {activeTab === 'task' ? (
           <>
             {/* Task Description */}
-            <div className="space-y-2">
+            <div className="space-y-3">
               <h2 className="flex items-center gap-1.5 text-zinc-300 font-semibold uppercase tracking-wider text-[11px] font-mono">
                 <BookOpen className="w-3.5 h-3.5 text-[#88BDA4]" aria-hidden="true" />
                 <span>Task Specification</span>
               </h2>
-              <div className="p-3.5 rounded-xl bg-[#090A0F] border border-white/8 text-zinc-300 whitespace-pre-wrap font-sans text-xs leading-relaxed shadow-inner">
-                {task}
-              </div>
+
+              {structuredSections.length > 0 ? (
+                <div className="space-y-2.5">
+                  {structuredSections.map((sec, idx) => {
+                    const isNumberedList = /^\d+\.\s+/m.test(sec.content);
+                    const isBulletList = /^-\s+/m.test(sec.content);
+
+                    return (
+                      <div
+                        key={idx}
+                        className="p-3 rounded-xl bg-[#090A0F] border border-white/8 space-y-2 text-zinc-300 font-sans text-xs leading-relaxed"
+                      >
+                        <h3 className="flex items-center gap-1.5 text-zinc-400 font-semibold uppercase tracking-wider text-[10px] font-mono">
+                          {getSectionIcon(sec.title)}
+                          <span>{sec.title}</span>
+                        </h3>
+
+                        {isNumberedList ? (
+                          <div className="space-y-1.5 pl-0.5">
+                            {sec.content.split('\n').filter((l) => l.trim()).map((line, lIdx) => {
+                              const matchNum = line.match(/^(\d+)\.\s*(.*)$/);
+                              if (matchNum) {
+                                return (
+                                  <div key={lIdx} className="flex items-start gap-2 text-zinc-300 text-xs">
+                                    <span className="font-mono text-[#88BDA4] font-semibold text-[11px] select-none shrink-0">
+                                      {matchNum[1]}.
+                                    </span>
+                                    <span>{matchNum[2]}</span>
+                                  </div>
+                                );
+                              }
+                              return (
+                                <p key={lIdx} className="text-zinc-300 text-xs pl-4">
+                                  {line}
+                                </p>
+                              );
+                            })}
+                          </div>
+                        ) : isBulletList ? (
+                          <div className="space-y-1.5 pl-0.5">
+                            {sec.content.split('\n').filter((l) => l.trim()).map((line, lIdx) => {
+                              const matchBullet = line.match(/^-\s*(.*)$/);
+                              if (matchBullet) {
+                                return (
+                                  <div key={lIdx} className="flex items-start gap-2 text-zinc-300 text-xs">
+                                    <span className="text-zinc-500 font-mono select-none shrink-0">-</span>
+                                    <span>{matchBullet[1]}</span>
+                                  </div>
+                                );
+                              }
+                              return (
+                                <p key={lIdx} className="text-zinc-300 text-xs pl-3">
+                                  {line}
+                                </p>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <p className="text-zinc-300 text-xs leading-relaxed whitespace-pre-wrap">
+                            {sec.content}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="p-3.5 rounded-xl bg-[#090A0F] border border-white/8 text-zinc-300 whitespace-pre-wrap font-sans text-xs leading-relaxed shadow-inner">
+                  {task}
+                </div>
+              )}
             </div>
 
             {/* Test Specifications */}

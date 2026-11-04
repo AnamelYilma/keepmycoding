@@ -33,8 +33,22 @@ function runTestSuite() {
   if (!prompt.includes('---METADATA---')) throw new Error('Master prompt missing METADATA tag');
   if (!prompt.includes('Track 1')) throw new Error('Master prompt missing selected Track');
   if (!prompt.includes('Pure token extractor')) throw new Error('Master prompt missing history record');
+  if (!prompt.includes('GOAL:')) throw new Error('Guided level 2 prompt missing GOAL section');
+  if (!prompt.includes('HOW TO APPROACH THIS:')) throw new Error('Guided level 2 prompt missing HOW TO APPROACH section');
   if (prompt.includes('—')) throw new Error('Master prompt contains forbidden em dash character');
-  console.log('[PASS] Master Prompt Generation verified with history integration.');
+
+  // Verify higher-level prompt uses technical spec format
+  const seniorPrompt = generateMasterPrompt({
+    track: 1,
+    level: 8,
+    type: 'Fix',
+    language: 'TypeScript',
+  });
+  if (!seniorPrompt.includes('OBJECTIVE & ARCHITECTURAL CONTEXT:')) throw new Error('Senior level 8 prompt missing OBJECTIVE section');
+  if (!seniorPrompt.includes('FAILURE MODES & SYSTEM INVARIANTS:')) throw new Error('Senior level 8 prompt missing INVARIANTS section');
+  if (seniorPrompt.includes('—')) throw new Error('Senior master prompt contains forbidden em dash character');
+
+  console.log('[PASS] Master Prompt Generation verified with history integration and level-adaptive task guidance.');
 
   console.log('\n=== Step 2: Testing Challenge Ingestion & Parsing on All Samples ===');
   for (const sample of SAMPLE_CHALLENGES) {

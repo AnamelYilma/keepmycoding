@@ -1,10 +1,11 @@
 // KeepCoding - Server-Side AI Judge Route
-// Evaluates user code submissions with Google AI Studio Gemini API or intelligent mock fallback
+// Evaluates user code submissions with Google AI Studio Gemini API or intelligent deterministic fallback
 
 import { NextRequest, NextResponse } from 'next/server';
 import { Challenge, ChallengeFile, JudgeResult } from '@/lib/types/challenge';
 import { buildJudgeSystemPrompt, buildJudgeUserPrompt } from '@/lib/judge/judge-prompt';
 import { parseJudgeResponse } from '@/lib/judge/judge-parser';
+import { evaluateSubmissionLocally } from '@/lib/judge/local-evaluator';
 
 interface JudgeRequestBody {
   challenge: Challenge;
@@ -53,72 +54,64 @@ export async function POST(req: NextRequest) {
 
     if (!isRealApiKey || !apiKey) {
       // Smart Local Evaluator (Mock Fallback for offline/testing when no key is configured)
-      const mockResult = evaluateLocally(challenge, userFiles);
+      const mockResult = evaluateSubmissionLocally(
+        challenge,
+        userFiles,
+        'local-evaluator (mock: configure AI_API_KEY in .env.local for live Gemini)'
+      );
       return NextResponse.json(mockResult);
     }
 
-    // Call Google Generative Language API via standard header (zero query parameter leakage)
-    const targetUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent';
+    // Call Google Generative Language API with valid production models
+    const preferredModel = process.env.AI_MODEL?.trim() || 'gemini-1.5-flash';
+    const modelsToTry = Array.from(new Set([preferredModel, 'gemini-1.5-flash', 'gemini-2.0-flash']));
     const systemPrompt = buildJudgeSystemPrompt();
     const userPrompt = buildJudgeUserPrompt({ challenge, userFiles });
 
-    let res: Response;
-    try {
-      res = await fetch(targetUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-goog-api-key': apiKey,
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }],
-            },
-          ],
-          generationConfig: { temperature: 0.1 },
-        }),
-      });
-    } catch {
-      console.error('Google AI Studio network error occurred.');
-      return NextResponse.json(
-        { error: 'Network error contacting AI Judge service. Please try again later.' },
-        { status: 502 }
-      );
-    }
+    for (const model of modelsToTry) {
+      const targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+      try {
+        const res = await fetch(targetUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': apiKey,
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }],
+              },
+            ],
+            generationConfig: { temperature: 0.1 },
+          }),
+        });
 
-    if (!res.ok) {
-      console.error('Google AI Studio API error response status:', res.status);
-
-      let safeErrorMessage = 'AI Judge service returned an error. Please try again.';
-      if (res.status === 429) {
-        safeErrorMessage = 'AI Judge rate limit reached. Please wait a moment and try again.';
-      } else if (res.status === 401 || res.status === 403) {
-        safeErrorMessage = 'AI Judge authorization or key configuration error.';
+        if (res.ok) {
+          const data = await res.json();
+          const rawResponseText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (rawResponseText && rawResponseText.trim().length > 0) {
+            const parsedJudgeResult = parseJudgeResponse(rawResponseText, model);
+            return NextResponse.json(parsedJudgeResult);
+          }
+        } else {
+          console.warn(`Model ${model} returned status ${res.status}.`);
+        }
+      } catch (networkErr) {
+        console.warn(`Network error contacting model ${model}:`, networkErr);
       }
-
-      return NextResponse.json(
-        { error: safeErrorMessage },
-        { status: res.status >= 400 && res.status < 600 ? res.status : 502 }
-      );
     }
 
-    const data = await res.json();
-    const rawResponseText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-    if (!rawResponseText || rawResponseText.trim().length === 0) {
-      const finishReason = data.candidates?.[0]?.finishReason || 'UNKNOWN';
-      console.error('Gemini returned empty response. Finish reason:', finishReason);
-      return NextResponse.json(
-        { error: `AI Judge returned an empty response (finish reason: ${finishReason}).` },
-        { status: 502 }
-      );
-    }
-
-    const parsedJudgeResult = parseJudgeResponse(rawResponseText, 'gemini-flash-latest');
-    return NextResponse.json(parsedJudgeResult);
-  } catch {
-    console.error('Unexpected Judge route error occurred.');
+    // If external AI calls could not be completed, directly fallback to deterministic evaluator
+    console.warn('External AI evaluation unavailable. Activating deterministic local evaluator.');
+    const fallbackResult = evaluateSubmissionLocally(
+      challenge,
+      userFiles,
+      'deterministic-engine (fallback: live AI service temporarily unavailable)'
+    );
+    return NextResponse.json(fallbackResult);
+  } catch (err) {
+    console.error('Unexpected error in Judge route. Falling back to local evaluation.', err);
     return NextResponse.json(
       { error: 'Judge evaluation failed due to an unexpected internal error.' },
       { status: 500 }
@@ -127,62 +120,8 @@ export async function POST(req: NextRequest) {
 }
 
 /**
- * Intelligent deterministic local evaluator used when no AI key is provided.
- * Compares user edits against initial code and reference solution.
+ * Deterministic local evaluator wrapper.
  */
 function evaluateLocally(challenge: Challenge, userFiles: ChallengeFile[]): JudgeResult {
-  const editableFiles = userFiles.filter((f) => f.isEditable);
-  const anyFileModified = editableFiles.some((f) => f.content !== f.startContent);
-
-  // Case 1: No edits made
-  if (!anyFileModified) {
-    return {
-      verdict: 'FAIL',
-      summary: 'No modifications detected in editable files.',
-      breakdown:
-        '- Editable files match initial starter state.\n- Target logic has not yet been implemented or fixed.\n- Test specifications could not be satisfied without edits.',
-      model: 'local-evaluator (mock: configure AI_API_KEY in .env.local for live Gemini)',
-      advice: 'Review the task description and modify the editable file to implement the required solution.',
-    };
-  }
-
-  // Case 2: Analyze user edits against reference
-  const primaryFile = editableFiles[0];
-  const refClean = challenge.reference.replace(/\s+/g, ' ').trim();
-  const userClean = primaryFile ? primaryFile.content.replace(/\s+/g, ' ').trim() : '';
-
-  // Extract key identifiers or tokens from reference
-  const refTokens = challenge.reference
-    .split(/[\s();{},.:=<>!&|]+/)
-    .filter((w) => w.length > 3 && !['export', 'function', 'return', 'interface', 'const'].includes(w));
-
-  const matchedTokens = refTokens.filter((token) => userClean.includes(token));
-  const tokenMatchRatio = refTokens.length > 0 ? matchedTokens.length / refTokens.length : 1;
-
-  // Check if reference contains a specific key inversion (e.g. <= instead of >=)
-  const checksPass =
-    userClean === refClean ||
-    tokenMatchRatio >= 0.7 ||
-    (challenge.metadata.type === 'Fix' && userClean !== primaryFile.startContent.replace(/\s+/g, ' ').trim());
-
-  if (checksPass) {
-    return {
-      verdict: 'PASS',
-      summary: 'Solution verified. The implementation satisfies task requirements and test specifications.',
-      breakdown:
-        '- Target logic correctly implemented in editable file.\n- Key boundary conditions and test criteria satisfied.\n- Solution maintains clean code structure without extraneous clutter.',
-      model: 'local-evaluator (mock: configure AI_API_KEY in .env.local for live Gemini)',
-      advice: 'Great work maintaining clean, minimal code. Ready for the next difficulty level.',
-    };
-  }
-
-  return {
-    verdict: 'FAIL',
-    summary: 'The submitted implementation did not fully satisfy all test requirements.',
-    breakdown:
-      '- Edits were made to target file, but core logic deviates from expected behavior.\n- One or more test specifications failed mental dry-run execution.',
-    model: 'local-evaluator (mock: configure AI_API_KEY in .env.local for live Gemini)',
-    advice: 'Compare your logic against the test cases and watch out for edge cases or reversed operator conditions.',
-    fix: challenge.reference.trim(),
-  };
+  return evaluateSubmissionLocally(challenge, userFiles);
 }

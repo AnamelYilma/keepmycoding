@@ -99,41 +99,33 @@
   color: #ffffff;
 }
 
-/* Segmented Pill Route Nav */
+/* Clean Back Navigation */
 .auth-route-nav {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--auth-line);
-  border-radius: var(--auth-radius-full);
-  backdrop-filter: blur(8px);
 }
 
-.auth-route-nav a {
-  min-height: 34px;
-  padding: 0 16px;
+.auth-back-link {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 16px;
   color: var(--auth-text-secondary);
   font-size: 12px;
   font-weight: 550;
   border-radius: var(--auth-radius-full);
-  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+  border: 1px solid var(--auth-line);
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(8px);
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
 }
 
-.auth-route-nav a:hover {
+.auth-back-link:hover {
   color: #ffffff;
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.auth-route-nav a.is-current {
-  color: #ffffff;
-  background: var(--auth-surface-elevated);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateX(-2px);
 }
 
 .auth-route-nav a:focus-visible,

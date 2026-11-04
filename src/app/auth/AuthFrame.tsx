@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { CheckCircle2, Code2, FileCode, Lock, ShieldCheck, Terminal } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Code2, FileCode, Lock, ShieldCheck, Terminal } from 'lucide-react';
 import './auth.css';
 
 export default function AuthFrame({
@@ -16,6 +16,17 @@ export default function AuthFrame({
       <div className="auth-ambient-glow" aria-hidden="true" />
 
       <header className="auth-header">
+        <nav className="auth-route-nav" aria-label="Back navigation">
+          <Link
+            href="/"
+            className="auth-back-link"
+            aria-label="Back to landing page"
+          >
+            <ArrowLeft size={16} aria-hidden="true" />
+            <span>Back to landing page</span>
+          </Link>
+        </nav>
+
         <Link href="/" className="auth-brand" aria-label="KeepCoding home">
           <span className="auth-brand-mark">
             <Image
@@ -29,24 +40,6 @@ export default function AuthFrame({
           </span>
           <span className="auth-brand-name">KeepCoding</span>
         </Link>
-        {mode !== 'reset' && (
-          <nav className="auth-route-nav" aria-label="Account access">
-            <Link
-              href="/login"
-              aria-current={mode === 'login' ? 'page' : undefined}
-              className={mode === 'login' ? 'is-current' : undefined}
-            >
-              Sign in
-            </Link>
-            <Link
-              href="/signup"
-              aria-current={mode === 'signup' ? 'page' : undefined}
-              className={mode === 'signup' ? 'is-current' : undefined}
-            >
-              Create account
-            </Link>
-          </nav>
-        )}
       </header>
 
       <div className={`auth-layout auth-layout--${mode}`}>

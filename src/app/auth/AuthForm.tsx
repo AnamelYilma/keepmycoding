@@ -242,6 +242,11 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
             </Link>
           </div>
         )}
+        {(isSignup || isLogin) && (
+          <div className="auth-switch-inline" style={{ marginTop: '10px' }}>
+            <Link href="/privacy" className="auth-switch-pill">Privacy policy</Link>
+          </div>
+        )}
         {isForgot && (
           <div className="auth-switch-inline">
             <span>Remembered your password?</span>

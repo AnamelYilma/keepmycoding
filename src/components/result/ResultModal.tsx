@@ -86,6 +86,29 @@ export function ResultModal({
             </div>
           )}
 
+          {isPass && result.authorLearning && (
+            <div className="space-y-3">
+              {result.authorLearning.explanation && (
+                <section className="space-y-2">
+                  <h3 className="font-semibold text-zinc-300 uppercase tracking-wider text-[11px] font-mono">Author explanation</h3>
+                  <div className="rounded-xl border border-white/8 bg-[#090A0F] p-4 text-xs leading-relaxed text-zinc-300 whitespace-pre-wrap">{result.authorLearning.explanation}</div>
+                </section>
+              )}
+              {result.authorLearning.referenceSolution && (
+                <section className="space-y-2">
+                  <h3 className="font-semibold text-zinc-300 uppercase tracking-wider text-[11px] font-mono">Reference solution</h3>
+                  <pre className="rounded-xl border border-white/8 bg-[#090A0F] p-4 font-mono text-[11px] leading-relaxed text-zinc-200 whitespace-pre-wrap overflow-x-auto">{result.authorLearning.referenceSolution}</pre>
+                </section>
+              )}
+              {result.authorLearning.sources.length > 0 && (
+                <section className="space-y-2">
+                  <h3 className="font-semibold text-zinc-300 uppercase tracking-wider text-[11px] font-mono">Sources</h3>
+                  <ul className="space-y-1">{result.authorLearning.sources.map((source) => <li key={source.url}><a href={source.url} target="_blank" rel="noreferrer" className="text-[#88BDA4] underline underline-offset-2">{source.label}</a></li>)}</ul>
+                </section>
+              )}
+            </div>
+          )}
+
           {/* Code Fix Recommendation if failed */}
           {result.fix && (
             <div className="space-y-2">

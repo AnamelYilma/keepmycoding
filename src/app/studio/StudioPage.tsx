@@ -72,6 +72,7 @@ function ActiveWorkspaceView({
 
 export default function Home() {
   const [activeChallenge, setActiveChallenge] = useState<Challenge | null>(null);
+  const [activeChallengeId, setActiveChallengeId] = useState<string | null>(null);
   const [judgeResult, setJudgeResult] = useState<JudgeResult | null>(null);
   const [isJudging, setIsJudging] = useState<boolean>(false);
   const [showResultModal, setShowResultModal] = useState<boolean>(false);
@@ -110,9 +111,12 @@ export default function Home() {
       if (stored) {
         try {
           const parsed = JSON.parse(stored) as Challenge;
+          const storedId = sessionStorage.getItem('pending_challenge_id');
           sessionStorage.removeItem('pending_challenge');
+          sessionStorage.removeItem('pending_challenge_id');
           if (parsed && parsed.files && parsed.files.length > 0) {
             setActiveChallenge(parsed);
+            setActiveChallengeId(storedId);
           }
         } catch (e) {
           console.error('Failed to parse pending challenge', e);
@@ -125,14 +129,16 @@ export default function Home() {
     setHistoryCount(getHistory().length);
   };
 
-  const handleStartChallenge = (challenge: Challenge) => {
+  const handleStartChallenge = (challenge: Challenge, challengeId: string | null = null) => {
     setActiveChallenge(challenge);
+    setActiveChallengeId(challengeId);
     setJudgeResult(null);
     setShowResultModal(false);
   };
 
   const handleBackToSetup = () => {
     setActiveChallenge(null);
+    setActiveChallengeId(null);
   };
 
   const handleSubmitToJudge = async (userFiles: ChallengeFile[]) => {
@@ -145,6 +151,7 @@ export default function Home() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           challenge: activeChallenge,
+          ...(activeChallengeId ? { challengeId: activeChallengeId } : {}),
           userFiles,
         }),
       });
@@ -194,6 +201,7 @@ export default function Home() {
 
     setShowResultModal(false);
     setActiveChallenge(null);
+    setActiveChallengeId(null);
   };
 
   // If a challenge is active, render the full workspace
@@ -265,6 +273,12 @@ export default function Home() {
             >
               <Layers className="h-3.5 w-3.5 text-[#88BDA4]" aria-hidden="true" />
               <span>Prompt Wizard</span>
+            </Link>
+            <Link
+              href="/challenges"
+              className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-zinc-300 border border-white/10 bg-[#11131A] hover:border-white/20 hover:bg-[#171a24] hover:text-white transition-all font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
+            >
+              <span>Challenge Library</span>
             </Link>
             <button
               type="button"

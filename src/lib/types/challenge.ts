@@ -55,6 +55,11 @@ export interface JudgeResult {
   model: string;
   advice: string;
   fix?: string;
+  authorLearning?: {
+    explanation: string;
+    referenceSolution: string;
+    sources: { label: string; url: string }[];
+  };
 }
 
 // History item for persistent client-side storage

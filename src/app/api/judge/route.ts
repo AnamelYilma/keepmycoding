@@ -6,16 +6,60 @@ import { Challenge, ChallengeFile, JudgeResult } from '@/lib/types/challenge';
 import { buildJudgeSystemPrompt, buildJudgeUserPrompt } from '@/lib/judge/judge-prompt';
 import { parseJudgeResponse } from '@/lib/judge/judge-parser';
 import { evaluateSubmissionLocally } from '@/lib/judge/local-evaluator';
+import { createSupabaseAdminClient } from '@/lib/supabase/admin';
+import { createSupabaseServerClient, isSupabaseConfigured } from '@/lib/supabase/server';
+import { normalizeSources } from '@/lib/challenges/library';
 
 interface JudgeRequestBody {
   challenge: Challenge;
+  challengeId?: string;
   userFiles: ChallengeFile[];
 }
 
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as JudgeRequestBody;
-    const { challenge, userFiles } = body;
+    let { challenge } = body;
+    const { challengeId, userFiles } = body;
+    let libraryAttempt: { id: string; userId: string; admin: ReturnType<typeof createSupabaseAdminClient>; solution: { reference_solution: string; author_explanation: string; source_urls: unknown } } | null = null;
+
+    if (challengeId) {
+      if (!isSupabaseConfigured()) {
+        return NextResponse.json({ error: 'Challenge storage is not configured.' }, { status: 503 });
+      }
+      if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        return NextResponse.json({ error: 'Challenge library judging is not configured.' }, { status: 503 });
+      }
+      const supabase = await createSupabaseServerClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return NextResponse.json({ error: 'Sign in to submit a community challenge.' }, { status: 401 });
+
+      const { data: record } = await supabase
+        .from('challenges')
+        .select('owner_id,challenge')
+        .eq('id', challengeId)
+        .maybeSingle();
+      if (!record) return NextResponse.json({ error: 'Challenge not found.' }, { status: 404 });
+
+      const { data: attempt } = await supabase
+        .from('challenge_attempts')
+        .select('challenge_id')
+        .eq('challenge_id', challengeId)
+        .eq('solver_id', user.id)
+        .maybeSingle();
+      if (!attempt) return NextResponse.json({ error: 'Start this challenge before submitting it.' }, { status: 403 });
+
+      const admin = createSupabaseAdminClient();
+      const { data: solution, error: solutionError } = await admin
+        .from('challenge_solutions')
+        .select('reference_solution,author_explanation,source_urls')
+        .eq('challenge_id', challengeId)
+        .maybeSingle();
+      if (solutionError || !solution) return NextResponse.json({ error: 'Challenge solution is unavailable.' }, { status: 503 });
+
+      challenge = { ...(record.challenge as Omit<Challenge, 'reference'>), reference: solution.reference_solution };
+      libraryAttempt = { id: challengeId, userId: user.id, admin, solution };
+    }
 
     if (!challenge || !userFiles || !Array.isArray(userFiles)) {
       return NextResponse.json(
@@ -59,7 +103,7 @@ export async function POST(req: NextRequest) {
         userFiles,
         'local-evaluator (mock: configure AI_API_KEY in .env.local for live Gemini)'
       );
-      return NextResponse.json(mockResult);
+      return await completeLibraryAttempt(mockResult, libraryAttempt);
     }
 
     // Call Google Generative Language API with valid production models
@@ -92,7 +136,7 @@ export async function POST(req: NextRequest) {
           const rawResponseText = data.candidates?.[0]?.content?.parts?.[0]?.text;
           if (rawResponseText && rawResponseText.trim().length > 0) {
             const parsedJudgeResult = parseJudgeResponse(rawResponseText, model);
-            return NextResponse.json(parsedJudgeResult);
+            return await completeLibraryAttempt(parsedJudgeResult, libraryAttempt);
           }
         } else {
           console.warn(`Model ${model} returned status ${res.status}.`);
@@ -109,7 +153,7 @@ export async function POST(req: NextRequest) {
       userFiles,
       'deterministic-engine (fallback: live AI service temporarily unavailable)'
     );
-    return NextResponse.json(fallbackResult);
+    return await completeLibraryAttempt(fallbackResult, libraryAttempt);
   } catch (err) {
     console.error('Unexpected error in Judge route. Falling back to local evaluation.', err);
     return NextResponse.json(
@@ -117,6 +161,30 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+async function completeLibraryAttempt(
+  result: JudgeResult,
+  attempt: { id: string; userId: string; admin: ReturnType<typeof createSupabaseAdminClient>; solution: { reference_solution: string; author_explanation: string; source_urls: unknown } } | null
+) {
+  if (!attempt || result.verdict !== 'PASS') return NextResponse.json(result);
+
+  const { error } = await attempt.admin
+    .from('challenge_attempts')
+    .update({ completed_at: new Date().toISOString() })
+    .eq('challenge_id', attempt.id)
+    .eq('solver_id', attempt.userId);
+  if (error) return NextResponse.json({ error: 'Your solution passed, but completion could not be recorded. Please try again.' }, { status: 503 });
+
+  const sources = normalizeSources(attempt.solution.source_urls) ?? [];
+  return NextResponse.json({
+    ...result,
+    authorLearning: {
+      explanation: attempt.solution.author_explanation,
+      referenceSolution: attempt.solution.reference_solution,
+      sources,
+    },
+  });
 }
 
 /**

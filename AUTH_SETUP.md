@@ -8,6 +8,7 @@ Copy `.env.example` to `.env.local`, then set:
 
 - `NEXT_PUBLIC_SUPABASE_URL`: the project's URL from Supabase API settings.
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`: the project's publishable key. Do not use a service-role key here.
+- `SUPABASE_SERVICE_ROLE_KEY`: server-only Supabase service-role key used by the challenge library to keep reference solutions private and record successful attempts. Never prefix it with `NEXT_PUBLIC_` or expose it to client code.
 - `NEXT_PUBLIC_SITE_URL`: the exact site origin, such as `http://localhost:3000` locally and the deployed HTTPS origin in production.
 
 Restart the Next.js server after changing environment values.
@@ -22,3 +23,7 @@ Restart the Next.js server after changing environment values.
 6. Configure custom SMTP before launch if email confirmation is required. Supabase's built-in sender is rate-limited and intended for trying the flow, not production email delivery.
 
 Sign-up stores `full_name`, `developer_role`, `experience_level`, and optional `gender` as Supabase auth user metadata. They are profile preferences, not authorization roles. No separate profile table is required for this first version.
+
+## Challenge library database
+
+Apply `supabase/migrations/202611070001_challenge_library.sql` to the Supabase project before enabling community challenge storage. The migration creates challenge, hidden solution, and attempt tables with row-level security. Public challenges can be listed, private challenges are owner-only, and creators can see account names and timestamps for people who tried their challenges. Solver code is not written to the attempt table.

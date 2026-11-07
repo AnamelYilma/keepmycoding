@@ -29,6 +29,9 @@ Users choose a track, difficulty, challenge type, and language; send a generated
 - Email and password accounts use Supabase Auth. Sign-up collects a name, developer role, experience level, and optional gender.
 - Account confirmation and password reset use Supabase email links routed through `/auth/callback`.
 - Practice history is stored locally in the browser.
+- The challenge library includes built-in examples, public community challenges, and each signed-in user's private challenges.
+- Challenge creators can see who started and completed their challenges, but cannot access solvers' code from activity records.
+- Community challenge reference solutions are stored separately from solver-visible challenge content and are revealed after a passing submission.
 
 ## Brand Commitments
 

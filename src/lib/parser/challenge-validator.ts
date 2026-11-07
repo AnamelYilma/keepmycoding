@@ -42,7 +42,7 @@ editableFiles: [comma-separated paths of editable files]
 [Crisp, clear task description and requirements]
 
 ---FILE: path/to/file.ext---
-[Code file under 1000 lines. Maximum 10 code files total.]
+[Use only needed files, usually 1 to 4. Strongly prefer under 500 lines per file. Hard limits: 1000 lines per file and 10 code files total.]
 
 ---TESTS---
 Input: [test input]
@@ -54,8 +54,8 @@ Description: [test description]
 
 Validation Requirements:
 1. Include all required tags: ---METADATA---, ---TASK---, ---FILE: path---, ---TESTS---, ---REFERENCE---.
-2. Maximum 10 code files.
-3. Every file must be 1000 lines or fewer.
+2. Use only needed files, usually 1 to 4, and never exceed 10 code files.
+3. Strongly prefer fewer than 500 lines per file. Every file must be 1000 lines or fewer.
 4. Exactly one editable programming language.
 5. Reference answer must be under 300 lines.`;
 }

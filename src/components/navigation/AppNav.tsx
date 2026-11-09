@@ -19,7 +19,10 @@ function AppNavInner({ user: initialUser }: AppNavProps) {
   const currentTab = searchParams.get('tab');
 
   useEffect(() => {
-    if (initialUser !== undefined) return;
+    if (initialUser !== undefined) {
+      setCurrentUser(initialUser);
+      return;
+    }
     const supabase = createSupabaseBrowserClient();
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {

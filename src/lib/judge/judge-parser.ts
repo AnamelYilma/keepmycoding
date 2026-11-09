@@ -1,7 +1,7 @@
 // KeepCoding - Judge Response Parser
 // Parses tagged output from the AI judge into a structured JudgeResult object
 
-import { JudgeResult, Verdict } from '../types/challenge';
+import { JudgeResult, Verdict, MistakeType } from '../types/challenge';
 
 export function parseJudgeResponse(rawText: string, modelName: string = 'gemini-2.5-flash'): JudgeResult {
   const clean = rawText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
@@ -26,15 +26,40 @@ export function parseJudgeResponse(rawText: string, modelName: string = 'gemini-
     sections[cur.tag] = content;
   }
 
-  // Parse verdict
+  // Parse verdict (3-tier: PASS, PARTIAL, FAIL)
   const rawVerdict = (sections['VERDICT'] || '').trim().toUpperCase();
-  const verdict: Verdict = rawVerdict.includes('PASS') ? 'PASS' : 'FAIL';
+  let verdict: Verdict = 'FAIL';
+  if (rawVerdict.includes('PARTIAL')) {
+    verdict = 'PARTIAL';
+  } else if (rawVerdict.includes('PASS')) {
+    verdict = 'PASS';
+  }
+
+  // Parse mistake type (CONCEPT vs SYNTAX)
+  const rawMistake = (sections['MISTAKE_TYPE'] || '').trim().toUpperCase();
+  let mistakeType: MistakeType | undefined;
+  if (rawMistake.includes('SYNTAX')) {
+    mistakeType = 'SYNTAX';
+  } else if (rawMistake.includes('CONCEPT')) {
+    mistakeType = 'CONCEPT';
+  } else if (rawMistake.includes('NONE')) {
+    mistakeType = 'NONE';
+  }
 
   // Parse summary
-  const summary = sections['SUMMARY'] || (verdict === 'PASS' ? 'Challenge passed all validation criteria.' : 'Challenge failed verification.');
+  const defaultSummary =
+    verdict === 'PASS'
+      ? 'Challenge passed all validation criteria.'
+      : verdict === 'PARTIAL'
+      ? 'Partially correct: Some requirements met, but others need attention.'
+      : 'Challenge failed verification.';
+  const summary = sections['SUMMARY'] || defaultSummary;
 
   // Parse breakdown
   const breakdown = sections['BREAKDOWN'] || 'No detailed breakdown provided.';
+
+  // Parse what to learn / study guidance
+  const whatToLearn = sections['WHAT_TO_LEARN'] ? sections['WHAT_TO_LEARN'].trim() : undefined;
 
   // Parse model dry-run trace
   const modelTrace = sections['MODEL'] || 'Mental dry-run completed.';
@@ -47,8 +72,10 @@ export function parseJudgeResponse(rawText: string, modelName: string = 'gemini-
 
   return {
     verdict,
+    mistakeType,
     summary,
     breakdown,
+    whatToLearn,
     model: `${modelName} - ${modelTrace.slice(0, 120)}`,
     advice,
     fix: fix && fix.length > 0 ? fix : undefined,

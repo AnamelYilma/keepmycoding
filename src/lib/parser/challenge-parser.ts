@@ -73,7 +73,7 @@ export function cleanCodeContent(rawContent: string): string {
   let content = rawContent.trim();
 
   // Strip leading language line before code fence or content (e.g. "typescript\n```typescript...")
-  content = content.replace(/^(?:typescript|javascript|python|go|html|css|json|sql|ts|js|py)\s*\r?\n+/i, '');
+  content = content.replace(/^(?:typescript|javascript|python|go|rust|php|html|css|json|sql|ts|js|py|rs)\s*\r?\n+/i, '');
 
   // Strip wrapping outer code fences (e.g. ```typescript ... ``` or ```ts ... ``` or ``` ... ```)
   const fenceMatch = content.match(/^(`{3,})[a-zA-Z0-9_-]*\r?\n([\s\S]*)\r?\n\1\s*$/);
@@ -117,23 +117,25 @@ export function extractSections(rawText: string): RawSection[] {
   const cleanText = stripOuterFences(normalized);
 
   // Matches tags such as:
-  // --- METADATA ---
+  // (?:---+|\[)\s*METADATA ---
   // ---TEST CASES---
   // --- REFERENCE SOLUTION ---
-  // ### ---METADATA---
+  // ### (?:---+|\[)\s*METADATA---
   // **---TASK---**
   // --- FILE: path/to/file.ts ---
   // ---FILE:path/to/file.ts---
-  const tagRegex = /(?:^|\n)\s*(?:[#*`~>\s]*)(?:---+|(?:-\s*){2,}-)\s*([A-Za-z0-9_\s-]+?)(?:\s*:\s*([^\n\r]*?))?\s*(?:---+|(?:-\s*){2,}-)(?:[*`~>\s]*)(?:\n|$)/gi;
+  const tagRegex = /(?:^|\n)\s*(?:[#*`~>\s]*)(?:(?:---+|(?:-\s*){2,}-)\s*([A-Za-z0-9_\s-]+?)(?:\s*:\s*([^\n\r]*?))?\s*(?:---+|(?:-\s*){2,}-)|\[\s*([A-Za-z0-9_\s-]+?)(?:\s*:\s*([^\n\r\]]*?))?\s*\])(?:[*`~>\s]*)(?:\n|$)/gi;
 
   const matches: Array<{ tag: string; param?: string; start: number; end: number }> = [];
   let match: RegExpExecArray | null;
 
   while ((match = tagRegex.exec(cleanText)) !== null) {
-    const canonicalTag = normalizeTagName(match[1]);
+    const rawTag = match[1] || match[3] || '';
+    const rawParam = match[2] || match[4];
+    const canonicalTag = normalizeTagName(rawTag);
     matches.push({
       tag: canonicalTag,
-      param: match[2]?.trim().replace(/^`+|`+$/g, ''),
+      param: rawParam?.trim().replace(/^`+|`+$/g, ''),
       start: match.index,
       end: tagRegex.lastIndex,
     });
@@ -198,6 +200,9 @@ export function parseMetadata(content: string): ChallengeMetadata {
       }
 
       if (parsed.type) metadata.type = String(parsed.type).trim();
+      if (parsed.title) metadata.title = String(parsed.title).trim();
+      if (parsed.topic) metadata.topic = String(parsed.topic).trim();
+      if (parsed.summary) metadata.summary = String(parsed.summary).trim();
       if (parsed.editablelanguage) metadata.editableLanguage = String(parsed.editablelanguage).trim().toLowerCase();
       else if (parsed.language) metadata.editableLanguage = String(parsed.language).trim().toLowerCase();
 
@@ -226,7 +231,7 @@ export function parseMetadata(content: string): ChallengeMetadata {
     if (key === 'track') {
       const num = val.match(/\d+/);
       metadata.track = num ? parseInt(num[0], 10) : 1;
-    } else if (key === 'level') {
+    } else if (key === 'level' || key === 'difficulty' || key === 'diff' || key === 'tier') {
       const num = val.match(/\d+/);
       metadata.level = num ? parseInt(num[0], 10) : 1;
     } else if (key === 'type') {
@@ -236,6 +241,12 @@ export function parseMetadata(content: string): ChallengeMetadata {
     } else if (key === 'editablefiles' || key === 'files') {
       const cleanVal = val.replace(/^\[|\]$/g, '');
       metadata.editableFiles = cleanVal.split(',').map(f => f.trim().replace(/^['"]|['"]$/g, '')).filter(Boolean);
+    } else if (key === 'title') {
+      metadata.title = val.replace(/^['"]|['"]$/g, '');
+    } else if (key === 'topic' || key === 'domain') {
+      metadata.topic = val.replace(/^['"]|['"]$/g, '');
+    } else if (key === 'summary') {
+      metadata.summary = val.replace(/^['"]|['"]$/g, '');
     }
   }
 
@@ -313,6 +324,17 @@ export function parseTests(content: string): ChallengeTest[] {
     });
   }
 
+  if (tests.length === 0) {
+    const itMatches = Array.from(trimmed.matchAll(/(?:it|test)\s*\(\s*['"`](.*?)['"`]/g));
+    for (const m of itMatches) {
+      tests.push({
+        input: 'Test assertion',
+        expected: 'Pass',
+        description: m[1],
+      });
+    }
+  }
+
   return tests;
 }
 
@@ -334,6 +356,10 @@ export function detectLanguageFromPath(filePath: string): string {
       return 'python';
     case 'go':
       return 'go';
+    case 'rs':
+      return 'rust';
+    case 'php':
+      return 'php';
     case 'html':
     case 'htm':
       return 'html';

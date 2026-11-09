@@ -23,7 +23,10 @@ export async function GET() {
       ? await query.or(`visibility.eq.public,owner_id.eq.${user.id}`)
       : await query.eq('visibility', 'public');
 
-    if (error) return NextResponse.json({ error: 'Could not load challenges.' }, { status: 503 });
+    if (error) {
+      console.error('[API /api/challenges GET] Supabase challenges query error:', error);
+      return NextResponse.json({ error: 'Could not load challenges.' }, { status: 503 });
+    }
 
     let userProfile: { id: string; email?: string; name: string } | null = null;
     let myAttempts: { challenge_id: string; started_at: string; completed_at: string | null }[] = [];
@@ -37,34 +40,47 @@ export async function GET() {
         name: (user.user_metadata?.full_name as string) || user.email?.split('@')[0] || 'KeepCoding developer',
       };
 
-      const [attemptsRes, authorAttemptsRes, accessRes] = await Promise.all([
-        supabase
-          .from('challenge_attempts')
-          .select('challenge_id,started_at,completed_at')
-          .eq('solver_id', user.id)
-          .limit(300),
-        supabase
-          .from('challenge_attempts')
-          .select('challenge_id,solver_id,solver_name,started_at,completed_at')
-          .limit(500),
-        supabase
-          .from('challenge_access')
-          .select('challenge_id,granted_at')
-          .eq('user_id', user.id)
-          .limit(200),
-      ]);
+      try {
+        const [attemptsRes, authorAttemptsRes, accessRes] = await Promise.allSettled([
+          supabase
+            .from('challenge_attempts')
+            .select('challenge_id,started_at,completed_at')
+            .eq('solver_id', user.id)
+            .limit(300),
+          supabase
+            .from('challenge_attempts')
+            .select('challenge_id,solver_id,solver_name,started_at,completed_at')
+            .limit(500),
+          supabase
+            .from('challenge_access')
+            .select('challenge_id,granted_at')
+            .eq('user_id', user.id)
+            .limit(200),
+        ]);
 
-      myAttempts = attemptsRes.data ?? [];
-      authorAttempts = authorAttemptsRes.data ?? [];
-
-      const sharedIds = (accessRes.data ?? []).map((r) => r.challenge_id);
-      if (sharedIds.length > 0) {
-        const { data: sharedRows } = await supabase
-          .from('challenges')
-          .select(publicColumns)
-          .in('id', sharedIds)
-          .order('created_at', { ascending: false });
-        sharedChallenges = sharedRows ?? [];
+        if (attemptsRes.status === 'fulfilled' && attemptsRes.value.data) {
+          myAttempts = attemptsRes.value.data;
+        }
+        if (authorAttemptsRes.status === 'fulfilled' && authorAttemptsRes.value.data) {
+          authorAttempts = authorAttemptsRes.value.data;
+        }
+        if (accessRes.status === 'fulfilled' && accessRes.value.data) {
+          const sharedIds = accessRes.value.data.map((r: any) => r.challenge_id);
+          if (sharedIds.length > 0) {
+            const { data: sharedRows, error: sharedError } = await supabase
+              .from('challenges')
+              .select(publicColumns)
+              .in('id', sharedIds)
+              .order('created_at', { ascending: false });
+            if (sharedError) {
+              console.warn('[API /api/challenges GET] Failed to fetch shared challenges:', sharedError);
+            } else {
+              sharedChallenges = sharedRows ?? [];
+            }
+          }
+        }
+      } catch (auxError) {
+        console.warn('[API /api/challenges GET] Failed to fetch auxiliary attempts or access:', auxError);
       }
     }
 
@@ -76,7 +92,8 @@ export async function GET() {
       user: userProfile,
       configured: true,
     });
-  } catch {
+  } catch (cause) {
+    console.error('[API /api/challenges GET] Unexpected error:', cause);
     return NextResponse.json({ error: 'Could not load challenges.' }, { status: 503 });
   }
 }

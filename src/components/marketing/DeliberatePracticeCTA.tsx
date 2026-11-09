@@ -32,7 +32,7 @@ export default function DeliberatePracticeCTA() {
               <ArrowRight size={14} aria-hidden="true" />
             </Link>
             <Link
-              href="/studio"
+              href="/challenges"
               className="btn-primary px-6 py-2.5 text-xs font-semibold inline-flex items-center justify-center gap-2 rounded-full shadow-[0_4px_20px_rgba(136,189,164,0.25)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] focus-visible:ring-offset-2 focus-visible:ring-offset-[#090A0F]"
             >
               <span>2. Launch Practice Studio</span>

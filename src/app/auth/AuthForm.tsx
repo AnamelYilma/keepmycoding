@@ -237,7 +237,7 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
         {(isSignup || isLogin) && (
           <div className="auth-switch-inline" style={{ marginTop: '12px' }}>
             <span>Want to jump straight in?</span>
-            <Link href="/studio" className="auth-switch-pill">
+            <Link href="/challenges" className="auth-switch-pill">
               Continue as guest
             </Link>
           </div>

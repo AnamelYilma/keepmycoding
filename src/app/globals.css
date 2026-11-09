@@ -244,6 +244,30 @@ html {
   background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
 }
 
+/* Sleek dark scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
 /* Vestibular comfort: reduced motion support */
 @media (prefers-reduced-motion: reduce) {
   *,

@@ -188,7 +188,7 @@ export default function HeroSection({ nav }: HeroSectionProps) {
             {/* ONE button: Start Practicing */}
             <div className="mt-4 sm:mt-5">
               <Link
-                href="/studio"
+                href="/challenges"
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#88BDA4] hover:bg-[#9cd1b8] text-[#090A0F] font-semibold text-xs sm:text-sm shadow-[0_2px_16px_rgba(136,189,164,0.35)] transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
               >
                 <span>Start Practicing</span>

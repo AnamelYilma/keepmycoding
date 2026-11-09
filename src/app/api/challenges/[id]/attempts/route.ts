@@ -10,9 +10,14 @@ export async function POST(_request: NextRequest, context: { params: Promise<{ i
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'Sign in to try a challenge.' }, { status: 401 });
 
+    const fullName = typeof user.user_metadata?.full_name === 'string' && user.user_metadata.full_name.trim()
+      ? user.user_metadata.full_name.trim().slice(0, 80)
+      : 'KeepCoding developer';
+
     const { error } = await supabase.from('challenge_attempts').insert({
       challenge_id: id,
       solver_id: user.id,
+      solver_name: fullName,
     });
     if (error && error.code !== '23505') {
       return NextResponse.json({ error: 'Could not record this challenge attempt.' }, { status: 400 });

@@ -51,8 +51,8 @@ export default function MarketingFooter() {
                 </Link>
               </li>
               <li>
-                <Link href="/studio" className="hover:text-white transition-colors">
-                  Practice Studio
+                <Link href="/challenges" className="hover:text-white transition-colors">
+                  Challenges
                 </Link>
               </li>
               <li>
@@ -70,22 +70,22 @@ export default function MarketingFooter() {
             </span>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/studio" className="hover:text-white transition-colors">
+                <Link href="/challenges" className="hover:text-white transition-colors">
                   Track 01: Identity &amp; Access
                 </Link>
               </li>
               <li>
-                <Link href="/studio" className="hover:text-white transition-colors">
+                <Link href="/challenges" className="hover:text-white transition-colors">
                   Track 02: Interactive UI &amp; State
                 </Link>
               </li>
               <li>
-                <Link href="/studio" className="hover:text-white transition-colors">
+                <Link href="/challenges" className="hover:text-white transition-colors">
                   Track 03: APIs &amp; Persistence
                 </Link>
               </li>
               <li>
-                <Link href="/studio" className="hover:text-white transition-colors">
+                <Link href="/challenges" className="hover:text-white transition-colors">
                   Track 04: Data Security
                 </Link>
               </li>

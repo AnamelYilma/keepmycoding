@@ -1,6 +1,8 @@
 // KeepCoding - Local History Storage
 // Manages completed challenge records in localStorage and formats them for prompt context
 
+import { Verdict } from '../types/challenge';
+
 export interface HistoryRecord {
   id: string;
   timestamp: number;
@@ -9,7 +11,7 @@ export interface HistoryRecord {
   level: number;
   type: string;
   taskTitle: string;
-  verdict: 'PASS' | 'FAIL';
+  verdict: Verdict;
   language: string;
 }
 

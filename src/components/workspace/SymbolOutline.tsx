@@ -76,8 +76,8 @@ export function SymbolOutline({ content, filePath, onSelectSymbol }: SymbolOutli
   }, [content]);
 
   return (
-    <div className="space-y-1.5 pt-3 border-t border-white/8 rounded-xl" aria-label="Symbol outline">
-      <div className="px-2 py-1 text-[11px] font-mono font-semibold uppercase tracking-wider text-zinc-400 flex items-center justify-between">
+    <div className="flex-1 flex flex-col min-h-0 pt-3 mt-3 border-t border-white/8" aria-label="Symbol outline">
+      <div className="shrink-0 px-2 py-1 text-[11px] font-mono font-semibold uppercase tracking-wider text-zinc-400 flex items-center justify-between">
         <span>Outline ({symbols.length})</span>
         {fileName && (
           <span className="font-mono text-[10px] text-zinc-400 truncate max-w-[100px] px-2 py-0.5 rounded-full bg-white/5 border border-white/10">
@@ -88,7 +88,7 @@ export function SymbolOutline({ content, filePath, onSelectSymbol }: SymbolOutli
       {symbols.length === 0 ? (
         <div className="px-2 py-2 text-xs text-zinc-400 italic font-mono text-[11px]">No symbols detected</div>
       ) : (
-        <div className="max-h-48 overflow-y-auto space-y-0.5 pr-0.5">
+        <div className="flex-1 overflow-y-auto space-y-0.5 pr-0.5 min-h-0 mt-1">
           {symbols.map((sym, idx) => (
             <button
               key={`${sym.name}-${idx}`}

@@ -46,7 +46,7 @@ export default function VisualShowcase() {
             {/* Direct CTA */}
             <div className="pt-1">
               <Link
-                href="/studio"
+                href="/challenges"
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#88BDA4] hover:bg-[#9cd1b8] text-[#090A0F] font-semibold text-xs sm:text-sm shadow-lg shadow-[#88BDA4]/20 transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
               >
                 <span>Launch Practice Studio</span>

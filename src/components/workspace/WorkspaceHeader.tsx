@@ -34,7 +34,7 @@ export function WorkspaceHeader({
           className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 rounded-full bg-[#11131A] hover:bg-[#171a24] text-zinc-300 hover:text-white border border-white/10 text-xs font-medium transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] shrink-0"
         >
           <ArrowLeft className="w-3.5 h-3.5 text-zinc-400" aria-hidden="true" />
-          <span>Setup</span>
+          <span>Back to Library</span>
         </button>
 
         <div className="h-4 w-[1px] bg-white/10 shrink-0" />

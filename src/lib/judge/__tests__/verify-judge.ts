@@ -60,6 +60,9 @@ assert(userPrompt.includes('AUTHORITATIVE REFERENCE SOLUTION'), 'User prompt con
 const samplePassResponse = `---VERDICT---
 PASS
 
+---MISTAKE_TYPE---
+NONE
+
 ---SUMMARY---
 Correctly inverted the comparison operator to properly detect expired tokens.
 
@@ -77,6 +80,7 @@ Remember that timestamp precision (seconds vs milliseconds) is a frequent source
 
 const passResult = parseJudgeResponse(samplePassResponse, 'gemini-2.5-flash');
 assert(passResult.verdict === 'PASS', 'Parses PASS verdict correctly');
+assert(passResult.mistakeType === 'NONE', 'Parses NONE mistake type on PASS');
 assert(passResult.summary.includes('inverted the comparison'), 'Parses summary correctly');
 assert(passResult.breakdown.includes('Expired timestamps return true'), 'Parses breakdown correctly');
 assert(passResult.advice.includes('timestamp precision'), 'Parses advice correctly');
@@ -86,12 +90,19 @@ assert(passResult.fix === undefined, 'No fix on PASS verdict');
 const sampleFailResponse = `---VERDICT---
 FAIL
 
+---MISTAKE_TYPE---
+CONCEPT
+
 ---SUMMARY---
 The implementation still accepts expired tokens under certain conditions.
 
 ---BREAKDOWN---
 - Condition does not handle equal timestamp properly
 - Fails test 1
+
+---WHAT_TO_LEARN---
+- Topic: JWT expiration comparison and unix timestamp math
+- Search: "JWT exp comparison unix timestamp boundary checks"
 
 ---MODEL---
 When exp is exactly now, comparison failed.
@@ -107,8 +118,41 @@ export function isExpired(exp: number, now: number): boolean {
 
 const failResult = parseJudgeResponse(sampleFailResponse, 'gemini-2.5-flash');
 assert(failResult.verdict === 'FAIL', 'Parses FAIL verdict correctly');
+assert(failResult.mistakeType === 'CONCEPT', 'Parses CONCEPT mistake type correctly');
+assert(failResult.whatToLearn?.includes('JWT expiration') ?? false, 'Parses WHAT_TO_LEARN correctly on FAIL');
 assert(failResult.fix !== undefined, 'Parses FIX section on FAIL verdict');
 assert(failResult.fix?.includes('exp <= now') ?? false, 'Fix content matches expected code snippet');
+
+// 5. Response Parsing (PARTIAL with SYNTAX mistake)
+const samplePartialResponse = `---VERDICT---
+PARTIAL
+
+---MISTAKE_TYPE---
+SYNTAX
+
+---SUMMARY---
+You got 2 out of 3 requirements working. Validation logic is sound, but Go receiver syntax is missing.
+
+---BREAKDOWN---
+- Worked: Email format checking and blank field detection pass.
+- Missed: Fiber handler cannot call Register because the method receiver is missing.
+
+---WHAT_TO_LEARN---
+- Topic: Go struct methods and receiver syntax.
+- Search: "Go pointer receiver vs value receiver struct methods"
+
+---MODEL---
+Tracing test: Register function exists as standalone function instead of method on Service struct.
+
+---ADVICE---
+In Go, declare receiver before function name: func (s *Service) Register(...)
+`;
+
+const partialResult = parseJudgeResponse(samplePartialResponse, 'gemini-2.5-flash');
+assert(partialResult.verdict === 'PARTIAL', 'Parses PARTIAL verdict correctly');
+assert(partialResult.mistakeType === 'SYNTAX', 'Parses SYNTAX mistake type correctly');
+assert(partialResult.summary.includes('2 out of 3'), 'Parses partial summary correctly');
+assert(partialResult.whatToLearn?.includes('Go struct methods') ?? false, 'Parses WHAT_TO_LEARN correctly on PARTIAL');
 
 console.log(`\n--- Judge Test Summary: ${passed}/${total} tests passed ---`);
 

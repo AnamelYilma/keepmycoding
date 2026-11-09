@@ -13,19 +13,40 @@ export async function GET() {
     const { data: { user } } = await supabase.auth.getUser();
 
     // Query visible challenges: public community challenges, plus user's own challenges
-    const query = supabase
-      .from('challenges')
-      .select(publicColumns)
-      .order('created_at', { ascending: false })
-      .limit(200);
+    let data: any[] | null = null;
+    let queryError: any = null;
 
-    const { data, error } = user
-      ? await query.or(`visibility.eq.public,owner_id.eq.${user.id}`)
-      : await query.eq('visibility', 'public');
+    if (user) {
+      // 1. Try with user ownership filter first (filters before order/limit)
+      const userRes = await supabase
+        .from('challenges')
+        .select(publicColumns)
+        .or(`visibility.eq.public,owner_id.eq.${user.id}`)
+        .order('created_at', { ascending: false })
+        .limit(200);
 
-    if (error) {
-      console.error('[API /api/challenges GET] Supabase challenges query error:', error);
-      return NextResponse.json({ error: 'Could not load challenges.' }, { status: 503 });
+      if (!userRes.error) {
+        data = userRes.data;
+      } else {
+        console.warn('[API /api/challenges GET] .or() filter returned error, falling back to direct select:', userRes.error);
+        // 2. Fallback to direct select where Supabase RLS handles filtering automatically
+        const fallbackRes = await supabase
+          .from('challenges')
+          .select(publicColumns)
+          .order('created_at', { ascending: false })
+          .limit(200);
+        data = fallbackRes.data;
+        queryError = fallbackRes.error;
+      }
+    } else {
+      const anonRes = await supabase
+        .from('challenges')
+        .select(publicColumns)
+        .eq('visibility', 'public')
+        .order('created_at', { ascending: false })
+        .limit(200);
+      data = anonRes.data;
+      queryError = anonRes.error;
     }
 
     let userProfile: { id: string; email?: string; name: string } | null = null;
@@ -82,6 +103,19 @@ export async function GET() {
       } catch (auxError) {
         console.warn('[API /api/challenges GET] Failed to fetch auxiliary attempts or access:', auxError);
       }
+    }
+
+    if (queryError) {
+      console.error('[API /api/challenges GET] Supabase challenges query error:', queryError);
+      return NextResponse.json({
+        challenges: [],
+        sharedChallenges,
+        myAttempts,
+        authorAttempts,
+        user: userProfile,
+        configured: true,
+        dbError: queryError.message || 'Could not load community challenges.',
+      });
     }
 
     return NextResponse.json({

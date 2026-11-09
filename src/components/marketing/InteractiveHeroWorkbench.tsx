@@ -344,10 +344,10 @@ export default function InteractiveHeroWorkbench() {
           <span>KeepCoding never fills in or replaces your code for you.</span>
         </div>
         <Link 
-          href="/studio" 
+          href="/challenges"
           className="text-zinc-300 hover:text-white flex items-center gap-1 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] rounded-md"
         >
-          <span>Open Full Workspace Studio</span>
+          <span>Explore Challenge Library</span>
           <ArrowRight size={13} aria-hidden="true" />
         </Link>
       </div>

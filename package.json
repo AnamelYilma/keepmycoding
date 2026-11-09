@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsx src/lib/parser/__tests__/verify-parser.ts && tsx src/lib/judge/__tests__/verify-judge.ts && tsx src/__tests__/e2e-workflow.test.ts && tsx src/components/marketing/__tests__/verify-marketing-page.ts && tsx src/components/workspace/__tests__/verify-studio-workspace.ts && tsx src/app/auth/__tests__/verify-auth-flow.ts && tsx src/__tests__/verify-web-quality-audit.ts"
+    "test": "tsx src/lib/parser/__tests__/verify-parser.ts && tsx src/lib/judge/__tests__/verify-judge.ts && tsx src/__tests__/e2e-workflow.test.ts && tsx src/components/marketing/__tests__/verify-marketing-page.ts && tsx src/components/workspace/__tests__/verify-studio-workspace.ts && tsx src/app/auth/__tests__/verify-auth-flow.ts && tsx src/__tests__/challenge-invites.test.ts && tsx src/__tests__/verify-web-quality-audit.ts"
   },
   "dependencies": {
     "@codemirror/lang-css": "^6.3.1",

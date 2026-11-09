@@ -120,18 +120,20 @@ export function WorkspaceLayout({
           aria-label="Files and symbols"
           className={`${
             mobileTab === 'files' ? 'flex flex-1' : 'hidden'
-          } md:flex md:col-span-3 lg:col-span-2 flex-col bg-[#12151e] border border-white/12 rounded-xl p-3 overflow-y-auto space-y-4 shadow-lg min-h-0`}
+          } md:flex md:col-span-3 lg:col-span-2 flex-col h-full bg-[#12151e] border border-white/12 rounded-xl p-3 overflow-hidden shadow-lg min-h-0`}
         >
-          <FileList
-            files={files}
-            activeFilePath={activeFilePath}
-            onSelectFile={(path) => {
-              onSelectFile(path);
-              setMobileTab('editor');
-            }}
-            isFileDirty={isFileDirty}
-            onResetFile={onResetFile}
-          />
+          <div className="shrink-0">
+            <FileList
+              files={files}
+              activeFilePath={activeFilePath}
+              onSelectFile={(path) => {
+                onSelectFile(path);
+                setMobileTab('editor');
+              }}
+              isFileDirty={isFileDirty}
+              onResetFile={onResetFile}
+            />
+          </div>
           <SymbolOutline
             content={activeFile.content}
             filePath={activeFile.path}

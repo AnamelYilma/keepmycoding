@@ -111,7 +111,9 @@ export default function ChallengeLibraryPage() {
           setShared(body.sharedChallenges ?? []);
           setMyAttempts(body.myAttempts ?? []);
           setAuthorAttempts(body.authorAttempts ?? []);
-          setUser(body.user ?? null);
+          if (body.user) {
+            setUser(body.user);
+          }
         }
       })
       .catch((cause: unknown) => {

@@ -22,7 +22,7 @@ export interface PublicChallengeRecord {
   track: number;
   level: number;
   challenge_type: string;
-  visibility: 'private' | 'public';
+  visibility: 'private' | 'public' | 'temporary';
   challenge?: Omit<Challenge, 'reference'>;
   reason: string;
   learning_goal: string;

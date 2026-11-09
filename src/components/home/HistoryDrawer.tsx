@@ -123,6 +123,7 @@ export function HistoryDrawer({ isOpen, onClose, onHistoryChange }: HistoryDrawe
           ) : (
             history.map((record) => {
               const isPass = record.verdict === 'PASS';
+              const isPartial = record.verdict === 'PARTIAL';
               const dateStr = new Date(record.timestamp).toLocaleDateString(undefined, {
                 month: 'short',
                 day: 'numeric',
@@ -139,6 +140,8 @@ export function HistoryDrawer({ isOpen, onClose, onHistoryChange }: HistoryDrawe
                         className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-semibold border ${
                           isPass
                             ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                            : isPartial
+                            ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
                             : 'bg-rose-500/10 border-rose-500/30 text-rose-400'
                         }`}
                       >

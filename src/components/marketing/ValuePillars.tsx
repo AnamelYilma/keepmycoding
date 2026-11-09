@@ -141,7 +141,7 @@ export default function ValuePillars() {
         {/* Section Closure Link */}
         <div className="flex items-center justify-center pt-1">
           <Link
-            href="/studio"
+            href="/challenges"
             className="inline-flex items-center gap-2 text-xs font-mono font-semibold text-[#88BDA4] hover:text-[#9cd1b8] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#88BDA4] px-2 py-1 rounded"
           >
             <span>Launch Practice Studio</span>

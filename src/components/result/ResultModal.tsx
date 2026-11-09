@@ -1,6 +1,16 @@
 'use client';
 
-import { CheckCircle2, XCircle, ArrowRight, RotateCcw, HelpCircle, Code2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import {
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+  ArrowRight,
+  RotateCcw,
+  HelpCircle,
+  Code2,
+  BookOpen,
+} from 'lucide-react';
 import { JudgeResult } from '@/lib/types/challenge';
 
 interface ResultModalProps {
@@ -16,9 +26,17 @@ export function ResultModal({
   onTryAgain,
   onNextChallenge,
 }: ResultModalProps) {
+  const [showFix, setShowFix] = useState<boolean>(false);
+
+  // Reset spoiler visibility whenever modal opens or result changes
+  useEffect(() => {
+    setShowFix(false);
+  }, [isOpen, result]);
+
   if (!isOpen || !result) return null;
 
   const isPass = result.verdict === 'PASS';
+  const isPartial = result.verdict === 'PARTIAL';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
@@ -28,12 +46,16 @@ export function ResultModal({
         aria-labelledby="result-dialog-title"
         className="w-full max-w-2xl bg-[#11131A] border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
       >
-        {/* Header with verdict */}
+        {/* Header with 3-tier verdict */}
         <div className="p-6 border-b border-white/8 bg-[#090A0F]/80 flex items-center justify-between" aria-live="polite">
           <div className="flex items-center gap-3.5">
             {isPass ? (
               <div className="w-10 h-10 rounded-xl bg-[#11131A] border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0 shadow-sm">
                 <CheckCircle2 className="w-5 h-5 text-emerald-400" aria-hidden="true" />
+              </div>
+            ) : isPartial ? (
+              <div className="w-10 h-10 rounded-xl bg-[#11131A] border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0 shadow-sm">
+                <AlertCircle className="w-5 h-5 text-amber-400" aria-hidden="true" />
               </div>
             ) : (
               <div className="w-10 h-10 rounded-xl bg-[#11131A] border border-rose-500/30 flex items-center justify-center text-rose-400 shrink-0 shadow-sm">
@@ -47,10 +69,12 @@ export function ResultModal({
                   className={`text-xs font-bold tracking-wider font-mono px-2.5 py-0.5 rounded-full border ${
                     isPass
                       ? 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10'
+                      : isPartial
+                      ? 'text-amber-400 border-amber-500/30 bg-amber-500/10'
                       : 'text-rose-400 border-rose-500/30 bg-rose-500/10'
                   }`}
                 >
-                  {result.verdict}
+                  {isPass ? 'PASS' : isPartial ? 'PARTIALLY CORRECT' : 'NEEDS WORK'}
                 </span>
                 <span className="text-xs text-zinc-400 font-mono">Judge Evaluation</span>
               </div>
@@ -63,6 +87,30 @@ export function ResultModal({
 
         {/* Scrollable details */}
         <div className="flex-1 overflow-y-auto p-6 space-y-5 text-xs leading-relaxed">
+          {/* Mistake Root Cause Diagnostic */}
+          {result.mistakeType && result.mistakeType !== 'NONE' && (
+            <div className={`p-3 rounded-xl border flex items-start gap-3 ${
+              result.mistakeType === 'SYNTAX'
+                ? 'bg-sky-950/20 border-sky-500/30 text-sky-200'
+                : 'bg-amber-950/20 border-amber-500/30 text-amber-200'
+            }`}>
+              <div className="shrink-0 mt-0.5">
+                <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border ${
+                  result.mistakeType === 'SYNTAX'
+                    ? 'bg-sky-500/20 border-sky-500/40 text-sky-300'
+                    : 'bg-amber-500/20 border-amber-500/40 text-amber-300'
+                }`}>
+                  {result.mistakeType === 'SYNTAX' ? 'MISTAKE: SYNTAX / IDIOM' : 'MISTAKE: CONCEPT / LOGIC'}
+                </span>
+              </div>
+              <p className="text-[11px] leading-relaxed text-zinc-300">
+                {result.mistakeType === 'SYNTAX'
+                  ? 'Your logical intent is headed in the right direction, but the language syntax, method receiver, or type construct needs adjustment.'
+                  : 'The core business logic, edge case handling, timing rule, or algorithm contract did not match expected requirements.'}
+              </p>
+            </div>
+          )}
+
           {/* Breakdown */}
           <div className="space-y-2">
             <h3 className="font-semibold text-zinc-300 uppercase tracking-wider text-[11px] font-mono">
@@ -73,7 +121,20 @@ export function ResultModal({
             </div>
           </div>
 
-          {/* Advice */}
+          {/* What to Learn & Study (No Spoilers) */}
+          {result.whatToLearn && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-1.5 font-semibold text-zinc-300 uppercase tracking-wider text-[11px] font-mono">
+                <BookOpen className="w-3.5 h-3.5 text-[#88BDA4]" aria-hidden="true" />
+                <span>What to Learn to Solve This</span>
+              </div>
+              <div className="p-4 rounded-xl bg-[#090A0F] border border-white/8 text-zinc-300 leading-relaxed text-xs space-y-1.5 shadow-inner">
+                <div className="whitespace-pre-wrap">{result.whatToLearn}</div>
+              </div>
+            </div>
+          )}
+
+          {/* Intuition Advice */}
           {result.advice && (
             <div className="space-y-2">
               <div className="flex items-center gap-1.5 font-semibold text-zinc-300 uppercase tracking-wider text-[11px] font-mono">
@@ -109,16 +170,31 @@ export function ResultModal({
             </div>
           )}
 
-          {/* Code Fix Recommendation if failed */}
+          {/* Reference Solution Protected by Spoiler Guard */}
           {result.fix && (
-            <div className="space-y-2">
-              <div className="flex items-center gap-1.5 font-semibold text-zinc-300 uppercase tracking-wider text-[11px] font-mono">
-                <Code2 className="w-3.5 h-3.5 text-[#88BDA4]" aria-hidden="true" />
-                <span>Reference Fix</span>
+            <div className="space-y-2 pt-2 border-t border-white/8">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 font-semibold text-zinc-400 uppercase tracking-wider text-[11px] font-mono">
+                  <Code2 className="w-3.5 h-3.5 text-zinc-400" aria-hidden="true" />
+                  <span>Reference Solution (Spoiler Guard)</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowFix(!showFix)}
+                  className="text-[11px] font-mono text-[#88BDA4] hover:underline cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#88BDA4] rounded px-1.5 py-0.5"
+                >
+                  {showFix ? 'Hide Solution' : 'Reveal Solution'}
+                </button>
               </div>
-              <pre className="p-4 rounded-xl bg-[#090A0F] border border-white/8 text-zinc-200 font-mono text-[11px] overflow-x-auto whitespace-pre-wrap leading-relaxed">
-                {result.fix}
-              </pre>
+              {showFix ? (
+                <pre className="p-4 rounded-xl bg-[#090A0F] border border-white/8 text-zinc-200 font-mono text-[11px] overflow-x-auto whitespace-pre-wrap leading-relaxed">
+                  {result.fix}
+                </pre>
+              ) : (
+                <p className="text-[11px] text-zinc-400 italic">
+                  Solution is hidden so you can study the hints and retry without spoilers. Click reveal if you want to inspect reference code.
+                </p>
+              )}
             </div>
           )}
 
@@ -136,7 +212,7 @@ export function ResultModal({
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#171a24] hover:bg-[#1f2330] text-zinc-300 border border-white/10 text-xs font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
           >
             <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
-            <span>Review Code</span>
+            <span>Review & Edit Code</span>
           </button>
 
           <button

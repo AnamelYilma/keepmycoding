@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 function safeDestination(value: string | null) {
-  if (!value || !value.startsWith('/') || value.startsWith('//') || value.includes('\\')) return '/studio';
+  if (!value || !value.startsWith('/') || value.startsWith('//') || value.includes('\\')) return '/challenges';
   return value;
 }
 

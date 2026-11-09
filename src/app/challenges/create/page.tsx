@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import ChallengeCreatorPage from './ChallengeCreatorPage';
 
 export const metadata: Metadata = {
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function ChallengeCreatorRoute() {
-  return <ChallengeCreatorPage />;
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-zinc-950" />}>
+      <ChallengeCreatorPage />
+    </Suspense>
+  );
 }

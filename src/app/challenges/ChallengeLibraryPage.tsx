@@ -25,6 +25,7 @@ import type { Challenge } from '@/lib/types/challenge';
 import type { PublicChallengeRecord } from '@/lib/challenges/library';
 import AppNav from '@/components/navigation/AppNav';
 import { InviteModal } from '@/components/challenges/InviteModal';
+import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 
 type LibraryItem = {
   id: string;
@@ -81,6 +82,23 @@ export default function ChallengeLibraryPage() {
   const [visibility, setVisibility] = useState('all');
   const [startingId, setStartingId] = useState('');
   const [activeSolversModal, setActiveSolversModal] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    const supabase = createSupabaseBrowserClient();
+    supabase.auth.getUser().then(({ data: { user: authUser } }) => {
+      if (active && authUser) {
+        setUser({
+          id: authUser.id,
+          email: authUser.email,
+          name: (authUser.user_metadata?.full_name as string) || authUser.email?.split('@')[0] || 'KeepCoding developer',
+        });
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     let active = true;

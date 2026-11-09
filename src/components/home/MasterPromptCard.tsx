@@ -96,6 +96,18 @@ export function MasterPromptCard({
   const langDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (isTypeDropdownOpen && typeDropdownRef.current) {
+      typeDropdownRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [isTypeDropdownOpen]);
+
+  useEffect(() => {
+    if (isLangDropdownOpen && langDropdownRef.current) {
+      langDropdownRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [isLangDropdownOpen]);
+
+  useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (typeDropdownRef.current && !typeDropdownRef.current.contains(event.target as Node)) {
         setIsTypeDropdownOpen(false);
@@ -145,6 +157,11 @@ export function MasterPromptCard({
       }
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+      if (onGoToWorkspace) {
+        setTimeout(() => {
+          onGoToWorkspace();
+        }, 600);
+      }
     } catch (err) {
       console.warn('Clipboard writeText failed, trying fallback:', err);
       try {
@@ -158,6 +175,11 @@ export function MasterPromptCard({
         document.body.removeChild(textarea);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
+        if (onGoToWorkspace) {
+          setTimeout(() => {
+            onGoToWorkspace();
+          }, 600);
+        }
       } catch (fallbackErr) {
         console.error('Failed to copy master prompt:', fallbackErr);
       }
@@ -166,8 +188,8 @@ export function MasterPromptCard({
 
   return (
     <div className="bg-[#11131A] border border-white/10 rounded-2xl shadow-2xl relative">
-      {/* 1. Header Bar: Title and Copy Action */}
-      <div className="p-6 sm:p-7 border-b border-white/8">
+      {/* 1. Header Bar: Title and BOTH Action Buttons at TOP */}
+      <div className="p-5 sm:p-6 border-b border-white/8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-[#090A0F] border border-white/10 flex items-center justify-center text-[#88BDA4] shadow-sm shrink-0">
@@ -180,26 +202,40 @@ export function MasterPromptCard({
             </div>
           </div>
 
-          <button
-            onClick={handleCopyPrompt}
-            type="button"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#88BDA4] hover:bg-[#9cd1b8] text-[#090A0F] font-semibold text-xs tracking-wide shadow-md shadow-[#88BDA4]/20 active:scale-[0.98] transition-all shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
-          >
-            {copied ? (
-              <Check className="w-4 h-4 text-[#090A0F]" aria-hidden="true" />
-            ) : (
-              <Copy className="w-4 h-4 text-[#090A0F]" aria-hidden="true" />
+          {/* Primary Action Buttons: Copy Prompt AND Next placed together at TOP */}
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <button
+              onClick={handleCopyPrompt}
+              type="button"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#88BDA4] hover:bg-[#9cd1b8] text-[#090A0F] font-semibold text-xs tracking-wide shadow-md shadow-[#88BDA4]/20 active:scale-[0.98] transition-all shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] whitespace-nowrap"
+            >
+              {copied ? (
+                <Check className="w-4 h-4 text-[#090A0F]" aria-hidden="true" />
+              ) : (
+                <Copy className="w-4 h-4 text-[#090A0F]" aria-hidden="true" />
+              )}
+              <span>{copied ? 'Copied Prompt' : 'Copy Prompt'}</span>
+            </button>
+
+            {onGoToWorkspace && (
+              <button
+                type="button"
+                onClick={onGoToWorkspace}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/12 bg-[#181d2a] hover:bg-[#202738] text-white font-semibold text-xs tracking-wide shadow-sm active:scale-[0.98] transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] whitespace-nowrap"
+              >
+                <span>{nextStepLabel || 'Next: Paste Challenge'}</span>
+                <ArrowRight className="w-4 h-4 text-[#88BDA4]" aria-hidden="true" />
+              </button>
             )}
-            <span>{copied ? 'Copied Prompt' : 'Copy Prompt'}</span>
-          </button>
+          </div>
         </div>
       </div>
 
       {/* 2. Structured Settings Sections */}
-      <div className="p-6 sm:p-7 space-y-7">
+      <div className="p-5 sm:p-6 space-y-5">
         {/* Section A: Focus Track */}
-        <div className="space-y-3.5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
             <span className="text-xs font-mono font-semibold uppercase tracking-wider text-zinc-300">
               01. Practice Track
             </span>
@@ -209,13 +245,13 @@ export function MasterPromptCard({
           </div>
 
           {/* Domain Category Filter Tabs */}
-          <div className="flex flex-wrap gap-1.5 pt-1 pb-1">
+          <div className="flex flex-wrap gap-1.5 pt-0.5">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat}
                 type="button"
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-3 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#88BDA4] ${
+                className={`px-3 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#88BDA4] whitespace-nowrap ${
                   selectedCategory === cat
                     ? 'bg-[#88BDA4]/15 text-[#88BDA4] border border-[#88BDA4]/40 font-semibold'
                     : 'bg-[#090A0F] text-zinc-400 border border-white/8 hover:text-zinc-200 hover:border-white/20'
@@ -226,7 +262,8 @@ export function MasterPromptCard({
             ))}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[340px] overflow-y-auto pr-1">
+          {/* Compact Track Cards Grid (Fits cleanly on screen) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[190px] overflow-y-auto pr-1">
             {Object.entries(TRACK_DEFINITIONS)
               .filter(([_, info]) => selectedCategory === 'All' || info.category === selectedCategory)
               .map(([key, info]) => {
@@ -236,32 +273,30 @@ export function MasterPromptCard({
                   <button
                     key={key}
                     type="button"
-                    onClick={() => setTrack(trkNum)}
-                    className={`text-left p-4 rounded-xl border transition-all relative cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] ${
+                    onClick={() => {
+                      setTrack(trkNum);
+                      notifyChange(trkNum, level, type, language);
+                    }}
+                    className={`text-left p-3 rounded-xl border transition-all relative cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] ${
                       isSelected
                         ? 'bg-[#181d28] border-2 border-[#88BDA4] text-white shadow-md'
                         : 'bg-[#090A0F] border-white/8 text-zinc-400 hover:border-white/20 hover:text-zinc-200 hover:bg-[#11141c]'
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
-                          Track {trkNum}
-                        </span>
-                        <span className="text-[10px] font-mono text-zinc-500 uppercase px-1.5 py-0.5 rounded bg-white/5">
-                          {info.category}
-                        </span>
-                      </div>
+                      <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
+                        Track {trkNum}
+                      </span>
                       {isSelected && (
                         <span className="inline-flex items-center gap-1 text-[10px] font-mono font-semibold text-[#88BDA4] bg-[#88BDA4]/15 px-2 py-0.5 rounded-md border border-[#88BDA4]/30">
                           Selected
                         </span>
                       )}
                     </div>
-                    <div className="font-semibold text-sm text-zinc-100 mt-2">
+                    <div className="font-semibold text-xs sm:text-sm text-zinc-100 mt-1 truncate">
                       {info.title}
                     </div>
-                    <div className="text-xs text-zinc-400 mt-1 line-clamp-2 leading-relaxed">
+                    <div className="text-[11px] text-zinc-400 mt-0.5 line-clamp-1 leading-normal">
                       {info.summary}
                     </div>
                   </button>
@@ -270,9 +305,9 @@ export function MasterPromptCard({
           </div>
         </div>
 
-        {/* Section B: Difficulty Level */}
-        <div className="space-y-3.5 pt-2 border-t border-white/6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+        {/* Section B: Difficulty Level (Compact Segmented Tier Row + Slim Slider) */}
+        <div className="space-y-2.5 pt-2 border-t border-white/6">
+          <div className="flex items-center justify-between gap-1.5">
             <span className="text-xs font-mono font-semibold uppercase tracking-wider text-zinc-300">
               02. Target Level
             </span>
@@ -285,7 +320,36 @@ export function MasterPromptCard({
             </div>
           </div>
 
-          {/* Custom High-Contrast Level Slider */}
+          {/* Compact 4-Segment Tier Selector */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {LEVEL_TIERS.map((tier) => {
+              const isCurrentTier = activeTier.range === tier.range;
+              return (
+                <button
+                  key={tier.range}
+                  type="button"
+                  onClick={() => {
+                    setLevel(tier.defaultLevel);
+                    notifyChange(track, tier.defaultLevel, type, language);
+                  }}
+                  className={`text-left px-3 py-2 rounded-xl border text-xs transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] ${
+                    isCurrentTier
+                      ? 'bg-[#181d28] border-2 border-[#88BDA4] text-white shadow-sm ring-1 ring-[#88BDA4]/30'
+                      : 'bg-[#090A0F] border-white/8 text-zinc-400 hover:border-white/20 hover:text-zinc-200'
+                  }`}
+                >
+                  <div className="font-mono text-[10px] font-semibold text-zinc-400">
+                    Levels {tier.range}
+                  </div>
+                  <div className="font-medium text-xs text-zinc-200 truncate mt-0.5">
+                    {tier.label}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* High-Contrast Slider for Fine-Tuning */}
           <input
             id="difficulty-level-slider"
             aria-label="Difficulty level from 1 to 12"
@@ -293,38 +357,16 @@ export function MasterPromptCard({
             min="1"
             max="12"
             value={level}
-            onChange={(e) => setLevel(parseInt(e.target.value, 10))}
+            onChange={(e) => {
+              const newLvl = parseInt(e.target.value, 10);
+              setLevel(newLvl);
+              notifyChange(track, newLvl, type, language);
+            }}
             className="w-full custom-slider cursor-pointer"
           />
-
-          {/* Tier Pills */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-            {LEVEL_TIERS.map((tier) => {
-              const isCurrentTier = activeTier.range === tier.range;
-              return (
-                <button
-                  key={tier.range}
-                  type="button"
-                  onClick={() => setLevel(tier.defaultLevel)}
-                  className={`text-left p-3 rounded-xl border text-xs transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] ${
-                    isCurrentTier
-                      ? 'bg-[#181d28] border border-[#88BDA4]/60 text-white ring-1 ring-[#88BDA4]/40'
-                      : 'bg-[#090A0F] border-white/8 text-zinc-400 hover:border-white/20 hover:text-zinc-200'
-                  }`}
-                >
-                  <div className="font-mono text-[10px] font-semibold text-zinc-400">
-                    Levels {tier.range}
-                  </div>
-                  <div className="font-medium text-xs text-zinc-200 truncate mt-1">
-                    {tier.label}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
         </div>
 
-        {/* Section C: Format & Language with Custom Stylized Popover Dropdowns */}
+        {/* Section C: Format & Language (Immediately visible, no scrolling needed!) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-white/6">
           {/* Custom Challenge Type Dropdown */}
           <div className="space-y-1.5" ref={typeDropdownRef}>
@@ -461,8 +503,8 @@ export function MasterPromptCard({
         </div>
       </div>
 
-      {/* 3. Footer Bar: Preview Toggle on Left, Two Buttons on Right (Copy & Next) */}
-      <div className="p-6 sm:p-7 pt-4 bg-[#0d0f17] border-t border-white/8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* 3. Footer Bar: ONLY Preview Toggle (ZERO duplicate buttons!) */}
+      <div className="p-4 sm:p-5 bg-[#0d0f17] border-t border-white/8 flex items-center justify-between">
         <button
           type="button"
           onClick={() => setShowPreview(!showPreview)}
@@ -476,36 +518,14 @@ export function MasterPromptCard({
           <span>{showPreview ? 'Hide prompt preview' : 'Preview prompt text'}</span>
         </button>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <button
-            onClick={handleCopyPrompt}
-            type="button"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-white/12 bg-[#181d2a] hover:bg-[#202738] text-white font-semibold text-xs tracking-wide shadow-sm active:scale-[0.98] transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
-          >
-            {copied ? (
-              <Check className="w-4 h-4 text-[#88BDA4]" aria-hidden="true" />
-            ) : (
-              <Copy className="w-4 h-4 text-[#88BDA4]" aria-hidden="true" />
-            )}
-            <span>{copied ? 'Copied Prompt' : 'Copy Prompt'}</span>
-          </button>
-
-          {onGoToWorkspace && (
-            <button
-              type="button"
-              onClick={onGoToWorkspace}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#88BDA4] hover:bg-[#9cd1b8] text-[#090A0F] font-semibold text-xs tracking-wide shadow-md shadow-[#88BDA4]/20 active:scale-[0.98] transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
-            >
-              <span>{nextStepLabel || 'Next: Paste Challenge to Start Practice'}</span>
-              <ArrowRight className="w-4 h-4 text-[#090A0F]" aria-hidden="true" />
-            </button>
-          )}
-        </div>
+        <span className="font-mono text-[11px] text-zinc-500 hidden sm:inline">
+          Ready to copy to external AI
+        </span>
       </div>
 
       {/* Collapsible Prompt Preview */}
       {showPreview && (
-        <div className="p-4 mx-6 mb-6 rounded-xl bg-[#07080C] border border-white/10 font-mono text-[11px] text-zinc-300 max-h-56 overflow-y-auto whitespace-pre-wrap leading-relaxed shadow-inner">
+        <div className="p-4 mx-5 mb-5 rounded-xl bg-[#07080C] border border-white/10 font-mono text-[11px] text-zinc-300 max-h-56 overflow-y-auto whitespace-pre-wrap leading-relaxed shadow-inner">
           {generateMasterPrompt({
             track,
             level,

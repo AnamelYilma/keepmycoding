@@ -11,7 +11,7 @@ const genders = ['Female', 'Male', 'Prefer not to say'];
 
 async function getSiteUrl() {
   const configured = process.env.NEXT_PUBLIC_SITE_URL;
-  return (configured ?? 'http://localhost:3000').replace(/\/$/, '');
+  return (configured ?? 'http://localhost:3002').replace(/\/$/, '');
 }
 
 function getText(data: FormData, key: string) {
@@ -48,7 +48,7 @@ export async function signInAction(_previousState: AuthActionResult, formData: F
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) return { error: authError(error, 'We could not sign you in. Please try again.') };
-  redirect('/studio');
+  redirect('/challenges');
 }
 
 export async function signUpAction(_previousState: AuthActionResult, formData: FormData): Promise<AuthActionResult> {
@@ -77,7 +77,7 @@ export async function signUpAction(_previousState: AuthActionResult, formData: F
     email,
     password,
     options: {
-      emailRedirectTo: `${siteUrl}/auth/callback?next=/studio`,
+      emailRedirectTo: `${siteUrl}/auth/callback?next=/challenges`,
       data: { full_name: fullName, developer_role: role, experience_level: level, gender: gender || null },
     },
   });
@@ -89,12 +89,12 @@ export async function signUpAction(_previousState: AuthActionResult, formData: F
     return { error: 'An account may already exist for this email. Try signing in or resetting your password.' };
   }
 
-  if (data.session) redirect('/studio');
+  if (data.session) redirect('/challenges');
 
   // Attempt immediate sign-in if confirmations are disabled or auto-confirmed
   const signInRes = await supabase.auth.signInWithPassword({ email, password });
   if (signInRes.data?.session) {
-    redirect('/studio');
+    redirect('/challenges');
   }
 
   return { success: 'Check your inbox for a confirmation link. Confirm your email to finish creating your account.' };
@@ -128,7 +128,7 @@ export async function updatePasswordAction(_previousState: AuthActionResult, for
   if (!user) return { error: 'This reset link is missing or expired. Request another one.' };
   const { error } = await supabase.auth.updateUser({ password });
   if (error) return { error: authError(error, 'We could not update your password. Request a fresh reset link and try again.') };
-  redirect('/studio');
+  redirect('/challenges');
 }
 
 export async function signOutAction(): Promise<void> {

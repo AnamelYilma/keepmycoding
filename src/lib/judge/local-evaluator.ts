@@ -15,9 +15,11 @@ export function evaluateSubmissionLocally(
   if (!anyFileModified) {
     return {
       verdict: 'FAIL',
+      mistakeType: 'CONCEPT',
       summary: 'No modifications detected in editable files.',
       breakdown:
         '- Editable files match initial starter state.\n- Target logic has not yet been implemented or fixed.\n- Test specifications could not be satisfied without edits.',
+      whatToLearn: `Topic: Getting started with ${challenge.metadata.editableLanguage}\nSearch: "${challenge.metadata.editableLanguage} ${challenge.task}"`,
       model: modelTag,
       advice: 'Review the task description and modify the editable file to implement the required solution.',
       fix: challenge.reference.trim(),
@@ -62,8 +64,21 @@ export function evaluateSubmissionLocally(
     return `- Test ${idx + 1}: ${t.description} (Input: ${t.input} -> Expected: ${t.expected})`;
   }).join('\n');
 
+  // Syntax error check with edits
+  if (!syntaxBalanced) {
+    return {
+      verdict: 'PARTIAL',
+      mistakeType: 'SYNTAX',
+      summary: 'Partially correct: Changes were detected, but unclosed brackets or syntax errors were found.',
+      breakdown: `${testBreakdown}\n- Syntax check failed: mismatched braces or parentheses.\n- Code cannot run cleanly with unbalanced delimiters.`,
+      whatToLearn: `Topic: ${challenge.metadata.editableLanguage} syntax balance\nSearch: "${challenge.metadata.editableLanguage} syntax balance unclosed braces"`,
+      model: modelTag,
+      advice: `Check line endings and ensure every opening brace and parenthesis is properly closed in ${challenge.metadata.editableLanguage}.`,
+      fix: challenge.reference.trim(),
+    };
+  }
+
   const passes =
-    syntaxBalanced &&
     (userClean === refClean ||
       tokenMatchRatio >= 0.65 ||
       fixedInvertedCondition ||
@@ -74,17 +89,35 @@ export function evaluateSubmissionLocally(
   if (passes) {
     return {
       verdict: 'PASS',
+      mistakeType: 'NONE',
       summary: 'Solution verified. The implementation satisfies task requirements and test specifications.',
       breakdown: `${testBreakdown}\n- Syntax structure validated and balanced.\n- Target logic and contracts verified against reference expectations.`,
+      whatToLearn: 'Ready for next level.',
       model: modelTag,
       advice: 'Great work maintaining clean, focused code. Ready to proceed to the next challenge.',
     };
   }
 
+  // Partial match
+  if (tokenMatchRatio >= 0.35 || (challenge.metadata.type === 'Fix' && userClean !== startClean)) {
+    return {
+      verdict: 'PARTIAL',
+      mistakeType: 'CONCEPT',
+      summary: 'Partially correct: Some requirements match, but edge cases or test assertions failed.',
+      breakdown: `${testBreakdown}\n- Edits were made and partial logic was detected.\n- Core edge cases or boundary conditions did not pass all test assertions.`,
+      whatToLearn: `Topic: ${challenge.task}\nSearch: "${challenge.metadata.editableLanguage} ${challenge.task}"`,
+      model: modelTag,
+      advice: 'Compare your implementation against the test assertions and watch out for inverted operators or missing edge cases.',
+      fix: challenge.reference.trim(),
+    };
+  }
+
   return {
     verdict: 'FAIL',
+    mistakeType: 'CONCEPT',
     summary: 'The submitted implementation did not fully satisfy all test requirements.',
     breakdown: `${testBreakdown}\n- Edits were made to target file, but core logic deviates from expected behavior.\n- Check boundary conditions and ensure all tests are accounted for.`,
+    whatToLearn: `Topic: ${challenge.task}\nSearch: "${challenge.metadata.editableLanguage} ${challenge.task}"`,
     model: modelTag,
     advice: 'Compare your implementation against the test assertions and watch out for inverted operators or missing edge cases.',
     fix: challenge.reference.trim(),

@@ -9,7 +9,7 @@ create table if not exists public.challenges (
   track smallint not null default 1 check (track between 1 and 10),
   level smallint not null check (level between 1 and 12),
   challenge_type text not null,
-  visibility text not null default 'private' check (visibility in ('private', 'public')),
+  visibility text not null default 'private' check (visibility in ('private', 'public', 'temporary')),
   challenge jsonb not null,
   reason text not null default '',
   learning_goal text not null default '',

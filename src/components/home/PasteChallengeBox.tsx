@@ -45,9 +45,12 @@ export function PasteChallengeBox({
   const gutterRef = useRef<HTMLDivElement>(null);
 
   const quickPresets = [
-    { id: 'track1-jwt-fix', label: '1. JWT Expiry Bug' },
-    { id: 'track2-debounce-hook', label: '2. Debounce Hook' },
-    { id: 'track4-timing-safe', label: '3. Timing Safe Compare' },
+    { id: 'ts-l1-input-sanitizer', label: '1. TS - Slugifier (L1)' },
+    { id: 'go-l1-expiry-guard', label: '2. Go - Expiry Guard (L1)' },
+    { id: 'py-l3-bearer-auth', label: '3. Py - Bearer Auth (L3)' },
+    { id: 'php-l4-token-bucket', label: '4. PHP - Token Bucket (L4)' },
+    { id: 'ts-l6-rbac-route-guard', label: '5. TS - Multi-File RBAC (L6)' },
+    { id: 'rust-l10-distributed-sliding-window-limiter', label: '6. Rust - Sliding Window (L10)' },
   ];
 
   const handleCopyPromptFromSelection = async () => {
@@ -189,24 +192,37 @@ export function PasteChallengeBox({
             </div>
           </div>
 
-          {/* Copy Selected Prompt Button right inside Paste Tab */}
-          <button
-            type="button"
-            onClick={handleCopyPromptFromSelection}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/12 bg-[#181d2a] hover:bg-[#202738] text-white text-xs font-semibold transition-all cursor-pointer shadow-sm active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] shrink-0"
-            title="Copy prompt for your selected options"
-          >
-            {copiedPrompt ? (
-              <Check className="w-4 h-4 text-[#88BDA4]" aria-hidden="true" />
-            ) : (
-              <Copy className="w-4 h-4 text-[#88BDA4]" aria-hidden="true" />
+          {/* Primary Action Button: Launch Workspace at TOP */}
+          <div className="relative group inline-flex self-start sm:self-auto">
+            <button
+              type="button"
+              onClick={() => {
+                if (!isValid) {
+                  setInputWarning('First paste your challenge into the editor, or choose a preset demo below.');
+                  return;
+                }
+                handleStart();
+              }}
+              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] ${
+                isValid
+                  ? 'bg-[#88BDA4] hover:bg-[#9cd1b8] text-[#090A0F] active:scale-[0.98] cursor-pointer shadow-[#88BDA4]/20 font-bold'
+                  : 'bg-[#181d2a] text-zinc-400 border border-white/10 opacity-50 cursor-not-allowed'
+              }`}
+            >
+              <span>Launch Workspace</span>
+              <ArrowRight className={`w-4 h-4 ${isValid ? 'text-[#090A0F]' : 'text-zinc-500'}`} aria-hidden="true" />
+            </button>
+
+            {!isValid && (
+              <div
+                role="tooltip"
+                className="absolute bottom-full right-0 mb-2 hidden group-hover:flex items-center px-3 py-1.5 rounded-lg bg-[#181d28] border border-white/15 text-[11px] text-zinc-200 shadow-xl whitespace-nowrap z-30 pointer-events-none"
+              >
+                <span>First paste challenge into box or click a demo preset</span>
+                <div className="absolute top-full right-6 -mt-1 border-4 border-transparent border-t-[#181d28]" />
+              </div>
             )}
-            <span>
-              {copiedPrompt
-                ? 'Prompt Copied'
-                : `Copy Selected Prompt (Track ${promptOptions?.track ?? 1} • Lvl ${promptOptions?.level ?? 2})`}
-            </span>
-          </button>
+          </div>
         </div>
 
         {/* 2. Utilitarian Action Toolbar: 3 Sample Toggles + Dropdown + Clear */}
@@ -456,14 +472,9 @@ Describe task specifications here...
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={handleStart}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#88BDA4] hover:bg-[#9cd1b8] text-[#090A0F] font-mono text-xs font-bold transition-all cursor-pointer self-start sm:self-auto shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
-            >
-              <span>Launch Workspace</span>
-              <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
-            </button>
+            <span className="text-xs font-mono text-[#88BDA4] font-semibold hidden sm:inline">
+              Ready to launch above
+            </span>
           </div>
         ) : (
           validation && !validation.valid && (
@@ -487,19 +498,9 @@ Describe task specifications here...
           )}
         </div>
 
-        <button
-          type="button"
-          onClick={handleStart}
-          disabled={!isValid}
-          className={`inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg text-xs font-semibold tracking-wide transition-all shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] ${
-            isValid
-              ? 'bg-[#88BDA4] hover:bg-[#9cd1b8] text-[#090A0F] active:scale-[0.98] cursor-pointer shadow-[#88BDA4]/20'
-              : 'bg-[#171a24] text-zinc-500 border border-white/6 cursor-not-allowed opacity-60'
-          }`}
-        >
-          <span>Open Workspace</span>
-          <ArrowRight className="w-4 h-4" aria-hidden="true" />
-        </button>
+        <span className="font-mono text-[11px] text-zinc-500">
+          {isValid ? 'Ready to launch at top' : 'Awaiting challenge block'}
+        </span>
       </div>
     </div>
   );

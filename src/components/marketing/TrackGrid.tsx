@@ -120,7 +120,7 @@ export default function TrackGrid() {
                     Tiers 01 to 12
                   </span>
                   <Link
-                    href={`/studio?track=${track.num}`}
+                    href="/challenges"
                     className="inline-flex items-center gap-1.5 text-xs font-mono font-semibold text-[#88BDA4] hover:text-[#9cd1b8] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#88BDA4] py-1 px-1 rounded"
                   >
                     <span>Enter Track 0{track.num}</span>

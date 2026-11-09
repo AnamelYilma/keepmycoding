@@ -76,10 +76,10 @@ export default function MarketingNav({
           Prompt Wizard
         </Link>
         <Link
-          href="/studio"
+          href="/challenges"
           className="text-xs sm:text-sm font-medium text-[#F4F4F5]/90 hover:text-[#88BDA4] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] rounded-md px-1 py-0.5"
         >
-          Practice Studio
+          Challenges
         </Link>
       </nav>
 
@@ -153,11 +153,11 @@ export default function MarketingNav({
               Prompt Wizard
             </Link>
             <Link
-              href="/studio"
+              href="/challenges"
               onClick={() => setMobileMenuOpen(false)}
               className="min-h-[44px] flex items-center px-3 py-2 text-sm font-medium text-[#F4F4F5] hover:text-white hover:bg-[#11131A] rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
             >
-              Practice Studio
+              Challenges
             </Link>
           </div>
 

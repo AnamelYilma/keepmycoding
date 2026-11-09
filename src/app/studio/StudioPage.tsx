@@ -1,22 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { BookOpen, History, Layers, Terminal, ArrowRight, LogOut, User } from 'lucide-react';
-import { MasterPromptCard } from '@/components/home/MasterPromptCard';
-import { PasteChallengeBox } from '@/components/home/PasteChallengeBox';
-import { StudioFlowPipeline } from '@/components/home/StudioFlowPipeline';
-import { HistoryDrawer } from '@/components/home/HistoryDrawer';
-import { HowItWorksModal } from '@/components/home/HowItWorksModal';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
+import AppNav from '@/components/navigation/AppNav';
 import { WorkspaceLayout } from '@/components/workspace/WorkspaceLayout';
 import { ResultModal } from '@/components/result/ResultModal';
 import { useWorkspaceFiles } from '@/hooks/useWorkspaceFiles';
-import { saveHistoryRecord, getHistory } from '@/lib/storage/history';
+import { saveHistoryRecord } from '@/lib/storage/history';
+import { SAMPLE_CHALLENGES } from '@/lib/sample-challenges';
+import { validateRawChallenge } from '@/lib/parser/challenge-validator';
 import { Challenge, ChallengeFile, JudgeResult } from '@/lib/types/challenge';
-import { evaluateSubmissionLocally } from '@/lib/judge/local-evaluator';
-import { createSupabaseBrowserClient } from '@/lib/supabase/client';
-import { signOutAction } from '@/app/auth/actions';
 
 interface ActiveWorkspaceViewProps {
   challenge: Challenge;
@@ -71,74 +65,110 @@ function ActiveWorkspaceView({
 }
 
 export default function Home() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [activeChallenge, setActiveChallenge] = useState<Challenge | null>(null);
   const [activeChallengeId, setActiveChallengeId] = useState<string | null>(null);
   const [judgeResult, setJudgeResult] = useState<JudgeResult | null>(null);
   const [isJudging, setIsJudging] = useState<boolean>(false);
   const [showResultModal, setShowResultModal] = useState<boolean>(false);
+  const [loading, setLoading] = useState(true);
 
-  // Home View State: Segmented tab, Guest Modal & History slide-over
-  const [activeTab, setActiveTab] = useState<'prompt' | 'paste'>('prompt');
-  const [promptOptions, setPromptOptions] = useState({
-    track: 1,
-    level: 2,
-    type: 'Fix Bug',
-    language: 'TypeScript',
-  });
-  const [isHistoryOpen, setIsHistoryOpen] = useState<boolean>(false);
-  const [isHowItWorksOpen, setIsHowItWorksOpen] = useState<boolean>(false);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [historyCount, setHistoryCount] = useState<number>(() => {
-    return typeof window !== 'undefined' ? getHistory().length : 0;
-  });
+  const challengeIdParam = searchParams.get('id');
+  const builtinParam = searchParams.get('builtin');
+  const trackParam = searchParams.get('track');
+  const inviteParam = searchParams.get('invite');
 
   useEffect(() => {
-    try {
-      const supabase = createSupabaseBrowserClient();
-      supabase.auth.getUser().then(({ data }) => {
-        if (data?.user?.email) {
-          setUserEmail(data.user.email);
+    if (typeof window === 'undefined') return;
+
+    // 1. Try reading from active session storage (DO NOT delete immediately on mount to survive StrictMode and reload)
+    const stored =
+      sessionStorage.getItem('active_workspace_challenge') ||
+      sessionStorage.getItem('pending_challenge');
+    const storedId =
+      sessionStorage.getItem('active_workspace_id') ||
+      sessionStorage.getItem('pending_challenge_id') ||
+      challengeIdParam;
+
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored) as Challenge;
+        if (parsed && parsed.files && parsed.files.length > 0) {
+          setActiveChallenge(parsed);
+          setActiveChallengeId(storedId || null);
+          setLoading(false);
+          return;
         }
-      });
-    } catch {
-      // Supabase unconfigured or offline
+      } catch (e) {
+        console.error('Failed to parse cached workspace challenge', e);
+      }
     }
-  }, []);
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const stored = sessionStorage.getItem('pending_challenge');
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored) as Challenge;
-          const storedId = sessionStorage.getItem('pending_challenge_id');
-          sessionStorage.removeItem('pending_challenge');
-          sessionStorage.removeItem('pending_challenge_id');
-          if (parsed && parsed.files && parsed.files.length > 0) {
+    // 2. Try loading by challenge ID from API
+    if (challengeIdParam) {
+      let active = true;
+      const fetchUrl = inviteParam
+        ? `/api/challenges/${challengeIdParam}?invite=${encodeURIComponent(inviteParam)}`
+        : `/api/challenges/${challengeIdParam}`;
+      fetch(fetchUrl)
+        .then(async (res) => {
+          if (!res.ok) throw new Error('Could not load challenge');
+          const body = await res.json();
+          if (active && body?.challenge?.challenge) {
+            const parsed = body.challenge.challenge as Challenge;
             setActiveChallenge(parsed);
-            setActiveChallengeId(storedId);
+            setActiveChallengeId(challengeIdParam);
+            sessionStorage.setItem('active_workspace_challenge', JSON.stringify(parsed));
+            sessionStorage.setItem('active_workspace_id', challengeIdParam);
+            setLoading(false);
           }
-        } catch (e) {
-          console.error('Failed to parse pending challenge', e);
+        })
+        .catch(() => {
+          if (active) {
+            router.replace('/challenges');
+          }
+        });
+      return () => {
+        active = false;
+      };
+    }
+
+    // 3. Try loading built-in sample challenge by ID or track
+    if (builtinParam || trackParam) {
+      const match = builtinParam
+        ? SAMPLE_CHALLENGES.find((s) => s.id === builtinParam)
+        : SAMPLE_CHALLENGES.find((s) => s.track === Number(trackParam));
+
+      if (match) {
+        const parsed = validateRawChallenge(match.raw).challenge;
+        if (parsed) {
+          setActiveChallenge(parsed);
+          setActiveChallengeId(`builtin:${match.id}`);
+          sessionStorage.setItem('active_workspace_challenge', JSON.stringify(parsed));
+          sessionStorage.setItem('active_workspace_id', `builtin:${match.id}`);
+          setLoading(false);
+          return;
         }
       }
     }
-  }, []);
 
-  const refreshHistoryCount = () => {
-    setHistoryCount(getHistory().length);
-  };
+    // 4. No challenge data found anywhere: cleanly redirect to challenge library
+    setLoading(false);
+    router.replace('/challenges');
+  }, [challengeIdParam, builtinParam, trackParam, router]);
 
-  const handleStartChallenge = (challenge: Challenge, challengeId: string | null = null) => {
-    setActiveChallenge(challenge);
-    setActiveChallengeId(challengeId);
-    setJudgeResult(null);
-    setShowResultModal(false);
-  };
+  const handleExitWorkspace = () => {
+    sessionStorage.removeItem('active_workspace_challenge');
+    sessionStorage.removeItem('active_workspace_id');
+    sessionStorage.removeItem('pending_challenge');
+    sessionStorage.removeItem('pending_challenge_id');
 
-  const handleBackToSetup = () => {
-    setActiveChallenge(null);
-    setActiveChallengeId(null);
+    if (activeChallengeId && !activeChallengeId.startsWith('builtin:')) {
+      router.push(`/challenges/${activeChallengeId}`);
+    } else {
+      router.push('/challenges');
+    }
   };
 
   const handleSubmitToJudge = async (userFiles: ChallengeFile[]) => {
@@ -151,7 +181,9 @@ export default function Home() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           challenge: activeChallenge,
-          ...(activeChallengeId ? { challengeId: activeChallengeId } : {}),
+          ...(activeChallengeId && !activeChallengeId.startsWith('builtin:')
+            ? { challengeId: activeChallengeId }
+            : {}),
           userFiles,
         }),
       });
@@ -187,7 +219,6 @@ export default function Home() {
 
   const handleNextChallenge = () => {
     if (activeChallenge && judgeResult) {
-      // Save record to local history
       saveHistoryRecord({
         track: activeChallenge.metadata.track,
         level: activeChallenge.metadata.level,
@@ -196,22 +227,29 @@ export default function Home() {
         verdict: judgeResult.verdict,
         language: activeChallenge.metadata.editableLanguage || 'code',
       });
-      refreshHistoryCount();
     }
 
+    sessionStorage.removeItem('active_workspace_challenge');
+    sessionStorage.removeItem('active_workspace_id');
+    sessionStorage.removeItem('pending_challenge');
+    sessionStorage.removeItem('pending_challenge_id');
+
     setShowResultModal(false);
-    setActiveChallenge(null);
-    setActiveChallengeId(null);
+    if (activeChallengeId && !activeChallengeId.startsWith('builtin:')) {
+      router.push(`/challenges/${activeChallengeId}`);
+    } else {
+      router.push('/challenges');
+    }
   };
 
-  // If a challenge is active, render the full workspace
+  // If a challenge is active, render the full isolated workspace
   if (activeChallenge) {
     return (
       <>
         <ActiveWorkspaceView
           key={`${activeChallenge.metadata.track}-${activeChallenge.metadata.level}-${activeChallenge.metadata.type}`}
           challenge={activeChallenge}
-          onBack={handleBackToSetup}
+          onBack={handleExitWorkspace}
           isJudging={isJudging}
           onSubmit={handleSubmitToJudge}
         />
@@ -226,196 +264,16 @@ export default function Home() {
     );
   }
 
-  // Studio setup view
+  // Redirecting / Loading state with semantic main landmark
   return (
-    <div className="min-h-screen bg-[#090A0F] text-zinc-100 relative selection:bg-[#88BDA4]/20 selection:text-[#88BDA4]">
-      {/* Subtle ambient lighting */}
-      <div className="ambient-glow ambient-glow-mint top-[-120px] left-1/2 -translate-x-1/2 w-[720px] h-[340px] opacity-25 pointer-events-none" />
-
-      {/* Modern Top Header matching landing page */}
-      <header className="border-b border-white/8 bg-[#090A0F]/85 backdrop-blur-md sticky top-0 z-40">
-        <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6">
-          <Link
-            href="/studio"
-            className="group flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] rounded-lg"
-            aria-label="KeepCoding Studio home"
-          >
-            <div className="relative w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
-              <Image
-                src="/logo2nd.png"
-                alt="KeepCoding logo"
-                width={32}
-                height={32}
-                priority
-                className="object-contain w-full h-full drop-shadow-[0_2px_8px_rgba(136,189,164,0.35)]"
-              />
-            </div>
-            <div className="flex flex-col justify-center">
-              <span className="text-sm sm:text-base font-bold text-[#F4F4F5] tracking-tight leading-none group-hover:text-white transition-colors">
-                KeepCoding
-              </span>
-              <span className="text-[9px] font-mono tracking-widest text-[#88BDA4] mt-1 leading-none">
-                ZERO-AI GYM
-              </span>
-            </div>
-          </Link>
-
-          <nav className="flex items-center gap-2 text-xs" aria-label="Studio navigation">
-            <Link
-              href="/"
-              className="hidden sm:inline-flex rounded-full px-3.5 py-1.5 text-zinc-400 border border-transparent hover:border-white/10 hover:bg-white/5 hover:text-zinc-100 transition-all font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
-            >
-              Landing page
-            </Link>
-            <Link
-              href="/prompt"
-              className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-zinc-300 border border-white/10 bg-[#11131A] hover:border-white/20 hover:bg-[#171a24] hover:text-white transition-all font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
-            >
-              <Layers className="h-3.5 w-3.5 text-[#88BDA4]" aria-hidden="true" />
-              <span>Prompt Wizard</span>
-            </Link>
-            <Link
-              href="/challenges"
-              className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-zinc-300 border border-white/10 bg-[#11131A] hover:border-white/20 hover:bg-[#171a24] hover:text-white transition-all font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
-            >
-              <span>Challenge Library</span>
-            </Link>
-            <button
-              type="button"
-              onClick={() => setIsHowItWorksOpen(true)}
-              className="hidden md:inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-zinc-400 border border-transparent hover:border-white/10 hover:bg-white/5 hover:text-zinc-100 transition-all font-medium cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
-            >
-              <BookOpen className="h-3.5 w-3.5 text-zinc-400" aria-hidden="true" />
-              <span>How it works</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsHistoryOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-[#11131A] px-3.5 py-1.5 text-zinc-300 hover:border-white/20 hover:bg-[#171a24] hover:text-zinc-100 transition-all font-medium cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
-            >
-              <History className="h-3.5 w-3.5 text-zinc-400" aria-hidden="true" />
-              <span>History</span>
-              {historyCount > 0 && (
-                <span className="ml-1 rounded-full bg-[#88BDA4]/15 px-1.5 py-0.2 font-mono text-[10px] text-[#88BDA4] border border-[#88BDA4]/20">
-                  {historyCount}
-                </span>
-              )}
-            </button>
-
-            {userEmail ? (
-              <div className="flex items-center gap-2.5 pl-3 border-l border-white/10">
-                <span className="hidden md:inline-flex items-center gap-1.5 text-xs text-zinc-300 font-mono px-2.5 py-1 rounded-full bg-[#11131A] border border-white/8">
-                  <User size={13} className="text-[#88BDA4]" aria-hidden="true" />
-                  <span className="max-w-[120px] truncate">{userEmail}</span>
-                </span>
-                <form action={signOutAction}>
-                  <button
-                    type="submit"
-                    className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-[#11131A] px-3 py-1.5 text-xs font-medium text-zinc-400 hover:text-zinc-100 hover:bg-[#171a24] hover:border-white/20 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
-                    title="Sign out of account"
-                  >
-                    <LogOut size={13} className="text-zinc-400" aria-hidden="true" />
-                    <span>Sign out</span>
-                  </button>
-                </form>
-              </div>
-            ) : (
-              <Link
-                href="/login"
-                className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-[#11131A] px-3.5 py-1.5 text-zinc-300 hover:border-white/20 hover:bg-[#171a24] hover:text-white transition-all font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
-              >
-                <span>Sign in</span>
-              </Link>
-            )}
-          </nav>
+    <div className="min-h-screen bg-[#090A0F] text-zinc-100 flex flex-col font-sans">
+      <AppNav />
+      <main className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+        <div className="flex items-center gap-3 text-zinc-400 text-sm font-mono px-4 py-2 rounded-full bg-[#11131A] border border-white/10">
+          <Loader2 className="w-4 h-4 animate-spin text-[#88BDA4]" aria-hidden="true" />
+          <span>{loading ? 'Opening challenge workspace...' : 'Redirecting to challenges...'}</span>
         </div>
-      </header>
-
-      {/* Main Content Area */}
-      <main className="mx-auto flex w-full max-w-4xl flex-col space-y-7 px-4 py-8 sm:px-6 relative z-10">
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-semibold tracking-tight text-zinc-100 sm:text-4xl">
-            Hands-on coding without distractions.
-          </h1>
-          <p className="mx-auto max-w-xl text-sm leading-relaxed text-zinc-400">
-            Configure a structured prompt with your target track and tier to copy to your external AI, or paste your challenge block to begin active practice.
-          </p>
-        </div>
-
-        {/* 1. Step Flow Text Box for Fast Scan */}
-        <StudioFlowPipeline />
-
-        {/* 2. Sleek Segmented Control */}
-        <div className="flex justify-center" role="tablist" aria-label="Studio workflow steps">
-          <div className="inline-flex p-1.5 rounded-full bg-[#12151e] border border-white/12 shadow-lg">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeTab === 'prompt'}
-              onClick={() => setActiveTab('prompt')}
-              className={`inline-flex items-center gap-2 px-5 py-2 rounded-full text-xs font-semibold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] ${
-                activeTab === 'prompt'
-                  ? 'bg-[#88BDA4] text-[#090A0F] shadow-sm'
-                  : 'text-zinc-400 hover:text-zinc-100 hover:bg-white/5'
-              }`}
-            >
-              <Layers className="h-4 w-4" aria-hidden="true" />
-              <span>1. Configure Prompt</span>
-            </button>
-
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeTab === 'paste'}
-              onClick={() => setActiveTab('paste')}
-              className={`inline-flex items-center gap-2 px-5 py-2 rounded-full text-xs font-semibold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] ${
-                activeTab === 'paste'
-                  ? 'bg-[#88BDA4] text-[#090A0F] shadow-sm'
-                  : 'text-zinc-400 hover:text-zinc-100 hover:bg-white/5'
-              }`}
-            >
-              <Terminal className="h-4 w-4" aria-hidden="true" />
-              <span>2. Paste Challenge</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Tab Card Panels */}
-        {activeTab === 'prompt' ? (
-          <MasterPromptCard
-            selectedTrack={promptOptions.track}
-            selectedLevel={promptOptions.level}
-            selectedType={promptOptions.type}
-            selectedLanguage={promptOptions.language}
-            onOptionsChange={setPromptOptions}
-            onGoToWorkspace={() => setActiveTab('paste')}
-            nextStepLabel="Next: Paste Challenge to Start Practice"
-          />
-        ) : (
-          <PasteChallengeBox
-            promptOptions={promptOptions}
-            onStartChallenge={handleStartChallenge}
-            onGoToPrompt={() => setActiveTab('prompt')}
-          />
-        )}
       </main>
-
-      {/* How it Works Modal */}
-      <HowItWorksModal
-        isOpen={isHowItWorksOpen}
-        onClose={() => setIsHowItWorksOpen(false)}
-        onStartPractice={() => {
-          setIsHowItWorksOpen(false);
-          setActiveTab('prompt');
-        }}
-      />
-
-      {/* History Slide-over Drawer */}
-      <HistoryDrawer
-        isOpen={isHistoryOpen}
-        onClose={() => setIsHistoryOpen(false)}
-        onHistoryChange={refreshHistoryCount}
-      />
     </div>
   );
 }

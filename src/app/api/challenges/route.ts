@@ -6,28 +6,76 @@ import { normalizeSources } from '@/lib/challenges/library';
 const publicColumns = 'id,owner_id,owner_name,title,summary,topic,language,track,level,challenge_type,visibility,reason,learning_goal,created_at';
 
 export async function GET() {
-  if (!isSupabaseConfigured()) return NextResponse.json({ challenges: [], configured: false });
+  if (!isSupabaseConfigured()) return NextResponse.json({ challenges: [], sharedChallenges: [], configured: false });
 
   try {
     const supabase = await createSupabaseServerClient();
-    const { data, error } = await supabase
+    const { data: { user } } = await supabase.auth.getUser();
+
+    // Query visible challenges: public community challenges, plus user's own challenges
+    const query = supabase
       .from('challenges')
       .select(publicColumns)
       .order('created_at', { ascending: false })
       .limit(200);
 
+    const { data, error } = user
+      ? await query.or(`visibility.eq.public,owner_id.eq.${user.id}`)
+      : await query.eq('visibility', 'public');
+
     if (error) return NextResponse.json({ error: 'Could not load challenges.' }, { status: 503 });
-    const { data: { user } } = await supabase.auth.getUser();
+
+    let userProfile: { id: string; email?: string; name: string } | null = null;
     let myAttempts: { challenge_id: string; started_at: string; completed_at: string | null }[] = [];
+    let authorAttempts: { challenge_id: string; solver_id: string; solver_name: string; started_at: string; completed_at: string | null }[] = [];
+    let sharedChallenges: any[] = [];
+
     if (user) {
-      const { data: attempts } = await supabase
-        .from('challenge_attempts')
-        .select('challenge_id,started_at,completed_at')
-        .eq('solver_id', user.id)
-        .limit(200);
-      myAttempts = attempts ?? [];
+      userProfile = {
+        id: user.id,
+        email: user.email,
+        name: (user.user_metadata?.full_name as string) || user.email?.split('@')[0] || 'KeepCoding developer',
+      };
+
+      const [attemptsRes, authorAttemptsRes, accessRes] = await Promise.all([
+        supabase
+          .from('challenge_attempts')
+          .select('challenge_id,started_at,completed_at')
+          .eq('solver_id', user.id)
+          .limit(300),
+        supabase
+          .from('challenge_attempts')
+          .select('challenge_id,solver_id,solver_name,started_at,completed_at')
+          .limit(500),
+        supabase
+          .from('challenge_access')
+          .select('challenge_id,granted_at')
+          .eq('user_id', user.id)
+          .limit(200),
+      ]);
+
+      myAttempts = attemptsRes.data ?? [];
+      authorAttempts = authorAttemptsRes.data ?? [];
+
+      const sharedIds = (accessRes.data ?? []).map((r) => r.challenge_id);
+      if (sharedIds.length > 0) {
+        const { data: sharedRows } = await supabase
+          .from('challenges')
+          .select(publicColumns)
+          .in('id', sharedIds)
+          .order('created_at', { ascending: false });
+        sharedChallenges = sharedRows ?? [];
+      }
     }
-    return NextResponse.json({ challenges: data ?? [], myAttempts, configured: true });
+
+    return NextResponse.json({
+      challenges: data ?? [],
+      sharedChallenges,
+      myAttempts,
+      authorAttempts,
+      user: userProfile,
+      configured: true,
+    });
   } catch {
     return NextResponse.json({ error: 'Could not load challenges.' }, { status: 503 });
   }
@@ -50,24 +98,19 @@ export async function POST(request: NextRequest) {
     const reason = typeof payload.reason === 'string' ? payload.reason.trim() : '';
     const learningGoal = typeof payload.learningGoal === 'string' ? payload.learningGoal.trim() : '';
     const explanation = typeof payload.explanation === 'string' ? payload.explanation.trim() : '';
-    const visibility = payload.visibility === 'public' ? 'public' : payload.visibility === 'private' ? 'private' : null;
+    const visibility =
+      payload.visibility === 'public'
+        ? 'public'
+        : payload.visibility === 'temporary'
+        ? 'temporary'
+        : payload.visibility === 'private'
+        ? 'private'
+        : null;
     const sources = normalizeSources(payload.sources);
     const rawText = typeof payload.rawText === 'string' ? payload.rawText : '';
 
     if (rawText.length === 0 || rawText.length > 300_000) {
       return NextResponse.json({ error: 'Paste a challenge under 300,000 characters.' }, { status: 400 });
-    }
-    if (title.length < 3 || title.length > 120) {
-      return NextResponse.json({ error: 'Challenge title must be 3 to 120 characters.' }, { status: 400 });
-    }
-    if (summary.length < 10 || summary.length > 500) {
-      return NextResponse.json({ error: 'Summary must be 10 to 500 characters.' }, { status: 400 });
-    }
-    if (!topic || topic.length > 80 || reason.length > 2000 || learningGoal.length > 500 || explanation.length > 8000) {
-      return NextResponse.json({ error: 'Some challenge details are missing or too long.' }, { status: 400 });
-    }
-    if (!visibility || !sources) {
-      return NextResponse.json({ error: 'Choose a visibility and provide valid HTTP or HTTPS source links.' }, { status: 400 });
     }
 
     const validation = validateRawChallenge(rawText);
@@ -76,6 +119,37 @@ export async function POST(request: NextRequest) {
     }
 
     const challenge = validation.challenge;
+
+    // Intelligent auto-derived fallbacks if user did not fill them in (e.g. temporary or private mode)
+    const taskFirstLine = challenge.task
+      .split('\n')[0]
+      .replace(/^#+\s*/, '')
+      .replace(/^TASK:\s*/i, '')
+      .replace(/^[A-Z_]+:\s*/, '')
+      .trim();
+
+    const derivedTitle = title || challenge.metadata.title || taskFirstLine || `${challenge.metadata.editableLanguage} Level ${challenge.metadata.level} Challenge`;
+    const finalTitle = derivedTitle.slice(0, 120);
+
+    const derivedTopic = topic || challenge.metadata.topic || challenge.metadata.type || 'Web Development';
+    const finalTopic = derivedTopic.slice(0, 80);
+
+    const derivedSummary = summary || challenge.metadata.summary || `Practice ${finalTopic} at Level ${challenge.metadata.level} in ${challenge.metadata.editableLanguage}.`;
+    const finalSummary = derivedSummary.slice(0, 500);
+
+    if (finalTitle.length < 3 || finalTitle.length > 120) {
+      return NextResponse.json({ error: 'Challenge title must be 3 to 120 characters.' }, { status: 400 });
+    }
+    if (finalSummary.length < 10 || finalSummary.length > 500) {
+      return NextResponse.json({ error: 'Summary must be 10 to 500 characters.' }, { status: 400 });
+    }
+    if (!finalTopic || finalTopic.length > 80 || reason.length > 2000 || learningGoal.length > 500 || explanation.length > 8000) {
+      return NextResponse.json({ error: 'Some challenge details are missing or too long.' }, { status: 400 });
+    }
+    if (!visibility || !sources) {
+      return NextResponse.json({ error: 'Choose a visibility and provide valid HTTP or HTTPS source links.' }, { status: 400 });
+    }
+
     const editableFiles = challenge.files.filter((file) => file.isEditable && !file.isAnswerFile);
     const codeFiles = challenge.files.filter((file) => !file.isAnswerFile);
     const editableLanguage = challenge.metadata.editableLanguage?.trim();
@@ -98,9 +172,9 @@ export async function POST(request: NextRequest) {
       .insert({
         owner_id: user.id,
         owner_name: fullName || 'KeepCoding developer',
-        title,
-        summary,
-        topic,
+        title: finalTitle,
+        summary: finalSummary,
+        topic: finalTopic,
         language: editableLanguage,
         track: challenge.metadata.track,
         level: challenge.metadata.level,
@@ -114,7 +188,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (saveError || !saved) {
-      return NextResponse.json({ error: 'Could not save this challenge.' }, { status: 503 });
+      return NextResponse.json({ error: 'Could not store this challenge. Please retry.' }, { status: 500 });
     }
 
     const { error: solutionError } = await supabase.from('challenge_solutions').insert({
@@ -125,12 +199,12 @@ export async function POST(request: NextRequest) {
     });
 
     if (solutionError) {
-      await supabase.from('challenges').delete().eq('id', saved.id).eq('owner_id', user.id);
-      return NextResponse.json({ error: 'Could not save the author solution. Try again.' }, { status: 503 });
+      await supabase.from('challenges').delete().eq('id', saved.id);
+      return NextResponse.json({ error: 'Could not save the reference solution. Challenge discarded.' }, { status: 500 });
     }
 
     return NextResponse.json({ id: saved.id }, { status: 201 });
   } catch {
-    return NextResponse.json({ error: 'Could not save this challenge.' }, { status: 500 });
+    return NextResponse.json({ error: 'Could not save challenge.' }, { status: 500 });
   }
 }

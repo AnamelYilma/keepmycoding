@@ -1,6 +1,8 @@
 // KeepCoding - Core Challenge and Judge Types
 
-export type Verdict = 'PASS' | 'FAIL';
+export type Verdict = 'PASS' | 'PARTIAL' | 'FAIL';
+
+export type MistakeType = 'CONCEPT' | 'SYNTAX' | 'NONE';
 
 export type ChallengeTypeName =
   | 'Write'
@@ -17,6 +19,9 @@ export interface ChallengeMetadata {
   type: string;
   editableLanguage: string;
   editableFiles: string[];
+  title?: string;
+  topic?: string;
+  summary?: string;
 }
 
 export interface ChallengeFile {
@@ -50,8 +55,10 @@ export interface ValidationResult {
 
 export interface JudgeResult {
   verdict: Verdict;
+  mistakeType?: MistakeType;
   summary: string;
   breakdown: string;
+  whatToLearn?: string;
   model: string;
   advice: string;
   fix?: string;

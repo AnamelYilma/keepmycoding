@@ -22,6 +22,7 @@ export interface ChallengeMetadata {
   title?: string;
   topic?: string;
   summary?: string;
+  visibility?: 'public' | 'private' | 'temporary' | string;
 }
 
 export interface ChallengeFile {

@@ -1,11 +1,34 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
+import { redirect } from 'next/navigation';
 import StudioPage from './StudioPage';
+import { createSupabaseServerClient, isSupabaseConfigured } from '@/lib/supabase/server';
 
 export const metadata: Metadata = {
   title: 'KeepCoding Studio',
   description: 'Generate, paste, and solve a deliberate coding challenge.',
 };
+
+async function StudioContent() {
+  let currentUser = null;
+  if (isSupabaseConfigured()) {
+    try {
+      const supabase = await createSupabaseServerClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      currentUser = user;
+    } catch {
+      // ignore
+    }
+
+    if (!currentUser) {
+      redirect('/login?next=/studio');
+    }
+  }
+
+  return <StudioPage />;
+}
 
 export default function StudioRoute() {
   return (
@@ -16,7 +39,7 @@ export default function StudioRoute() {
         </div>
       }
     >
-      <StudioPage />
+      <StudioContent />
     </Suspense>
   );
 }

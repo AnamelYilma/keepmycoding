@@ -180,14 +180,16 @@ Beginner levels must NEVER be overwhelmed with multi-function systems. Advanced 
 - Levels 1 to 2 (Foundations & Quick Wins):
   * Task / Function Count: EXACTLY 1 focused function or bug fix (maximum 2 small helper functions).
   * Acceptance Test Count: 2 to 3 tests.
-  * Code Scope: 4 to 12 lines of code to write/edit.
-  * Cognitive Focus: Single-parameter validation, return types, basic branch/operator check, pure functions (e.g. validate one field like email or password, check if token timestamp is expired, format a date).
-  * CRITICAL BAN: NEVER ask for a full state machine, multi-step pipeline, or more than 2 functions at Level 1 or 2!
+  * Code Scope: 5 to 15 lines of code to write/edit.
+  * Cognitive Focus: Single-parameter validation, return types, defensive boundary check, pure functions (e.g. validate formatted email or slug, calculate discount or boundary clamp, verify timestamp with margin).
+  * CRITICAL BAN: NEVER ask for a 1-character or 1-line trivial fix (e.g. NEVER just change <= to >=). The solver must write a real function with defensive checks. NEVER ask for a full state machine or more than 2 functions at Level 1 or 2!
 - Levels 3 to 5 (State Invariants & Handlers):
   * Task / Function Count: 2 to 3 functions or tasks.
   * Acceptance Test Count: 3 to 5 tests.
   * Code Scope: 10 to 25 lines of code (writing a full function, middleware handler, or multi-step validator. STRICT RULE: NEVER a trivial 1-line or 1-word fix).
-  * Cognitive Focus: Single-field touched state (e.g. updateField + getFieldError), debounce hook, basic authorization header parser, or optimistic UI toggle.
+  * Cognitive Focus: Language-appropriate handler or state invariant:
+    - TypeScript: Debounce hook, form field touched UX, or optimistic toggle.
+    - Go / Rust / Python / PHP: HTTP authorization header parser, in-memory cache, pagination bounds, or query sanitizer.
 - Levels 6 to 8 (Multi-State & Edge Case Invariants):
   * Task / Function Count: 4 to 5 functions or tasks.
   * Acceptance Test Count: 5 to 7 tests.
@@ -198,6 +200,18 @@ Beginner levels must NEVER be overwhelmed with multi-function systems. Advanced 
   * Acceptance Test Count: 7 to 10+ tests.
   * Code Scope: 25 to 50 lines of code (concurrency locks, rate limiting sliding windows, cryptographic validation, or fault boundaries).
   * Cognitive Focus: Distributed queue workers, sliding-window rate limiters, multi-resource consensus, optimistic locking, idempotent message processors.
+
+LANGUAGE ECOSYSTEM ALIGNMENT (STRICTLY REQUIRED):
+- Match the problem naturally to the target language:
+  * TypeScript / JavaScript: Modern web UI, async promises, discriminated unions, form validation, client state.
+  * Go: Goroutines, channels, HTTP handlers, middleware, JSON decoders, microservice resilience. (NEVER generate browser DOM or form touched state machines for Go!)
+  * Rust: Memory safety, Result/Option error handling, traits, iterators, CLI tools. (NEVER generate browser DOM or form touched state machines for Rust!)
+  * Python: Data manipulation, list comprehensions, FastAPI/Flask route logic, file parsers.
+  * PHP: Web request lifecycle, HTTP middleware, SQL query builders, arrays. (NEVER generate browser DOM form touched state machines for PHP!)
+
+ANTI-SPOON-FEEDING & CLARITY RULE:
+Under CURRENT VS EXPECTED BEHAVIOR and HOW TO APPROACH THIS, define what the code must do and list the acceptance criteria.
+NEVER reveal the exact code diff, bug line, or step-by-step solution pseudo-code in the task guide. The developer must debug and write the code themselves.
 
 PREVIOUS CHALLENGE HISTORY (DO NOT REPEAT CONCEPTS FROM THESE):
 ${historyText}
@@ -308,14 +322,16 @@ Beginner levels must NEVER be overwhelmed with multi-function systems. Advanced 
 - Levels 1 to 2 (Foundations & Quick Wins):
   * Task / Function Count: EXACTLY 1 focused function or bug fix (maximum 2 small helper functions).
   * Acceptance Test Count: 2 to 3 tests.
-  * Code Scope: 4 to 12 lines of code to write/edit.
-  * Cognitive Focus: Single-parameter validation, return types, basic branch/operator check, pure functions (e.g. validate one field like email or password, check if token timestamp is expired, format a date).
-  * CRITICAL BAN: NEVER ask for a full state machine, multi-step pipeline, or more than 2 functions at Level 1 or 2!
+  * Code Scope: 5 to 15 lines of code to write/edit.
+  * Cognitive Focus: Single-parameter validation, return types, defensive boundary check, pure functions (e.g. validate formatted email or slug, calculate discount or boundary clamp, verify timestamp with margin).
+  * CRITICAL BAN: NEVER ask for a 1-character or 1-line trivial fix (e.g. NEVER just change <= to >=). The solver must write a real function with defensive checks. NEVER ask for a full state machine or more than 2 functions at Level 1 or 2!
 - Levels 3 to 5 (State Invariants & Handlers):
   * Task / Function Count: 2 to 3 functions or tasks.
   * Acceptance Test Count: 3 to 5 tests.
   * Code Scope: 10 to 25 lines of code (writing a full function, middleware handler, or multi-step validator. STRICT RULE: NEVER a trivial 1-line or 1-word fix).
-  * Cognitive Focus: Single-field touched state (e.g. updateField + getFieldError), debounce hook, basic authorization header parser, or optimistic UI toggle.
+  * Cognitive Focus: Language-appropriate handler or state invariant:
+    - TypeScript: Debounce hook, form field touched UX, or optimistic toggle.
+    - Go / Rust / Python / PHP: HTTP authorization header parser, in-memory cache, pagination bounds, or query sanitizer.
 - Levels 6 to 8 (Multi-State & Edge Case Invariants):
   * Task / Function Count: 4 to 5 functions or tasks.
   * Acceptance Test Count: 5 to 7 tests.
@@ -326,6 +342,18 @@ Beginner levels must NEVER be overwhelmed with multi-function systems. Advanced 
   * Acceptance Test Count: 7 to 10+ tests.
   * Code Scope: 25 to 50 lines of code (concurrency locks, rate limiting sliding windows, cryptographic validation, or fault boundaries).
   * Cognitive Focus: Distributed queue workers, sliding-window rate limiters, multi-resource consensus, optimistic locking, idempotent message processors.
+
+LANGUAGE ECOSYSTEM ALIGNMENT (STRICTLY REQUIRED):
+- Match the problem naturally to the target language:
+  * TypeScript / JavaScript: Modern web UI, async promises, discriminated unions, form validation, client state.
+  * Go: Goroutines, channels, HTTP handlers, middleware, JSON decoders, microservice resilience. (NEVER generate browser DOM or form touched state machines for Go!)
+  * Rust: Memory safety, Result/Option error handling, traits, iterators, CLI tools. (NEVER generate browser DOM or form touched state machines for Rust!)
+  * Python: Data manipulation, list comprehensions, FastAPI/Flask route logic, file parsers.
+  * PHP: Web request lifecycle, HTTP middleware, SQL query builders, arrays. (NEVER generate browser DOM form touched state machines for PHP!)
+
+ANTI-SPOON-FEEDING & CLARITY RULE:
+Under CURRENT VS EXPECTED BEHAVIOR and HOW TO APPROACH THIS, define what the code must do and list the acceptance criteria.
+NEVER reveal the exact code diff, bug line, or step-by-step solution pseudo-code in the task guide. The developer must debug and write the code themselves.
 
 GENERATION INSTRUCTIONS:
 ${input.mode === 'suggest' ? suggestInstructions : ideaInstructions}

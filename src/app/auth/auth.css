@@ -508,6 +508,29 @@
   box-shadow: 0 0 0 3px var(--auth-mint-glow);
 }
 
+/* Customized Select Controls */
+.auth-custom-select button {
+  min-height: 46px;
+  padding: 0 14px;
+  background: #151821;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--auth-radius-md);
+  color: #f4f4f5;
+  font: 13px var(--font-sans), sans-serif;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.auth-custom-select button:hover {
+  border-color: rgba(255, 255, 255, 0.25);
+  background: #181d28;
+}
+
+.auth-custom-select button[aria-expanded="true"] {
+  border-color: var(--auth-mint);
+  background: #171c26;
+  box-shadow: 0 0 0 3px var(--auth-mint-glow);
+}
+
 /* Password Field with Toggle */
 .auth-password-wrap {
   position: relative;

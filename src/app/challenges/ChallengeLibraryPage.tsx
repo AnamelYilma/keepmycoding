@@ -16,6 +16,7 @@ import {
   Users,
   ChevronDown,
   UserPlus,
+  Share2,
 } from 'lucide-react';
 import SmartPopover from '@/components/common/SmartPopover';
 import { CustomSelect, SelectOption } from '@/components/ui/CustomSelect';
@@ -606,15 +607,15 @@ export default function ChallengeLibraryPage() {
                         By <span className="text-zinc-400">{item.ownerName}</span>
                       </p>
                       <div className="flex items-center gap-2">
-                        {user && item.ownerId === user.id && item.visibility !== 'temporary' && (
+                        {(item.visibility === 'public' || item.visibility === 'built-in' || (user && item.ownerId === user.id)) && item.visibility !== 'temporary' && (
                           <button
                             type="button"
                             onClick={() => setInviteTarget({ id: item.id, title: item.title, visibility: item.visibility })}
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700/80 bg-zinc-800/60 px-3 py-1.5 text-xs font-medium text-zinc-300 hover:border-zinc-500 hover:bg-zinc-800 hover:text-zinc-100 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400"
-                            title="Invite developers to practice this challenge"
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700/80 bg-zinc-800/60 px-3 py-1.5 text-xs font-medium text-zinc-300 hover:border-zinc-500 hover:bg-zinc-800 hover:text-zinc-100 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400 cursor-pointer"
+                            title="Share or invite developers to practice this challenge"
                           >
-                            <UserPlus size={13} aria-hidden="true" />
-                            <span>Invite</span>
+                            <Share2 size={13} className="text-[#88BDA4]" aria-hidden="true" />
+                            <span>Share</span>
                           </button>
                         )}
                         <button

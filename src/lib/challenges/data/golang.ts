@@ -103,12 +103,12 @@ func Slugify(text string) string {
     label: 'Track 1 (Level 1) - Token Expiry Timestamp Guard (Go)',
     track: 1,
     level: 1,
-    type: 'Fix Bug',
+    type: 'Build Feature',
     language: 'Go',
     raw: `---METADATA---
 track: 1
 level: 1
-type: Fix Bug
+type: Build Feature
 topic: Auth, JWT & Sessions
 title: Token Expiration Timestamp Guard
 editableLanguage: go
@@ -116,42 +116,43 @@ editableFiles: solution.go
 
 ---TASK---
 ACTION:
-FIX BUG
+BUILD
 
 GOAL:
-Fix the expiration check so tokens whose expiration time has arrived or passed are marked as expired.
+Implement a defensive token expiration guard in Go that validates Unix epoch timestamps, rejects non-positive or corrupt values, and verifies whether the token has arrived or passed its expiration.
 
 CURRENT VS EXPECTED BEHAVIOR:
-- Current: The comparator uses >= instead of <=, marking valid tokens as expired and expired tokens as valid.
-- Expected: Returns true if tokenExpSec is less than or equal to currentTimestampSec, and false if tokenExpSec is in the future.
+- Current: The function stub always returns false, allowing expired or corrupt tokens to pass authorization checks.
+- Expected: Returns true if tokenExpSec is invalid (<= 0) or has arrived/passed relative to currentTimestampSec. Returns false only when tokenExpSec is strictly in the future.
 
 IF STUCK: LEARN THESE TOPICS & SYNTAX:
-- Concept: Unix epoch timestamps comparison in Go (Search: "unix epoch timestamp int64 comparison go")
-- Syntax: Go boolean relational operators <= vs > (Search: "golang comparison operators")
+- Concept: Unix epoch timestamps, token expiration, and defensive validation (Search: "jwt epoch timestamp expiration go")
+- Syntax: Go int64 numeric comparisons and branch logic (Search: "golang int64 comparison")
 
 PRACTICAL TIPS & WATCHOUTS:
-- Tip: Remember that earlier timestamps are smaller numbers. If tokenExpSec is 100 and currentTimestampSec is 200, the token expired in the past.
+- Tip: If tokenExpSec is 0 or negative, treat it as expired (return true).
 - Tip: A token expiring at the exact current second (tokenExpSec == currentTimestampSec) is expired.
 
 WHERE TO WORK:
 - Edit: solution.go (Target function: IsTokenExpired)
 
 HOW TO APPROACH THIS:
-1. Inspect the comparison between tokenExpSec and currentTimestampSec.
-2. Verify that when tokenExpSec is less than or equal to currentTimestampSec, the token is expired.
-3. Fix the relational operator.
+1. Verify that tokenExpSec is a positive integer greater than zero.
+2. Check if tokenExpSec is less than or equal to currentTimestampSec.
+3. Return true if expired or invalid, otherwise false.
 
 EDGE CASES TO WATCH:
-- Exact boundary: When tokenExpSec == currentTimestampSec, returns true.
-- Future token: When tokenExpSec > currentTimestampSec, returns false.
+- Exact boundary: tokenExpSec == currentTimestampSec returns true.
+- Future token: tokenExpSec > currentTimestampSec returns false.
+- Non-positive timestamp: tokenExpSec <= 0 returns true.
 
 ---FILE: solution.go---
 package main
 
-// IsTokenExpired checks whether a token's expiration timestamp has passed or arrived.
+// IsTokenExpired checks whether a token's expiration timestamp has passed, arrived, or is invalid.
 func IsTokenExpired(tokenExpSec, currentTimestampSec int64) bool {
-	// BUG: The comparison is currently reversed
-	return tokenExpSec >= currentTimestampSec
+	// TODO: Validate timestamps and return expiration status
+	return false
 }
 
 ---TESTS---
@@ -171,6 +172,9 @@ Description: Token expiring at exact current second must return true
 package main
 
 func IsTokenExpired(tokenExpSec, currentTimestampSec int64) bool {
+	if tokenExpSec <= 0 {
+		return true
+	}
 	return tokenExpSec <= currentTimestampSec
 }
 `,
@@ -808,17 +812,17 @@ func (tb *TokenBucket) Consume(tokensRequested float64, nowSec int64) RateLimitR
   },
   {
     id: 'go-l4-field-validator-touched',
-    label: 'Track 2 (Level 4) - Form Field Touched State Machine (Go)',
-    track: 2,
+    label: 'Track 5 (Level 4) - Exponential Backoff & Retry State Machine (Go)',
+    track: 5,
     level: 4,
     type: 'Build Feature',
     language: 'Go',
     raw: `---METADATA---
-track: 2
+track: 5
 level: 4
 type: Build Feature
-topic: Frontend UI & Forms
-title: Form Field Touched State and Error Visibility Manager
+topic: Distributed Systems & Workers
+title: Exponential Backoff and Retry State Machine
 editableLanguage: go
 editableFiles: solution.go
 
@@ -827,113 +831,106 @@ ACTION:
 BUILD
 
 GOAL:
-Build an immutable form field state manager that tracks value, touched status, and shows validation errors only after a field has been touched.
+Build an exponential backoff retry decision engine in Go that calculates next delay intervals, caps at maximum duration, and enforces maximum retry limits.
 
 CURRENT VS EXPECTED BEHAVIOR:
-- Current: Errors are displayed prematurely before the user interacts with the input.
-- Expected: UpdateField updates value and evaluates error, but GetVisibleError returns nil until TouchField is called.
+- Current: The starter stub returns zero values without calculating progressive backoff delays or enforcing retry caps.
+- Expected: CalculateBackoff multiplies initialInterval by multiplier for each completed attempt, clamps the result to maxInterval, and marks ShouldRetry as false once maxRetries is reached.
 
 IF STUCK: LEARN THESE TOPICS & SYNTAX:
-- Concept: Form touched states and error visibility UX (Search: "form validation touched state pattern")
-- Syntax: Go value receivers, immutable struct copies, and string pointers (Search: "golang pointer to string optional error")
+- Concept: Exponential backoff algorithm for resilient distributed network calls (Search: "exponential backoff retry algorithm go")
+- Syntax: Go time.Duration and math operations (Search: "golang time.Duration multiplication clamp")
 
 PRACTICAL TIPS & WATCHOUTS:
-- Tip: Never mutate the original FieldState in-place; always return a new struct with updated fields.
-- Tip: When value is corrected, error should become nil immediately.
+- Tip: For attempt 0 (first retry after initial failure), the delay is initialInterval.
+- Tip: Clamp calculated delay so it never exceeds maxInterval.
+- Tip: If attempt >= maxRetries, return ShouldRetry: false and NextDelay: 0.
 
 WHERE TO WORK:
-- Edit: solution.go (Target functions: CreateField, UpdateField, TouchField, GetVisibleError)
-- Reference: types.go (readonly FieldState struct and ValidatorFn)
+- Edit: solution.go (Target function: CalculateBackoff)
+- Reference: types.go (readonly BackoffConfig and RetryDecision structs)
 
 HOW TO APPROACH THIS:
-1. Implement CreateField to return FieldState{Value: initialValue, Touched: false, Error: validator(initialValue)}.
-2. In UpdateField, re-validate the new value and return updated state while preserving Touched status.
-3. In TouchField, return a new state with Touched: true.
-4. In GetVisibleError, return state.Error only if state.Touched is true; otherwise nil.
+1. Check if current attempt has reached or exceeded maxRetries. If so, return ShouldRetry: false.
+2. Calculate backoff delay: initialInterval * (multiplier ^ attempt).
+3. Clamp the resulting duration to maxInterval.
+4. Return RetryDecision with ShouldRetry: true, clamped NextDelay, and incremented attempt.
 
 EDGE CASES TO WATCH:
-- Untouched field with bad value: GetVisibleError returns nil.
-- Touched field with valid value: GetVisibleError returns nil.
+- Max retries reached: attempt >= maxRetries returns ShouldRetry: false with 0 delay.
+- First retry: attempt 0 returns initialInterval.
+- Delay exceeds cap: huge multipliers clamp cleanly to maxInterval.
 
 ---FILE: types.go (readonly)---
 package main
 
-type FieldState struct {
-	Value   string
-	Touched bool
-	Error   *string
+import "time"
+
+type BackoffConfig struct {
+	InitialInterval time.Duration
+	MaxInterval     time.Duration
+	Multiplier      float64
+	MaxRetries      int
 }
 
-type ValidatorFn func(value string) *string
+type RetryDecision struct {
+	ShouldRetry bool
+	NextDelay   time.Duration
+	Attempt     int
+}
 
 ---FILE: solution.go---
 package main
 
-func CreateField(initialValue string, validator ValidatorFn) FieldState {
-	// TODO: initialize field state
-	return FieldState{Value: initialValue, Touched: false, Error: nil}
-}
+import "time"
 
-func UpdateField(field FieldState, newValue string, validator ValidatorFn) FieldState {
-	// TODO: return new state with updated value and re-validated error
-	return field
-}
-
-func TouchField(field FieldState) FieldState {
-	// TODO: mark field as touched
-	return field
-}
-
-func GetVisibleError(field FieldState) *string {
-	// TODO: return error pointer only when touched is true
-	return nil
+func CalculateBackoff(cfg BackoffConfig, attempt int) RetryDecision {
+	// TODO: Check maxRetries, calculate exponential delay, clamp to MaxInterval, and return RetryDecision
+	return RetryDecision{ShouldRetry: false, NextDelay: 0, Attempt: attempt}
 }
 
 ---TESTS---
-Input: reqValidator := func(v string) *string { if v == "" { err := "Required"; return &err }; return nil }; f := CreateField("", reqValidator); GetVisibleError(f)
-Expected: nil
-Description: Untouched invalid field hides error message
+Input: CalculateBackoff(BackoffConfig{InitialInterval: 100 * time.Millisecond, MaxInterval: 1000 * time.Millisecond, Multiplier: 2.0, MaxRetries: 3}, 0)
+Expected: RetryDecision{ShouldRetry: true, NextDelay: 100 * time.Millisecond, Attempt: 1}
+Description: Attempt 0 returns initial interval and increments attempt count to 1
 
-Input: reqValidator := func(v string) *string { if v == "" { err := "Required"; return &err }; return nil }; f := CreateField("", reqValidator); GetVisibleError(TouchField(f))
-Expected: "Required"
-Description: Touched invalid field reveals error message
+Input: CalculateBackoff(BackoffConfig{InitialInterval: 100 * time.Millisecond, MaxInterval: 1000 * time.Millisecond, Multiplier: 2.0, MaxRetries: 3}, 3)
+Expected: RetryDecision{ShouldRetry: false, NextDelay: 0, Attempt: 3}
+Description: Attempt matching MaxRetries rejects further retries
 
-Input: lenValidator := func(v string) *string { if len(v) < 3 { err := "Too short"; return &err }; return nil }; f := TouchField(CreateField("", lenValidator)); GetVisibleError(UpdateField(f, "Valid", lenValidator))
-Expected: nil
-Description: Updating touched field with valid input clears error
+Input: CalculateBackoff(BackoffConfig{InitialInterval: 500 * time.Millisecond, MaxInterval: 1000 * time.Millisecond, Multiplier: 3.0, MaxRetries: 5}, 2)
+Expected: RetryDecision{ShouldRetry: true, NextDelay: 1000 * time.Millisecond, Attempt: 3}
+Description: Multiplied interval exceeding MaxInterval is clamped to 1000ms
 
 ---REFERENCE---
 package main
 
-func CreateField(initialValue string, validator ValidatorFn) FieldState {
-	return FieldState{
-		Value:   initialValue,
-		Touched: false,
-		Error:   validator(initialValue),
-	}
-}
+import "time"
 
-func UpdateField(field FieldState, newValue string, validator ValidatorFn) FieldState {
-	return FieldState{
-		Value:   newValue,
-		Touched: field.Touched,
-		Error:   validator(newValue),
+func CalculateBackoff(cfg BackoffConfig, attempt int) RetryDecision {
+	if attempt >= cfg.MaxRetries {
+		return RetryDecision{
+			ShouldRetry: false,
+			NextDelay:   0,
+			Attempt:     attempt,
+		}
 	}
-}
 
-func TouchField(field FieldState) FieldState {
-	return FieldState{
-		Value:   field.Value,
-		Touched: true,
-		Error:   field.Error,
+	delay := float64(cfg.InitialInterval)
+	for i := 0; i < attempt; i++ {
+		delay *= cfg.Multiplier
 	}
-}
 
-func GetVisibleError(field FieldState) *string {
-	if field.Touched {
-		return field.Error
+	duration := time.Duration(delay)
+	if duration > cfg.MaxInterval {
+		duration = cfg.MaxInterval
 	}
-	return nil
+
+	return RetryDecision{
+		ShouldRetry: true,
+		NextDelay:   duration,
+		Attempt:     attempt + 1,
+	}
 }
 `,
   },

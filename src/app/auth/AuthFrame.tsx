@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { Suspense } from 'react';
 import { ArrowLeft, CheckCircle2, Code2, FileCode, Lock, ShieldCheck, Terminal } from 'lucide-react';
 import './auth.css';
 
@@ -80,7 +81,7 @@ export default function AuthFrame({
                 </div>
 
                 <div className="auth-showcase-highlight">
-                  <CheckCircle2 size={15} aria-hidden="true" />
+                  <Terminal size={15} aria-hidden="true" />
                   <span>Automated test verification on every submission</span>
                 </div>
               </div>
@@ -146,12 +147,15 @@ export default function AuthFrame({
           {/* Footer Metadata */}
           <div className="auth-story-foot">
             <span>KeepCoding Platform</span>
-            <span>Deliberate Practice v2</span>
           </div>
         </aside>
 
         <section className={`auth-panel auth-panel--${mode}`}>
-          <div className="auth-panel-inner">{children}</div>
+          <div className="auth-panel-inner">
+            <Suspense fallback={<div className="p-4 text-center text-zinc-500 text-sm">Loading...</div>}>
+              {children}
+            </Suspense>
+          </div>
         </section>
       </div>
     </main>

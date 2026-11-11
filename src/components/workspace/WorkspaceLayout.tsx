@@ -23,6 +23,7 @@ interface WorkspaceLayoutProps {
   isJudging: boolean;
   onSubmit: () => void;
   onBack: () => void;
+  onShare?: () => void;
 }
 
 export function WorkspaceLayout({
@@ -39,6 +40,7 @@ export function WorkspaceLayout({
   isJudging,
   onSubmit,
   onBack,
+  onShare,
 }: WorkspaceLayoutProps) {
   const [mobileTab, setMobileTab] = useState<'editor' | 'task' | 'files'>('editor');
   const [targetLine, setTargetLine] = useState<number | null>(null);
@@ -63,6 +65,7 @@ export function WorkspaceLayout({
         onBack={onBack}
         onResetAll={onResetAll}
         onSubmit={onSubmit}
+        onShare={onShare}
       />
 
       {/* Mobile Tab Switcher (< md) */}

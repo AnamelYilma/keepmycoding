@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { createSupabaseServerClient, isSupabaseConfigured } from '@/lib/supabase/server';
+import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 
 function generateInviteToken(): string {
   // 18 bytes base64url yields 24 url-safe alphanumeric characters
@@ -67,19 +68,27 @@ export async function POST(
     const supabase = await createSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
 
-    if (!user) {
-      return NextResponse.json({ error: 'Sign in to create an invite link.' }, { status: 401 });
-    }
-
-    // Verify ownership
-    const { data: challenge } = await supabase
+    // Fetch challenge to verify permissions
+    const adminSupabase = createSupabaseAdminClient();
+    const { data: challenge, error: challengeError } = await adminSupabase
       .from('challenges')
       .select('id, owner_id, title, visibility')
       .eq('id', id)
       .maybeSingle();
 
-    if (!challenge || challenge.owner_id !== user.id) {
-      return NextResponse.json({ error: 'Only the challenge author can generate invite links.' }, { status: 403 });
+    if (challengeError || !challenge) {
+      return NextResponse.json({ error: 'Challenge not found.' }, { status: 404 });
+    }
+
+    const isPublic = challenge.visibility === 'public';
+    const isOwner = Boolean(user && challenge.owner_id === user.id);
+
+    // Private and temporary challenges require the challenge author
+    if (!isPublic && !isOwner) {
+      if (!user) {
+        return NextResponse.json({ error: 'Sign in to generate invite links.' }, { status: 401 });
+      }
+      return NextResponse.json({ error: 'Only the challenge author can generate invite links for private challenges.' }, { status: 403 });
     }
 
     const body = await request.json().catch(() => ({}));
@@ -96,13 +105,15 @@ export async function POST(
       expiresAt = expDate.toISOString();
     }
 
+    const creatorId = user ? user.id : challenge.owner_id;
+
     // Check if an identical active link already exists
     if (!recipientEmail && !maxUses && !expiresInDays) {
-      const { data: existing } = await supabase
+      const { data: existing } = await adminSupabase
         .from('challenge_invites')
         .select('*')
         .eq('challenge_id', id)
-        .eq('created_by', user.id)
+        .eq('created_by', creatorId)
         .eq('is_revoked', false)
         .is('recipient_email', null)
         .is('max_uses', null)
@@ -118,12 +129,12 @@ export async function POST(
 
     const token = generateInviteToken();
 
-    const { data: newInvite, error } = await supabase
+    const { data: newInvite, error: insertError } = await adminSupabase
       .from('challenge_invites')
       .insert({
         challenge_id: id,
         token,
-        created_by: user.id,
+        created_by: creatorId,
         recipient_email: recipientEmail,
         max_uses: maxUses,
         expires_at: expiresAt,
@@ -132,8 +143,8 @@ export async function POST(
       .select()
       .single();
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (insertError) {
+      return NextResponse.json({ error: insertError.message }, { status: 500 });
     }
 
     return NextResponse.json({ invite: newInvite, created: true }, { status: 201 });

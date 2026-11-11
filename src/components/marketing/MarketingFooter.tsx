@@ -46,8 +46,8 @@ export default function MarketingFooter() {
                 </a>
               </li>
               <li>
-                <Link href="/prompt" className="hover:text-white transition-colors">
-                  Prompt Wizard
+                <Link href="/about" className="hover:text-white transition-colors">
+                  About
                 </Link>
               </li>
               <li>

@@ -19,6 +19,46 @@ export async function updateSupabaseSession(request: NextRequest) {
     },
   });
 
-  await supabase.auth.getClaims();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const pathname = request.nextUrl.pathname;
+
+  // 1. Authenticated users cannot view login, signup, or forgot-password (redirect to /challenges)
+  const isAuthPage =
+    pathname === '/login' ||
+    pathname === '/signup' ||
+    pathname === '/forgot-password';
+
+  if (user && isAuthPage) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = '/challenges';
+    redirectUrl.search = '';
+    const redirectResponse = NextResponse.redirect(redirectUrl);
+    response.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie.name, cookie.value);
+    });
+    return redirectResponse;
+  }
+
+  // 2. Unauthenticated visitors cannot view challenges, studio, or prompt wizard (redirect to /login?next=...)
+  const isProtectedPage =
+    pathname.startsWith('/challenges') ||
+    pathname.startsWith('/studio') ||
+    pathname.startsWith('/prompt');
+
+  if (!user && isProtectedPage) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = '/login';
+    const nextPath = `${pathname}${request.nextUrl.search}`;
+    redirectUrl.search = `?next=${encodeURIComponent(nextPath)}`;
+    const redirectResponse = NextResponse.redirect(redirectUrl);
+    response.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie.name, cookie.value);
+    });
+    return redirectResponse;
+  }
+
   return response;
 }

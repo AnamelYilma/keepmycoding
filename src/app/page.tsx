@@ -18,16 +18,23 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
+  let currentUser = null;
   if (isSupabaseConfigured()) {
     try {
       const supabase = await createSupabaseServerClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        redirect('/challenges');
-      }
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      currentUser = user;
     } catch {
       // Continue to guest landing if unauthenticated or session check fails
     }
+  }
+
+  // Redirect authenticated users directly to /challenges
+  // Kept outside try/catch because redirect() throws an internal NEXT_REDIRECT signal
+  if (currentUser) {
+    redirect('/challenges');
   }
 
   return (

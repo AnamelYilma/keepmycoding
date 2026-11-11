@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
+import { redirect } from 'next/navigation';
 import ChallengeDetailsPage from './ChallengeDetailsPage';
+import { createSupabaseServerClient, isSupabaseConfigured } from '@/lib/supabase/server';
 
 export const metadata: Metadata = {
   title: 'Challenge Details | KeepCoding',
@@ -8,6 +10,23 @@ export const metadata: Metadata = {
 
 async function ChallengeDetailsContent({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  let currentUser = null;
+  if (isSupabaseConfigured()) {
+    try {
+      const supabase = await createSupabaseServerClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      currentUser = user;
+    } catch {
+      // ignore
+    }
+
+    if (!currentUser) {
+      redirect(`/login?next=${encodeURIComponent(`/challenges/${id}`)}`);
+    }
+  }
+
   return <ChallengeDetailsPage id={id} />;
 }
 

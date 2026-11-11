@@ -6,6 +6,7 @@ import { Loader2 } from 'lucide-react';
 import AppNav from '@/components/navigation/AppNav';
 import { WorkspaceLayout } from '@/components/workspace/WorkspaceLayout';
 import { ResultModal } from '@/components/result/ResultModal';
+import { InviteModal } from '@/components/challenges/InviteModal';
 import { useWorkspaceFiles } from '@/hooks/useWorkspaceFiles';
 import { saveHistoryRecord } from '@/lib/storage/history';
 import { SAMPLE_CHALLENGES } from '@/lib/sample-challenges';
@@ -17,6 +18,7 @@ interface ActiveWorkspaceViewProps {
   onBack: () => void;
   isJudging: boolean;
   onSubmit: (userFiles: ChallengeFile[]) => void;
+  onShare: () => void;
 }
 
 function ActiveWorkspaceView({
@@ -24,6 +26,7 @@ function ActiveWorkspaceView({
   onBack,
   isJudging,
   onSubmit,
+  onShare,
 }: ActiveWorkspaceViewProps) {
   const workspace = useWorkspaceFiles(challenge.files);
   const activeFile = workspace.activeFile || workspace.files[0] || challenge.files[0];
@@ -60,6 +63,7 @@ function ActiveWorkspaceView({
       isJudging={isJudging}
       onSubmit={() => onSubmit(workspace.files.length > 0 ? workspace.files : challenge.files)}
       onBack={handleBack}
+      onShare={onShare}
     />
   );
 }
@@ -72,6 +76,7 @@ export default function Home() {
   const [judgeResult, setJudgeResult] = useState<JudgeResult | null>(null);
   const [isJudging, setIsJudging] = useState<boolean>(false);
   const [showResultModal, setShowResultModal] = useState<boolean>(false);
+  const [inviteOpen, setInviteOpen] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
 
   const challengeIdParam = searchParams.get('id');
@@ -156,7 +161,7 @@ export default function Home() {
     // 4. No challenge data found anywhere: cleanly redirect to challenge library
     setLoading(false);
     router.replace('/challenges');
-  }, [challengeIdParam, builtinParam, trackParam, router]);
+  }, [challengeIdParam, builtinParam, trackParam, inviteParam, router]);
 
   const handleExitWorkspace = () => {
     sessionStorage.removeItem('active_workspace_challenge');
@@ -252,6 +257,7 @@ export default function Home() {
           onBack={handleExitWorkspace}
           isJudging={isJudging}
           onSubmit={handleSubmitToJudge}
+          onShare={() => setInviteOpen(true)}
         />
 
         <ResultModal
@@ -260,6 +266,16 @@ export default function Home() {
           onTryAgain={handleTryAgain}
           onNextChallenge={handleNextChallenge}
         />
+
+        {inviteOpen && (
+          <InviteModal
+            challengeId={activeChallengeId || (activeChallenge.metadata.track ? `builtin:${activeChallenge.metadata.track}-${activeChallenge.metadata.level}` : 'current')}
+            challengeTitle={activeChallenge.metadata.title || `Track ${activeChallenge.metadata.track} Level ${activeChallenge.metadata.level} ${activeChallenge.metadata.type}`}
+            visibility={activeChallenge.metadata.visibility || 'public'}
+            isOpen={inviteOpen}
+            onClose={() => setInviteOpen(false)}
+          />
+        )}
       </>
     );
   }

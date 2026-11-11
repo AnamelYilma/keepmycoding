@@ -79,8 +79,27 @@ export default function JoinPage({ token }: JoinPageProps) {
       const body = await res.json();
       if (!res.ok) throw new Error(body.error || 'Could not accept invitation.');
 
-      // Navigate to the challenge workspace
-      router.push(`/challenges/${data.challenge.id}`);
+      // Fetch full challenge workspace to preload session storage so no state is lost
+      const challengeRes = await fetch(`/api/challenges/${data.challenge.id}?invite=${token}`);
+      const challengeData = await challengeRes.json();
+
+      if (challengeData?.challenge?.challenge) {
+        const fullChallenge = challengeData.challenge.challenge;
+        sessionStorage.setItem('active_workspace_challenge', JSON.stringify({ ...fullChallenge, reference: '' }));
+        sessionStorage.setItem('active_workspace_id', data.challenge.id);
+        sessionStorage.setItem('pending_challenge', JSON.stringify({ ...fullChallenge, reference: '' }));
+        sessionStorage.setItem('pending_challenge_id', data.challenge.id);
+      }
+
+      // Record start of attempt
+      try {
+        await fetch(`/api/challenges/${data.challenge.id}/attempts`, { method: 'POST' });
+      } catch {
+        // Non-blocking
+      }
+
+      // Forward directly to practice workspace
+      router.push(`/studio?id=${data.challenge.id}&invite=${token}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to join challenge.');
       setJoining(false);
@@ -235,7 +254,10 @@ export default function JoinPage({ token }: JoinPageProps) {
                   )}
                 </button>
                 <p className="text-center text-[11px] text-zinc-500">
-                  This challenge will be added to your <span className="text-zinc-300">Shared with Me</span> tab.
+                  This challenge will be added to your <span className="text-zinc-300">Shared with Me</span> tab.{' '}
+                  <Link href={`/challenges/${challenge.id}?invite=${token}`} className="underline text-zinc-400 hover:text-zinc-200 ml-1">
+                    Or view overview page
+                  </Link>
                 </p>
               </div>
             ) : (

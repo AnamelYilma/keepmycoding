@@ -88,12 +88,12 @@ def slugify(text: str) -> str:
     label: 'Track 1 (Level 1) - Token Expiry Timestamp Guard (Python)',
     track: 1,
     level: 1,
-    type: 'Fix Bug',
+    type: 'Build Feature',
     language: 'Python',
     raw: `---METADATA---
 track: 1
 level: 1
-type: Fix Bug
+type: Build Feature
 topic: Auth, JWT & Sessions
 title: Token Expiration Timestamp Guard
 editableLanguage: python
@@ -101,39 +101,40 @@ editableFiles: solution.py
 
 ---TASK---
 ACTION:
-FIX BUG
+BUILD
 
 GOAL:
-Fix the expiration check so tokens whose expiration time has arrived or passed are marked as expired.
+Implement a defensive token expiration guard in Python that validates Unix epoch timestamps, rejects non-positive or corrupt values, and respects an optional clock-skew tolerance.
 
 CURRENT VS EXPECTED BEHAVIOR:
-- Current: The comparator uses >= instead of <=, marking valid tokens as expired and expired tokens as valid.
-- Expected: Returns True if token_exp_sec is less than or equal to current_timestamp_sec, and False if token_exp_sec is in the future.
+- Current: The function stub always returns False, allowing expired or unverified tokens through.
+- Expected: Returns True if token_exp_sec is invalid (<= 0) or if token_exp_sec <= (current_timestamp_sec - clock_skew_sec). Returns False only when token_exp_sec is strictly in the future.
 
 IF STUCK: LEARN THESE TOPICS & SYNTAX:
-- Concept: Unix epoch timestamps comparison (Search: "unix epoch timestamp seconds comparison python")
-- Syntax: Python boolean comparison operators <= vs >= (Search: "python comparison operators")
+- Concept: Unix epoch timestamps, token expiration, and clock-skew tolerance (Search: "jwt timestamp expiration clock skew python")
+- Syntax: Python default function parameters and boundary comparisons (Search: "python function default arguments int comparison")
 
 PRACTICAL TIPS & WATCHOUTS:
-- Tip: Remember that earlier timestamps are smaller numbers. If token_exp_sec is 100 and now is 200, the token expired in the past.
-- Tip: A token expiring at the exact current second (token_exp_sec == current_timestamp_sec) is expired.
+- Tip: If token_exp_sec is 0 or negative, treat it as expired (return True).
+- Tip: Default clock_skew_sec to 0 when omitted.
 
 WHERE TO WORK:
 - Edit: solution.py (Target function: is_token_expired)
 
 HOW TO APPROACH THIS:
-1. Inspect the comparison between token_exp_sec and current_timestamp_sec.
-2. Verify that when token_exp_sec is less than or equal to current_timestamp_sec, the token is expired.
-3. Fix the relational operator.
+1. Verify that token_exp_sec is a positive integer greater than zero.
+2. Calculate the effective cutoff timestamp by subtracting clock_skew_sec from current_timestamp_sec.
+3. Return True if token_exp_sec is at or before the cutoff, otherwise False.
 
 EDGE CASES TO WATCH:
-- Exact boundary: When token_exp_sec == current_timestamp_sec, returns True.
-- Future token: When token_exp_sec > current_timestamp_sec, returns False.
+- Exact boundary: token_exp_sec == current_timestamp_sec returns True.
+- Clock skew tolerance: a token expiring 10s ago is still accepted if clock_skew_sec is 30.
+- Corrupt timestamp: token_exp_sec <= 0 returns True.
 
 ---FILE: solution.py---
-def is_token_expired(token_exp_sec: int, current_timestamp_sec: int) -> bool:
-    # BUG: The comparison is currently reversed
-    return token_exp_sec >= current_timestamp_sec
+def is_token_expired(token_exp_sec: int, current_timestamp_sec: int, clock_skew_sec: int = 0) -> bool:
+    # TODO: Validate timestamps, apply clock_skew_sec tolerance, and return expiration status
+    return False
 
 ---TESTS---
 Input: is_token_expired(1700000000, 1700000100)
@@ -149,8 +150,11 @@ Expected: True
 Description: Token expiring at exact current second must return True
 
 ---REFERENCE---
-def is_token_expired(token_exp_sec: int, current_timestamp_sec: int) -> bool:
-    return token_exp_sec <= current_timestamp_sec
+def is_token_expired(token_exp_sec: int, current_timestamp_sec: int, clock_skew_sec: int = 0) -> bool:
+    if not isinstance(token_exp_sec, (int, float)) or token_exp_sec <= 0:
+        return True
+    effective_now = current_timestamp_sec - max(0, clock_skew_sec)
+    return token_exp_sec <= effective_now
 `,
   },
 

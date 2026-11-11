@@ -2,19 +2,56 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Menu, X } from 'lucide-react';
+import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 
 interface MarketingNavProps {
   topRightWidth?: number;
   topLeftWidth?: number;
+  user?: { id: string; email?: string; name?: string } | null;
 }
 
 export default function MarketingNav({
   topRightWidth,
   topLeftWidth,
+  user: initialUser,
 }: MarketingNavProps) {
+  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState(initialUser ?? null);
+
+  useEffect(() => {
+    if (initialUser !== undefined) {
+      setCurrentUser(initialUser);
+      return;
+    }
+    const supabase = createSupabaseBrowserClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        setCurrentUser({
+          id: user.id,
+          email: user.email,
+          name: (user.user_metadata?.full_name as string) || user.email?.split('@')[0] || 'KeepCoding developer',
+        });
+      } else {
+        setCurrentUser(null);
+      }
+    });
+  }, [initialUser]);
+
+  async function handleSignOut() {
+    try {
+      const supabase = createSupabaseBrowserClient();
+      await supabase.auth.signOut();
+      setCurrentUser(null);
+      router.push('/');
+      router.refresh();
+    } catch {
+      router.push('/');
+    }
+  }
 
   return (
     <header className="absolute inset-0 pointer-events-none z-20">
@@ -63,17 +100,11 @@ export default function MarketingNav({
         >
           How It Works
         </a>
-        <a
-          href="#tracks"
-          className="text-xs sm:text-sm font-medium text-[#F4F4F5]/90 hover:text-[#88BDA4] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] rounded-md px-1 py-0.5"
-        >
-          4 Tracks
-        </a>
         <Link
-          href="/prompt"
+          href="/about"
           className="text-xs sm:text-sm font-medium text-[#F4F4F5]/90 hover:text-[#88BDA4] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] rounded-md px-1 py-0.5"
         >
-          Prompt Wizard
+          About
         </Link>
         <Link
           href="/challenges"
@@ -83,7 +114,7 @@ export default function MarketingNav({
         </Link>
       </nav>
 
-      {/* 3. TOP-RIGHT NOTCH: Log in + Sign up inside top-right notch on solid #090A0F */}
+      {/* 3. TOP-RIGHT NOTCH: Log in + Sign up (or Challenges + Log out when authenticated) */}
       <div
         className="absolute top-0 right-0 flex items-center justify-end gap-3 sm:gap-4 pr-4 sm:pr-6 pointer-events-auto h-[68px] sm:h-[72px]"
         style={{
@@ -91,30 +122,58 @@ export default function MarketingNav({
           minWidth: '220px',
         }}
       >
-        <div className="hidden sm:flex items-center gap-3 sm:gap-4">
-          <Link
-            href="/login"
-            className="text-xs sm:text-sm font-medium text-[#F4F4F5] hover:text-[#88BDA4] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] rounded-md px-1.5 py-1"
-          >
-            Log in
-          </Link>
-          <Link
-            href="/signup"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#88BDA4] hover:bg-[#9cd1b8] text-[#090A0F] font-semibold text-xs sm:text-sm transition-all shadow-[0_2px_12px_rgba(136,189,164,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
-          >
-            <span>Sign up</span>
-            <span className="w-4 h-4 rounded-full bg-[#090A0F] text-[#88BDA4] flex items-center justify-center text-[9px] font-bold" aria-hidden="true">↗</span>
-          </Link>
-        </div>
+        {currentUser ? (
+          <div className="hidden sm:flex items-center gap-3 sm:gap-4">
+            <Link
+              href="/challenges"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#88BDA4] hover:bg-[#9cd1b8] text-[#090A0F] font-semibold text-xs sm:text-sm transition-all shadow-[0_2px_12px_rgba(136,189,164,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
+            >
+              <span>Challenges</span>
+              <span className="w-4 h-4 rounded-full bg-[#090A0F] text-[#88BDA4] flex items-center justify-center text-[9px] font-bold" aria-hidden="true">&rarr;</span>
+            </Link>
+            <button
+              type="button"
+              onClick={handleSignOut}
+              className="text-xs sm:text-sm font-medium text-zinc-400 hover:text-zinc-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] rounded-md px-1.5 py-1"
+            >
+              Log out
+            </button>
+          </div>
+        ) : (
+          <div className="hidden sm:flex items-center gap-3 sm:gap-4">
+            <Link
+              href="/login"
+              className="text-xs sm:text-sm font-medium text-[#F4F4F5] hover:text-[#88BDA4] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] rounded-md px-1.5 py-1"
+            >
+              Log in
+            </Link>
+            <Link
+              href="/signup"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#88BDA4] hover:bg-[#9cd1b8] text-[#090A0F] font-semibold text-xs sm:text-sm transition-all shadow-[0_2px_12px_rgba(136,189,164,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
+            >
+              <span>Sign up</span>
+              <span className="w-4 h-4 rounded-full bg-[#090A0F] text-[#88BDA4] flex items-center justify-center text-[9px] font-bold" aria-hidden="true">&nearr;</span>
+            </Link>
+          </div>
+        )}
 
-        {/* Mobile: Sign up + Hamburger */}
+        {/* Mobile: Challenges / Sign up + Hamburger */}
         <div className="sm:hidden flex items-center gap-2">
-          <Link
-            href="/signup"
-            className="px-3 py-1.5 rounded-full bg-[#88BDA4] text-[#090A0F] text-xs font-semibold"
-          >
-            Sign up
-          </Link>
+          {currentUser ? (
+            <Link
+              href="/challenges"
+              className="px-3 py-1.5 rounded-full bg-[#88BDA4] text-[#090A0F] text-xs font-semibold"
+            >
+              Challenges
+            </Link>
+          ) : (
+            <Link
+              href="/signup"
+              className="px-3 py-1.5 rounded-full bg-[#88BDA4] text-[#090A0F] text-xs font-semibold"
+            >
+              Sign up
+            </Link>
+          )}
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -138,19 +197,12 @@ export default function MarketingNav({
             >
               How It Works
             </a>
-            <a
-              href="#tracks"
-              onClick={() => setMobileMenuOpen(false)}
-              className="min-h-[44px] flex items-center px-3 py-2 text-sm font-medium text-[#F4F4F5] hover:text-white hover:bg-[#11131A] rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
-            >
-              4 Tracks
-            </a>
             <Link
-              href="/prompt"
+              href="/about"
               onClick={() => setMobileMenuOpen(false)}
               className="min-h-[44px] flex items-center px-3 py-2 text-sm font-medium text-[#F4F4F5] hover:text-white hover:bg-[#11131A] rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
             >
-              Prompt Wizard
+              About
             </Link>
             <Link
               href="/challenges"
@@ -162,21 +214,46 @@ export default function MarketingNav({
           </div>
 
           <div className="pt-3 border-t border-white/[0.08] flex items-center justify-between">
-            <Link
-              href="/login"
-              onClick={() => setMobileMenuOpen(false)}
-              className="min-h-[44px] flex items-center text-sm font-medium text-[#F4F4F5] hover:text-[#88BDA4] px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] rounded-md"
-            >
-              Log in
-            </Link>
-            <Link
-              href="/signup"
-              onClick={() => setMobileMenuOpen(false)}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#88BDA4] text-[#090A0F] text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
-            >
-              <span>Sign up</span>
-              <span className="w-4 h-4 rounded-full bg-[#090A0F] text-[#88BDA4] flex items-center justify-center text-[9px] font-bold" aria-hidden="true">↗</span>
-            </Link>
+            {currentUser ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    handleSignOut();
+                  }}
+                  className="min-h-[44px] flex items-center text-sm font-medium text-zinc-400 hover:text-zinc-100 px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] rounded-md"
+                >
+                  Log out
+                </button>
+                <Link
+                  href="/challenges"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#88BDA4] text-[#090A0F] text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
+                >
+                  <span>Challenges</span>
+                  <span className="w-4 h-4 rounded-full bg-[#090A0F] text-[#88BDA4] flex items-center justify-center text-[9px] font-bold" aria-hidden="true">&rarr;</span>
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="min-h-[44px] flex items-center text-sm font-medium text-[#F4F4F5] hover:text-[#88BDA4] px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4] rounded-md"
+                >
+                  Log in
+                </Link>
+                <Link
+                  href="/signup"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#88BDA4] text-[#090A0F] text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
+                >
+                  <span>Sign up</span>
+                  <span className="w-4 h-4 rounded-full bg-[#090A0F] text-[#88BDA4] flex items-center justify-center text-[9px] font-bold" aria-hidden="true">&nearr;</span>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}

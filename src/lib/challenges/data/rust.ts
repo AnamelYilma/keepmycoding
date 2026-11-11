@@ -102,12 +102,12 @@ pub fn slugify(text: &str) -> String {
     label: 'Track 1 (Level 1) - Token Expiry Timestamp Guard (Rust)',
     track: 1,
     level: 1,
-    type: 'Fix Bug',
+    type: 'Build Feature',
     language: 'Rust',
     raw: `---METADATA---
 track: 1
 level: 1
-type: Fix Bug
+type: Build Feature
 topic: Auth, JWT & Sessions
 title: Token Expiration Timestamp Guard
 editableLanguage: rust
@@ -115,39 +115,40 @@ editableFiles: src/solution.rs
 
 ---TASK---
 ACTION:
-FIX BUG
+BUILD
 
 GOAL:
-Fix the expiration check so tokens whose expiration timestamp has arrived or passed are correctly identified as expired.
+Implement a defensive token expiration guard in Rust that validates Unix epoch timestamps, rejects non-positive or corrupt values, and checks whether the token has reached or passed its expiration.
 
 CURRENT VS EXPECTED BEHAVIOR:
-- Current: The comparator uses >= instead of <=, marking valid tokens as expired and expired tokens as valid.
-- Expected: Returns true if token_exp_sec is less than or equal to current_timestamp_sec, and false if token_exp_sec is in the future.
+- Current: The function stub always returns false, allowing expired or corrupt tokens to pass authorization checks.
+- Expected: Returns true if token_exp_sec is invalid (<= 0) or has arrived/passed relative to current_timestamp_sec. Returns false only when token_exp_sec is strictly in the future.
 
 IF STUCK: LEARN THESE TOPICS & SYNTAX:
-- Concept: Unix epoch timestamps comparison (Search: "unix epoch timestamp seconds comparison")
-- Syntax: Rust relational comparison operators <= vs > (Search: "rust comparison operators boolean")
+- Concept: Unix epoch timestamps, token expiration, and defensive validation (Search: "jwt epoch timestamp expiration rust")
+- Syntax: Rust i64 numeric comparisons and branch logic (Search: "rust i64 comparison boolean")
 
 PRACTICAL TIPS & WATCHOUTS:
-- Tip: Earlier timestamps are smaller numbers. If token_exp_sec is 100 and current is 200, the token expired in the past.
+- Tip: If token_exp_sec is 0 or negative, treat it as expired (return true).
 - Tip: A token expiring at the exact current second (token_exp_sec == current_timestamp_sec) is expired.
 
 WHERE TO WORK:
 - Edit: src/solution.rs (Target function: is_token_expired)
 
 HOW TO APPROACH THIS:
-1. Inspect the comparison between token_exp_sec and current_timestamp_sec.
-2. Verify that when token_exp_sec is less than or equal to current_timestamp_sec, the token is expired.
-3. Fix the relational operator.
+1. Verify that token_exp_sec is a positive integer greater than zero.
+2. Check if token_exp_sec is less than or equal to current_timestamp_sec.
+3. Return true if expired or invalid, otherwise false.
 
 EDGE CASES TO WATCH:
-- Exact boundary: When token_exp_sec == current_timestamp_sec, returns true.
-- Future token: When token_exp_sec > current_timestamp_sec, returns false.
+- Exact boundary: token_exp_sec == current_timestamp_sec returns true.
+- Future token: token_exp_sec > current_timestamp_sec returns false.
+- Non-positive timestamp: token_exp_sec <= 0 returns true.
 
 ---FILE: src/solution.rs---
 pub fn is_token_expired(token_exp_sec: i64, current_timestamp_sec: i64) -> bool {
-    // BUG: The comparison is currently reversed
-    token_exp_sec >= current_timestamp_sec
+    // TODO: Validate timestamps and return expiration status
+    false
 }
 
 ---TESTS---
@@ -165,6 +166,9 @@ Description: Token expiring at exact current second must return true
 
 ---REFERENCE---
 pub fn is_token_expired(token_exp_sec: i64, current_timestamp_sec: i64) -> bool {
+    if token_exp_sec <= 0 {
+        return true;
+    }
     token_exp_sec <= current_timestamp_sec
 }
 `,
@@ -795,17 +799,17 @@ impl TokenBucket {
   },
   {
     id: 'rust-l4-field-validator-touched',
-    label: 'Track 2 (Level 4) - Form Field Touched State Machine (Rust)',
-    track: 2,
+    label: 'Track 5 (Level 4) - Exponential Backoff & Retry State Machine (Rust)',
+    track: 5,
     level: 4,
     type: 'Build Feature',
     language: 'Rust',
     raw: `---METADATA---
-track: 2
+track: 5
 level: 4
 type: Build Feature
-topic: Frontend UI & Forms
-title: Form Field Touched State and Error Visibility Manager
+topic: Distributed Systems & Workers
+title: Exponential Backoff and Retry State Machine
 editableLanguage: rust
 editableFiles: src/solution.rs
 
@@ -814,116 +818,100 @@ ACTION:
 BUILD
 
 GOAL:
-Build an immutable form field state manager in Rust that tracks value, touched status, and shows validation errors only after a field has been touched.
+Build an exponential backoff retry decision engine in Rust that calculates the next delay in milliseconds, clamps to maximum duration, and enforces maximum retry limits.
 
 CURRENT VS EXPECTED BEHAVIOR:
-- Current: Field state methods return unmodified clones or default values without tracking touched status.
-- Expected: create_field initializes field with touched = false; update_field updates value and re-validates while preserving touched; touch_field marks touched = true; get_visible_error returns Some(error) only when touched is true.
+- Current: The function stub returns default zero values without calculating progressive backoff delays or capping retries.
+- Expected: calculate_backoff multiplies initial_ms by multiplier for each completed attempt, clamps the result to max_ms, and sets should_retry to false once max_retries is reached.
 
 IF STUCK: LEARN THESE TOPICS & SYNTAX:
-- Concept: Form touched states and error visibility UX (Search: "form validation touched state pattern")
-- Syntax: Rust immutable struct updates and function pointer types (Search: "rust function pointer fn argument")
+- Concept: Exponential backoff algorithm for network resilience (Search: "exponential backoff retry algorithm rust")
+- Syntax: Rust structs, type casting (u64 / f64), and cmp min (Search: "rust u64 f64 min clamp")
 
 PRACTICAL TIPS & WATCHOUTS:
-- Tip: In update_field, remember to retain field.touched while re-evaluating validator(new_value).
-- Tip: When input becomes valid, error should become None immediately.
+- Tip: For attempt 0 (first retry after initial failure), the delay is initial_ms.
+- Tip: Clamp calculated delay so it never exceeds max_ms.
+- Tip: If attempt >= max_retries, return should_retry: false and next_delay_ms: 0.
 
 WHERE TO WORK:
-- Edit: src/solution.rs (Target functions: create_field, update_field, touch_field, get_visible_error)
-- Reference: src/types.rs (FieldState struct and ValidatorFn type alias)
+- Edit: src/solution.rs (Target function: calculate_backoff)
+- Reference: src/types.rs (readonly BackoffConfig and RetryDecision structs)
 
 HOW TO APPROACH THIS:
-1. Implement create_field: return FieldState with value, touched = false, and error = validator(initial_value).
-2. Implement update_field: return new FieldState with new_value, preserved touched flag, and validator(new_value).
-3. Implement touch_field: return FieldState with touched = true and existing value/error.
-4. Implement get_visible_error: return field.error if field.touched is true, else None.
+1. Check if attempt >= cfg.max_retries. If so, return should_retry: false with 0 delay.
+2. Calculate delay: initial_ms * (multiplier ^ attempt).
+3. Clamp delay to max_ms.
+4. Return RetryDecision with should_retry: true, clamped next_delay_ms, and attempt + 1.
 
 EDGE CASES TO WATCH:
-- Untouched field with invalid input: get_visible_error returns None.
-- Touched field with valid input: get_visible_error returns None.
+- Max retries reached: attempt >= max_retries returns should_retry: false.
+- Attempt 0: returns initial_ms with attempt = 1.
+- Excessive delay: large multipliers clamp cleanly to max_ms.
 
 ---FILE: src/types.rs (readonly)---
-#[derive(Debug, PartialEq, Eq, Clone)]
-pub struct FieldState {
-    pub value: String,
-    pub touched: bool,
-    pub error: Option<String>,
+#[derive(Debug, PartialEq, Clone)]
+pub struct BackoffConfig {
+    pub initial_ms: u64,
+    pub max_ms: u64,
+    pub multiplier: f64,
+    pub max_retries: usize,
 }
 
-pub type ValidatorFn = fn(&str) -> Option<String>;
+#[derive(Debug, PartialEq, Clone)]
+pub struct RetryDecision {
+    pub should_retry: bool,
+    pub next_delay_ms: u64,
+    pub attempt: usize,
+}
 
 ---FILE: src/solution.rs---
-use crate::types::{FieldState, ValidatorFn};
+use crate::types::{BackoffConfig, RetryDecision};
 
-pub fn create_field(initial_value: &str, validator: ValidatorFn) -> FieldState {
-    // TODO: Initialize field state with touched = false and validate initial_value
-    FieldState {
-        value: initial_value.to_string(),
-        touched: false,
-        error: None,
+pub fn calculate_backoff(cfg: &BackoffConfig, attempt: usize) -> RetryDecision {
+    // TODO: Calculate exponential delay, clamp to max_ms, enforce max_retries, and return RetryDecision
+    RetryDecision {
+        should_retry: false,
+        next_delay_ms: 0,
+        attempt,
     }
-}
-
-pub fn update_field(field: &FieldState, new_value: &str, validator: ValidatorFn) -> FieldState {
-    // TODO: Return new state with updated value and re-validated error while preserving touched
-    field.clone()
-}
-
-pub fn touch_field(field: &FieldState) -> FieldState {
-    // TODO: Mark field as touched
-    field.clone()
-}
-
-pub fn get_visible_error(field: &FieldState) -> Option<String> {
-    // TODO: Return error only when touched is true
-    None
 }
 
 ---TESTS---
-Input: fn req(v: &str) -> Option<String> { if v.is_empty() { Some("Required".to_string()) } else { None } }; let f = create_field("", req); get_visible_error(&f)
-Expected: None
-Description: Untouched invalid field hides error message
+Input: let cfg = BackoffConfig { initial_ms: 100, max_ms: 1000, multiplier: 2.0, max_retries: 3 }; calculate_backoff(&cfg, 0)
+Expected: RetryDecision { should_retry: true, next_delay_ms: 100, attempt: 1 }
+Description: Attempt 0 returns initial interval and increments attempt count to 1
 
-Input: fn req(v: &str) -> Option<String> { if v.is_empty() { Some("Required".to_string()) } else { None } }; let f = create_field("", req); get_visible_error(&touch_field(&f))
-Expected: Some("Required".to_string())
-Description: Touched invalid field reveals error message
+Input: let cfg = BackoffConfig { initial_ms: 100, max_ms: 1000, multiplier: 2.0, max_retries: 3 }; calculate_backoff(&cfg, 3)
+Expected: RetryDecision { should_retry: false, next_delay_ms: 0, attempt: 3 }
+Description: Attempt matching max_retries rejects further retries
 
-Input: fn min_len(v: &str) -> Option<String> { if v.len() < 3 { Some("Too short".to_string()) } else { None } }; let f = touch_field(&create_field("", min_len)); get_visible_error(&update_field(&f, "Valid", min_len))
-Expected: None
-Description: Updating touched field with valid input clears error
+Input: let cfg = BackoffConfig { initial_ms: 500, max_ms: 1000, multiplier: 3.0, max_retries: 5 }; calculate_backoff(&cfg, 2)
+Expected: RetryDecision { should_retry: true, next_delay_ms: 1000, attempt: 3 }
+Description: Multiplied interval exceeding max_ms is clamped to 1000ms
 
 ---REFERENCE---
-use crate::types::{FieldState, ValidatorFn};
+use crate::types::{BackoffConfig, RetryDecision};
 
-pub fn create_field(initial_value: &str, validator: ValidatorFn) -> FieldState {
-    FieldState {
-        value: initial_value.to_string(),
-        touched: false,
-        error: validator(initial_value),
+pub fn calculate_backoff(cfg: &BackoffConfig, attempt: usize) -> RetryDecision {
+    if attempt >= cfg.max_retries {
+        return RetryDecision {
+            should_retry: false,
+            next_delay_ms: 0,
+            attempt,
+        };
     }
-}
 
-pub fn update_field(field: &FieldState, new_value: &str, validator: ValidatorFn) -> FieldState {
-    FieldState {
-        value: new_value.to_string(),
-        touched: field.touched,
-        error: validator(new_value),
+    let mut delay = cfg.initial_ms as f64;
+    for _ in 0..attempt {
+        delay *= cfg.multiplier;
     }
-}
 
-pub fn touch_field(field: &FieldState) -> FieldState {
-    FieldState {
-        value: field.value.clone(),
-        touched: true,
-        error: field.error.clone(),
-    }
-}
+    let delay_ms = (delay as u64).min(cfg.max_ms);
 
-pub fn get_visible_error(field: &FieldState) -> Option<String> {
-    if field.touched {
-        field.error.clone()
-    } else {
-        None
+    RetryDecision {
+        should_retry: true,
+        next_delay_ms: delay_ms,
+        attempt: attempt + 1,
     }
 }
 `,

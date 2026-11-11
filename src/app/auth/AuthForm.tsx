@@ -1,8 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useActionState, useState } from 'react';
 import { AlertCircle, ArrowRight, CheckCircle2, Eye, EyeOff } from 'lucide-react';
+import { CustomSelect, type SelectOption } from '@/components/ui/CustomSelect';
 import {
   requestPasswordResetAction,
   signInAction,
@@ -13,18 +15,34 @@ import {
 
 type AuthMode = 'signup' | 'login' | 'forgot' | 'reset';
 const initialState: AuthActionResult = {};
-const roles = [
-  'Web development',
-  'Mobile development',
-  'Backend development',
-  'Blockchain',
-  'Data & AI',
-  'DevOps',
-  'Other',
+
+const roleOptions: SelectOption[] = [
+  { value: 'Web development', label: 'Web development' },
+  { value: 'Mobile development', label: 'Mobile development' },
+  { value: 'Backend development', label: 'Backend development' },
+  { value: 'Blockchain', label: 'Blockchain' },
+  { value: 'Data & AI', label: 'Data & AI' },
+  { value: 'DevOps', label: 'DevOps' },
+  { value: 'Other', label: 'Other' },
 ];
-const levels = ['Beginner', 'Junior', 'Intermediate', 'Senior'];
+
+const levelOptions: SelectOption[] = [
+  { value: 'Beginner', label: 'Beginner' },
+  { value: 'Junior', label: 'Junior' },
+  { value: 'Intermediate', label: 'Intermediate' },
+  { value: 'Senior', label: 'Senior' },
+];
+
+const genderOptions: SelectOption[] = [
+  { value: 'Prefer not to say', label: 'Prefer not to say' },
+  { value: 'Female', label: 'Female' },
+  { value: 'Male', label: 'Male' },
+];
 
 export default function AuthForm({ mode }: { mode: AuthMode }) {
+  const searchParams = useSearchParams();
+  const next = searchParams.get('next');
+
   const action =
     mode === 'signup'
       ? signUpAction
@@ -35,6 +53,9 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
       : updatePasswordAction;
   const [state, formAction, pending] = useActionState(action, initialState);
   const [showPassword, setShowPassword] = useState(false);
+  const [selectedRole, setSelectedRole] = useState('Web development');
+  const [selectedLevel, setSelectedLevel] = useState('Intermediate');
+  const [selectedGender, setSelectedGender] = useState('Prefer not to say');
   const isSignup = mode === 'signup';
   const isLogin = mode === 'login';
   const isForgot = mode === 'forgot';
@@ -81,6 +102,7 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
 
       {!hasSuccess && (
         <form className={`auth-form${isSignup ? ' auth-form--signup' : ''}`} action={formAction}>
+          {next && <input type="hidden" name="next" value={next} />}
           {isSignup && (
             <>
               <label className="auth-field">
@@ -97,45 +119,47 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
               </label>
 
               <div className="auth-field-row">
-                <label className="auth-field">
+                <div className="auth-field">
                   <span>I work mostly in</span>
-                  <select name="role" defaultValue="" required>
-                    <option value="" disabled>
-                      Select track
-                    </option>
-                    {roles.map((role) => (
-                      <option key={role} value={role}>
-                        {role}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                  <input type="hidden" name="role" value={selectedRole} />
+                  <CustomSelect
+                    value={selectedRole}
+                    onChange={setSelectedRole}
+                    options={roleOptions}
+                    placeholder="Select track"
+                    aria-label="I work mostly in"
+                    className="auth-custom-select"
+                  />
+                </div>
 
-                <label className="auth-field">
+                <div className="auth-field">
                   <span>Experience level</span>
-                  <select name="level" defaultValue="" required>
-                    <option value="" disabled>
-                      Select level
-                    </option>
-                    {levels.map((level) => (
-                      <option key={level} value={level}>
-                        {level}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                  <input type="hidden" name="level" value={selectedLevel} />
+                  <CustomSelect
+                    value={selectedLevel}
+                    onChange={setSelectedLevel}
+                    options={levelOptions}
+                    placeholder="Select level"
+                    aria-label="Experience level"
+                    className="auth-custom-select"
+                  />
+                </div>
               </div>
 
-              <label className="auth-field auth-field--optional">
+              <div className="auth-field auth-field--optional">
                 <span>
                   Gender <small>OPTIONAL</small>
                 </span>
-                <select name="gender" defaultValue="Prefer not to say">
-                  <option value="Prefer not to say">Prefer not to say</option>
-                  <option value="Female">Female</option>
-                  <option value="Male">Male</option>
-                </select>
-              </label>
+                <input type="hidden" name="gender" value={selectedGender} />
+                <CustomSelect
+                  value={selectedGender}
+                  onChange={setSelectedGender}
+                  options={genderOptions}
+                  placeholder="Select gender"
+                  aria-label="Gender"
+                  className="auth-custom-select"
+                />
+              </div>
             </>
           )}
 
@@ -217,7 +241,7 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
 
       <div className={`auth-switch${isSignup || isLogin ? ' auth-switch--prominent' : ''}`}>
         {isSignup && (
-          <Link className="auth-switch-card" href="/login">
+          <Link className="auth-switch-card" href={next ? `/login?next=${encodeURIComponent(next)}` : '/login'}>
             <span className="auth-switch-label">ALREADY HAVE AN ACCOUNT?</span>
             <strong className="auth-switch-title">
               <span>Sign in to practice</span>
@@ -226,21 +250,13 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
           </Link>
         )}
         {isLogin && (
-          <Link className="auth-switch-card" href="/signup">
+          <Link className="auth-switch-card" href={next ? `/signup?next=${encodeURIComponent(next)}` : '/signup'}>
             <span className="auth-switch-label">NEW TO KEEPCODING?</span>
             <strong className="auth-switch-title">
               <span>Create your account</span>
               <ArrowRight size={16} aria-hidden="true" />
             </strong>
           </Link>
-        )}
-        {(isSignup || isLogin) && (
-          <div className="auth-switch-inline" style={{ marginTop: '12px' }}>
-            <span>Want to jump straight in?</span>
-            <Link href="/challenges" className="auth-switch-pill">
-              Continue as guest
-            </Link>
-          </div>
         )}
         {(isSignup || isLogin) && (
           <div className="auth-switch-inline" style={{ marginTop: '10px' }}>

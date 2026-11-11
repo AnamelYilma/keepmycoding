@@ -119,3 +119,29 @@ KeepCoding revolves around the 3-column hands-on practice workspace:
   - UI Text: Clean sans-serif (`font-sans`, Geist Sans or system default).
   - Code & Data: Clean monospace (`font-mono`, Geist Mono or system monospace).
 - **Interactive States:** Buttons and inputs must have visible focus rings (`focus-visible:ring-1 focus-visible:ring-zinc-400`), smooth hover feedback, and disabled states with `cursor-not-allowed opacity-50`.
+
+---
+
+## 8. Challenge Curriculum & Quality Standards (Anti-Slop Content Rules)
+
+KeepCoding challenges must build real muscle memory for working developers. All challenge authors, AI generators, and contributors must obey these content rules:
+
+1. **NO 1-Character or Trivial Operator Fixes:**
+   - Never create challenges where the only task is changing one symbol (such as `>=` to `<=`).
+   - Even Level 1 must require writing a real, focused function (5 to 15 lines of logic) handling input validation, calculations, or string formatting.
+2. **Strict Ecosystem & Stack Alignment:**
+   - Every challenge must feel natural to the target language and runtime.
+   - **Frontend & TypeScript:** DOM events, form state machines, reactive stores, accessible UI tokens, and client caches.
+   - **Go:** Goroutines, channels, HTTP handlers, middleware, JSON streaming, and microservice resilience.
+   - **Rust:** Memory safety, ownership, traits, error handling (`Result`/`Option`), iterators, and CLI tools.
+   - **Python:** Data parsing, backend endpoints, file parsers, and algorithmic transforms.
+   - **PHP:** Server request lifecycle, database queries, and web service patterns.
+   - **BAN:** NEVER assign browser client concepts (e.g. form "touched" state machines) to backend or systems languages like Go or Rust.
+3. **Anti-Spoon-Feeding (No Solution Spoilers):**
+   - The task explanation must specify the target behavior, input/output contracts, and edge cases.
+   - NEVER tell the user the exact line to fix or write out the complete step-by-step code solution in the description.
+   - The developer must do the thinking and debugging themselves.
+4. **Real Production Value Over Toy Quizzes:**
+   - Use realistic names, standard data types, and defensive boundaries.
+   - Avoid artificial math brain-teasers or toy trivia. Focus on real tasks developers encounter on the job.
+

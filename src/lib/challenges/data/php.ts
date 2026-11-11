@@ -96,12 +96,12 @@ function slugify(string $text): string
     label: 'Track 1 (Level 1) - Token Expiry Timestamp Guard (PHP)',
     track: 1,
     level: 1,
-    type: 'Fix Bug',
+    type: 'Build Feature',
     language: 'PHP',
     raw: `---METADATA---
 track: 1
 level: 1
-type: Fix Bug
+type: Build Feature
 topic: Auth, JWT & Sessions
 title: Token Expiration Timestamp Guard
 editableLanguage: php
@@ -109,44 +109,45 @@ editableFiles: src/solution.php
 
 ---TASK---
 ACTION:
-FIX BUG
+BUILD
 
 GOAL:
-Fix the expiration check so tokens whose expiration time has arrived or passed are marked as expired.
+Implement a defensive token expiration guard in PHP that validates Unix epoch timestamps, rejects non-positive or corrupt values, and respects an optional clock-skew tolerance.
 
 CURRENT VS EXPECTED BEHAVIOR:
-- Current: The comparator uses >= instead of <=, marking valid tokens as expired and expired tokens as valid.
-- Expected: Returns true if tokenExpSec is less than or equal to currentTimestampSec, and false if tokenExpSec is in the future.
+- Current: The function stub always returns false, allowing expired or corrupt tokens to pass authorization checks.
+- Expected: Returns true if tokenExpSec is invalid (<= 0) or has arrived/passed relative to currentTimestampSec minus clockSkewSec. Returns false only when tokenExpSec is strictly in the future.
 
 IF STUCK: LEARN THESE TOPICS & SYNTAX:
-- Concept: Unix epoch timestamps comparison (Search: "unix epoch timestamp seconds comparison")
-- Syntax: PHP boolean comparison operators <= vs >= (Search: "php comparison operators")
+- Concept: Unix epoch timestamps, token expiration, and clock-skew tolerance (Search: "jwt epoch timestamp clock skew php")
+- Syntax: PHP strict types, default function parameters, and integer comparisons (Search: "php 8 typed function default arguments")
 
 PRACTICAL TIPS & WATCHOUTS:
-- Tip: Earlier timestamps are smaller numbers. If tokenExpSec is 100 and now is 200, the token expired in the past.
-- Tip: A token expiring at the exact current second (tokenExpSec === currentTimestampSec) is expired.
+- Tip: If tokenExpSec is 0 or negative, treat it as expired (return true).
+- Tip: Default clockSkewSec to 0 when omitted.
 
 WHERE TO WORK:
 - Edit: src/solution.php (Target function: isTokenExpired)
 
 HOW TO APPROACH THIS:
-1. Inspect the comparison between tokenExpSec and currentTimestampSec.
-2. Verify that when tokenExpSec is less than or equal to currentTimestampSec, the token is expired.
-3. Fix the relational operator.
+1. Verify that tokenExpSec is a positive integer greater than zero.
+2. Calculate the effective cutoff timestamp by subtracting clockSkewSec from currentTimestampSec.
+3. Return true if tokenExpSec is at or before the cutoff timestamp, otherwise false.
 
 EDGE CASES TO WATCH:
-- Exact boundary: When tokenExpSec === currentTimestampSec, returns true.
-- Future token: When tokenExpSec > currentTimestampSec, returns false.
+- Exact boundary: tokenExpSec === currentTimestampSec returns true.
+- Clock skew tolerance: a token that expired 10s ago is still accepted if clockSkewSec is 30.
+- Corrupt timestamp: tokenExpSec <= 0 returns true.
 
 ---FILE: src/solution.php---
 <?php
 
 declare(strict_types=1);
 
-function isTokenExpired(int $tokenExpSec, int $currentTimestampSec): bool
+function isTokenExpired(int $tokenExpSec, int $currentTimestampSec, int $clockSkewSec = 0): bool
 {
-    // BUG: The comparison is currently reversed
-    return $tokenExpSec >= $currentTimestampSec;
+    // TODO: Validate timestamps, apply clockSkewSec tolerance, and return expiration status
+    return false;
 }
 
 ---TESTS---
@@ -167,9 +168,13 @@ Description: Token expiring at exact current second must return true
 
 declare(strict_types=1);
 
-function isTokenExpired(int $tokenExpSec, int $currentTimestampSec): bool
+function isTokenExpired(int $tokenExpSec, int $currentTimestampSec, int $clockSkewSec = 0): bool
 {
-    return $tokenExpSec <= $currentTimestampSec;
+    if ($tokenExpSec <= 0) {
+        return true;
+    }
+    $effectiveNow = $currentTimestampSec - max(0, $clockSkewSec);
+    return $tokenExpSec <= $effectiveNow;
 }
 `,
   },
@@ -828,17 +833,17 @@ class TokenBucket
   },
   {
     id: 'php-l4-field-validator-touched',
-    label: 'Track 2 (Level 4) - Form Field Touched State Machine (PHP)',
-    track: 2,
+    label: 'Track 5 (Level 4) - HTTP Form Request Validator (PHP)',
+    track: 5,
     level: 4,
     type: 'Build Feature',
     language: 'PHP',
     raw: `---METADATA---
-track: 2
+track: 5
 level: 4
 type: Build Feature
-topic: Frontend UI & Forms
-title: Form Field Touched State and Error Visibility Manager
+topic: Backend API & Middleware
+title: HTTP Server Form Request Validator
 editableLanguage: php
 editableFiles: src/solution.php
 
@@ -847,45 +852,50 @@ ACTION:
 BUILD
 
 GOAL:
-Build an immutable form field state manager that tracks value, touched status, and shows validation errors only after a field has been touched.
+Build a server-side request payload validator in PHP that checks required fields, minimum string lengths, email formatting, and returns a structured validation outcome.
 
 CURRENT VS EXPECTED BEHAVIOR:
-- Current: Errors are displayed prematurely before the user interacts with the input.
-- Expected: updateField updates value and evaluates error, but getVisibleError returns null until touchField is called.
+- Current: The starter stub returns valid without inspecting incoming request fields.
+- Expected: validateUserPayload validates username (required, min 3 chars) and email (required, valid email filter); returns ValidationResult with isValid = false and field error mapping if any rule fails.
 
 IF STUCK: LEARN THESE TOPICS & SYNTAX:
-- Concept: Form touched states and error visibility UX (Search: "form validation touched state pattern")
-- Syntax: PHP 8.2 readonly classes and immutable return values (Search: "php readonly class immutable state")
+- Concept: Server-side request validation and domain invariant protection (Search: "php server side request validation pattern")
+- Syntax: PHP 8.2 readonly classes, filter_var, and associative arrays (Search: "php filter_var FILTER_VALIDATE_EMAIL")
 
 PRACTICAL TIPS & WATCHOUTS:
-- Tip: Never mutate the original FieldState object; always return a new instance with updated properties.
-- Tip: When value is corrected, error should become null immediately.
+- Tip: Always trim string values before checking length.
+- Tip: If username is empty, error code should be "username_required". If under 3 chars, "username_too_short".
+- Tip: If email is invalid, error code should be "email_invalid".
 
 WHERE TO WORK:
-- Edit: src/solution.php (Target functions: createField, updateField, touchField, getVisibleError)
-- Reference: src/types.php (FieldState readonly class)
+- Edit: src/solution.php (Target function: validateUserPayload)
+- Reference: src/types.php (ValidationResult readonly class)
 
 HOW TO APPROACH THIS:
-1. Implement createField to return new FieldState with touched: false and error evaluated by validator.
-2. In updateField, re-validate the new value and return a new FieldState while preserving touched status.
-3. In touchField, return a new FieldState with touched: true.
-4. In getVisibleError, return field->error only if field->touched is true.
+1. Initialize an empty associative array for errors.
+2. Check the username field: ensure non-empty and length >= 3.
+3. Check the email field: ensure non-empty and valid via filter_var.
+4. Return a new ValidationResult instance with isValid flag and errors map.
 
 EDGE CASES TO WATCH:
-- Untouched field with bad value: getVisibleError returns null.
-- Touched field with valid value: getVisibleError returns null.
+- Missing username: returns "username_required".
+- Short username: "al" returns "username_too_short".
+- Invalid email: "not-an-email" returns "email_invalid".
+- Clean submission: returns isValid: true with empty errors map.
 
 ---FILE: src/types.php (readonly)---
 <?php
 
 declare(strict_types=1);
 
-final readonly class FieldState
+final readonly class ValidationResult
 {
+    /**
+     * @param array<string, string> $errors
+     */
     public function __construct(
-        public string $value,
-        public bool $touched,
-        public ?string $error
+        public bool $isValid,
+        public array $errors
     ) {}
 }
 
@@ -896,42 +906,24 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/types.php';
 
-function createField(string $initialValue, callable $validator): FieldState
+function validateUserPayload(array $payload): ValidationResult
 {
-    // TODO: Initialize field state with touched: false and evaluated error
-    return new FieldState($initialValue, false, null);
-}
-
-function updateField(FieldState $field, string $newValue, callable $validator): FieldState
-{
-    // TODO: Return new state with updated value and re-validated error
-    return $field;
-}
-
-function touchField(FieldState $field): FieldState
-{
-    // TODO: Mark field as touched
-    return $field;
-}
-
-function getVisibleError(FieldState $field): ?string
-{
-    // TODO: Return error only when touched is true
-    return null;
+    // TODO: Validate username and email rules, and return ValidationResult
+    return new ValidationResult(true, []);
 }
 
 ---TESTS---
-Input: $f = createField("", fn(string $v) => $v !== "" ? null : "Required"); getVisibleError($f)
-Expected: null
-Description: Untouched invalid field hides error message
+Input: validateUserPayload(["username" => "alice", "email" => "alice@example.com"])
+Expected: new ValidationResult(true, [])
+Description: Valid user payload passes all validation rules
 
-Input: $f = createField("", fn(string $v) => $v !== "" ? null : "Required"); getVisibleError(touchField($f))
-Expected: "Required"
-Description: Touched invalid field reveals error message
+Input: validateUserPayload(["username" => "", "email" => "alice@example.com"])
+Expected: new ValidationResult(false, ["username" => "username_required"])
+Description: Empty username returns username_required error
 
-Input: $f = touchField(createField("", fn(string $v) => strlen($v) >= 3 ? null : "Too short")); getVisibleError(updateField($f, "Valid", fn(string $v) => strlen($v) >= 3 ? null : "Too short"))
-Expected: null
-Description: Updating touched field with valid input clears error
+Input: validateUserPayload(["username" => "al", "email" => "invalid-mail"])
+Expected: new ValidationResult(false, ["username" => "username_too_short", "email" => "email_invalid"])
+Description: Short username and malformed email return both field errors
 
 ---REFERENCE---
 <?php
@@ -940,36 +932,25 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/types.php';
 
-function createField(string $initialValue, callable $validator): FieldState
+function validateUserPayload(array $payload): ValidationResult
 {
-    return new FieldState(
-        value: $initialValue,
-        touched: false,
-        error: $validator($initialValue)
-    );
-}
+    $errors = [];
 
-function updateField(FieldState $field, string $newValue, callable $validator): FieldState
-{
-    return new FieldState(
-        value: $newValue,
-        touched: $field->touched,
-        error: $validator($newValue)
-    );
-}
+    $username = trim((string)($payload['username'] ?? ''));
+    if ($username === '') {
+        $errors['username'] = 'username_required';
+    } elseif (strlen($username) < 3) {
+        $errors['username'] = 'username_too_short';
+    }
 
-function touchField(FieldState $field): FieldState
-{
-    return new FieldState(
-        value: $field->value,
-        touched: true,
-        error: $field->error
-    );
-}
+    $email = trim((string)($payload['email'] ?? ''));
+    if ($email === '') {
+        $errors['email'] = 'email_required';
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errors['email'] = 'email_invalid';
+    }
 
-function getVisibleError(FieldState $field): ?string
-{
-    return $field->touched ? $field->error : null;
+    return new ValidationResult(empty($errors), $errors);
 }
 `,
   },

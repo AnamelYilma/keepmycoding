@@ -9,12 +9,12 @@ export const TYPESCRIPT_CHALLENGES: SampleChallengeOption[] = [
     label: 'Track 1 (Level 1) - Token Expiry Timestamp Guard (TypeScript)',
     track: 1,
     level: 1,
-    type: 'Fix Bug',
+    type: 'Build Feature',
     language: 'TypeScript',
     raw: `---METADATA---
 track: 1
 level: 1
-type: Fix Bug
+type: Build Feature
 topic: Auth, JWT & Sessions
 title: Token Expiration Timestamp Guard
 editableLanguage: typescript
@@ -22,38 +22,43 @@ editableFiles: src/solution.ts
 
 ---TASK---
 ACTION:
-FIX BUG
+BUILD
 
 GOAL:
-Fix the expiration check so tokens whose expiration time has arrived or passed are marked as expired.
+Implement a defensive token expiration guard that validates Unix epoch timestamps, rejects non-positive or invalid inputs, and respects an optional clock-skew tolerance.
 
 CURRENT VS EXPECTED BEHAVIOR:
-- Current: The comparator uses >= instead of <=, marking valid tokens as expired and expired tokens as valid.
-- Expected: Returns true if tokenExpSec is less than or equal to currentTimestampSec, and false if tokenExpSec is in the future.
+- Current: The starter stub returns false, allowing expired or unverified tokens through.
+- Expected: Returns true if tokenExpSec is invalid (<= 0 or not finite) or if tokenExpSec <= (currentTimestampSec - clockSkewSec). Returns false only when tokenExpSec is strictly in the future.
 
 IF STUCK: LEARN THESE TOPICS & SYNTAX:
-- Concept: Unix epoch timestamps comparison (Search: "unix epoch timestamp seconds comparison")
-- Syntax: TypeScript boolean relational operators <= vs > (Search: "typescript comparison operators")
+- Concept: Unix epoch timestamps, expiration boundaries, and clock-skew tolerance (Search: "jwt expiration timestamp clock skew")
+- Syntax: Default parameters and finite number verification in TypeScript (Search: "typescript default parameters number isFinite")
 
 PRACTICAL TIPS & WATCHOUTS:
-- Tip: Remember that earlier timestamps are smaller numbers. If tokenExpSec is 100 and now is 200, the token expired in the past.
-- Tip: A token expiring at the exact current second (tokenExpSec === currentTimestampSec) is expired.
+- Tip: If tokenExpSec is 0 or negative, treat it as expired (return true).
+- Tip: Default clockSkewSec to 0 when omitted.
 
 WHERE TO WORK:
 - Edit: src/solution.ts (Target function: isTokenExpired)
 
 HOW TO APPROACH THIS:
-1. Inspect the comparison between tokenExpSec and currentTimestampSec.
-2. Verify that when tokenExpSec is less than or equal to currentTimestampSec, the token is expired.
-3. Fix the relational operator.
+1. Verify that tokenExpSec is a positive, finite number.
+2. Calculate the effective cutoff timestamp by subtracting clockSkewSec from currentTimestampSec.
+3. Return true if tokenExpSec is at or before the cutoff timestamp, otherwise false.
 
 EDGE CASES TO WATCH:
-- Exact boundary: When tokenExpSec === currentTimestampSec, returns true.
-- Future token: When tokenExpSec > currentTimestampSec, returns false.
+- Exact boundary: tokenExpSec === currentTimestampSec returns true.
+- Clock skew tolerance: a token that expired 10s ago is still accepted if clockSkewSec is 30.
+- Missing or non-positive timestamp: tokenExpSec <= 0 returns true.
 
 ---FILE: src/solution.ts---
-export function isTokenExpired(tokenExpSec: number, currentTimestampSec: number): boolean {
-  // BUG: The comparison is currently reversed
+export function isTokenExpired(
+  tokenExpSec: number,
+  currentTimestampSec: number,
+  clockSkewSec: number = 0
+): boolean {
+  // TODO: Validate timestamps, apply clockSkewSec tolerance, and return expiration status
   return tokenExpSec >= currentTimestampSec;
 }
 
@@ -71,8 +76,16 @@ Expected: true
 Description: Token expiring at exact current second must return true
 
 ---REFERENCE---
-export function isTokenExpired(tokenExpSec: number, currentTimestampSec: number): boolean {
-  return tokenExpSec <= currentTimestampSec;
+export function isTokenExpired(
+  tokenExpSec: number,
+  currentTimestampSec: number,
+  clockSkewSec: number = 0
+): boolean {
+  if (!Number.isFinite(tokenExpSec) || tokenExpSec <= 0) {
+    return true;
+  }
+  const effectiveCutoff = currentTimestampSec - Math.max(0, clockSkewSec);
+  return tokenExpSec <= effectiveCutoff;
 }
 `,
   },

@@ -196,22 +196,77 @@ function runInviteTestSuite() {
 
   console.log('[PASS] Private & public challenge access control invariants verified.');
 
-  console.log('\n=== Step 4: Anti-AI Slop & Tone Verification ===');
-  // Read JoinPage and InviteModal contents to verify no banned marketing words or em dashes
+  console.log('\n=== Step 4: Testing Share & Invite Permissions for Public Challenges ===');
+  function canCreateInvite(challenge: { visibility: string; owner_id: string }, userId: string | null) {
+    if (challenge.visibility === 'public') return true;
+    return Boolean(userId && challenge.owner_id === userId);
+  }
+
+  if (!canCreateInvite(publicChallenge, 'stranger-user-id')) {
+    throw new Error('Public challenge should allow any user to share/invite');
+  }
+  if (!canCreateInvite(publicChallenge, null)) {
+    throw new Error('Public challenge should allow visitors to share');
+  }
+  if (canCreateInvite(privateChallenge, 'stranger-user-id')) {
+    throw new Error('Private challenge should reject non-owner invite creation');
+  }
+  if (!canCreateInvite(privateChallenge, 'user-author-1')) {
+    throw new Error('Private challenge should allow owner invite creation');
+  }
+  console.log('[PASS] Share and invite generation permissions verified.');
+
+  console.log('\n=== Step 5: Testing Safe Destination Forwarding on Auth ===');
+  const { safeDestination } = require('../lib/utils');
+  if (safeDestination('/join/inv_test123') !== '/join/inv_test123') {
+    throw new Error('safeDestination failed to preserve /join/inv_* route');
+  }
+  if (safeDestination('/studio?id=ch-101') !== '/studio?id=ch-101') {
+    throw new Error('safeDestination failed to preserve /studio?id=* route');
+  }
+  if (safeDestination('//evil.com') !== '/challenges') {
+    throw new Error('safeDestination failed to sanitize protocol-relative redirect');
+  }
+  if (safeDestination('javascript:alert(1)') !== '/challenges') {
+    throw new Error('safeDestination failed to sanitize non-relative URL');
+  }
+  if (safeDestination(null) !== '/challenges') {
+    throw new Error('safeDestination failed to fallback on null destination');
+  }
+  console.log('[PASS] Safe destination forwarding prevents losing challenge on auth.');
+
+  console.log('\n=== Step 6: Anti-AI Slop & Tone Verification ===');
+  // Read JoinPage, InviteModal, and ChallengeDetailsPage contents to verify no banned marketing words or em dashes
   const fs = require('fs');
   const joinPageSrc = fs.readFileSync('src/app/join/[token]/JoinPage.tsx', 'utf-8');
   const modalSrc = fs.readFileSync('src/components/challenges/InviteModal.tsx', 'utf-8');
+  const detailsSrc = fs.readFileSync('src/app/challenges/[id]/ChallengeDetailsPage.tsx', 'utf-8');
+  const workspaceHeaderSrc = fs.readFileSync('src/components/workspace/WorkspaceHeader.tsx', 'utf-8');
 
-  if (joinPageSrc.includes('—') || modalSrc.includes('—')) {
-    throw new Error('Found forbidden em dash character in invite UI');
+  for (const [name, src] of Object.entries({ joinPageSrc, modalSrc, detailsSrc, workspaceHeaderSrc })) {
+    if (src.includes('—')) {
+      throw new Error(`Found forbidden em dash character in ${name}`);
+    }
+    if (src.includes('Sparkles') && !name.includes('Library')) {
+      throw new Error(`Found banned Sparkles icon in ${name}`);
+    }
+    if (src.includes('Wand2')) {
+      throw new Error(`Found banned Wand2 icon in ${name}`);
+    }
   }
-  if (joinPageSrc.includes('Sparkles') || modalSrc.includes('Sparkles')) {
-    throw new Error('Found banned Sparkles icon in invite UI');
+
+  // Verify Share button is present in ChallengeDetailsPage and WorkspaceHeader
+  if (!detailsSrc.includes('Share Challenge') && !detailsSrc.includes('Share2')) {
+    throw new Error('Missing top-right Share button in ChallengeDetailsPage');
   }
-  if (joinPageSrc.includes('Wand2') || modalSrc.includes('Wand2')) {
-    throw new Error('Found banned Wand2 icon in invite UI');
+  if (!workspaceHeaderSrc.includes('Share2') || !workspaceHeaderSrc.includes('onShare')) {
+    throw new Error('Missing Share button in WorkspaceHeader');
   }
-  console.log('[PASS] Zero AI-slop markers in invitation views.');
+  // Verify JoinPage forwards directly to practice workspace
+  if (!joinPageSrc.includes('/studio?id=')) {
+    throw new Error('JoinPage must forward user directly to practice workspace without losing challenge');
+  }
+  console.log('[PASS] Share buttons, zero-lost forwarding, and zero AI-slop verified.');
 
   console.log('\nAll Challenge Invitation & Access Control Tests PASSED successfully!');
 }

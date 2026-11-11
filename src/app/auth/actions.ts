@@ -2,6 +2,7 @@
 
 import { redirect } from 'next/navigation';
 import { createSupabaseServerClient, isSupabaseConfigured } from '@/lib/supabase/server';
+import { safeDestination } from '@/lib/utils';
 
 export type AuthActionResult = { error?: string; success?: string };
 
@@ -43,12 +44,13 @@ export async function signInAction(_previousState: AuthActionResult, formData: F
   if (missing) return missing;
   const email = getText(formData, 'email').toLowerCase();
   const password = getText(formData, 'password');
+  const next = safeDestination(formData.get('next') as string | null);
   if (!email || !password) return { error: 'Enter your email and password.' };
 
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) return { error: authError(error, 'We could not sign you in. Please try again.') };
-  redirect('/challenges');
+  redirect(next);
 }
 
 export async function signUpAction(_previousState: AuthActionResult, formData: FormData): Promise<AuthActionResult> {
@@ -62,6 +64,7 @@ export async function signUpAction(_previousState: AuthActionResult, formData: F
   const role = getText(formData, 'role');
   const level = getText(formData, 'level');
   const gender = getText(formData, 'gender');
+  const next = safeDestination(formData.get('next') as string | null);
 
   if (fullName.length < 2 || fullName.length > 80) return { error: 'Enter a name between 2 and 80 characters.' };
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: 'Enter a valid email address.' };
@@ -77,7 +80,7 @@ export async function signUpAction(_previousState: AuthActionResult, formData: F
     email,
     password,
     options: {
-      emailRedirectTo: `${siteUrl}/auth/callback?next=/challenges`,
+      emailRedirectTo: `${siteUrl}/auth/callback?next=${encodeURIComponent(next)}`,
       data: { full_name: fullName, developer_role: role, experience_level: level, gender: gender || null },
     },
   });
@@ -89,12 +92,12 @@ export async function signUpAction(_previousState: AuthActionResult, formData: F
     return { error: 'An account may already exist for this email. Try signing in or resetting your password.' };
   }
 
-  if (data.session) redirect('/challenges');
+  if (data.session) redirect(next);
 
   // Attempt immediate sign-in if confirmations are disabled or auto-confirmed
   const signInRes = await supabase.auth.signInWithPassword({ email, password });
   if (signInRes.data?.session) {
-    redirect('/challenges');
+    redirect(next);
   }
 
   return { success: 'Check your inbox for a confirmation link. Confirm your email to finish creating your account.' };

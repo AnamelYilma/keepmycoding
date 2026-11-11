@@ -95,7 +95,7 @@ assert(formContent.includes('auth-submit'), 'AuthForm includes primary submit bu
 assert(formContent.includes('auth-password-toggle'), 'AuthForm includes password visibility toggle');
 assert(formContent.includes('AlertCircle'), 'AuthForm uses utilitarian AlertCircle icon for errors');
 assert(formContent.includes('CheckCircle2'), 'AuthForm uses utilitarian CheckCircle2 icon for success');
-assert(formContent.includes('Continue as guest'), 'AuthForm offers unblocked guest studio access');
+assert(!formContent.includes('Continue as guest'), 'AuthForm requires authentication and eliminates unauthenticated guest bypass');
 
 // 7. Verify actions.ts resilience and open access
 const actionsContent = fs.readFileSync(path.join(projectRoot, 'src/app/auth/actions.ts'), 'utf8');

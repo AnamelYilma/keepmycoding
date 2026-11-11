@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, ArrowRight, Lock, Timer, Globe, Users } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Lock, Timer, Globe, Users, Share2 } from 'lucide-react';
 import type { ChallengeAttempt, PublicChallengeRecord } from '@/lib/challenges/library';
 import type { Challenge } from '@/lib/types/challenge';
 import AppNav from '@/components/navigation/AppNav';
@@ -83,30 +83,43 @@ export default function ChallengeDetailsPage({ id }: { id: string }) {
       <AppNav />
       <main className="flex-1">
         <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
-          <Link href="/challenges" className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-zinc-100">
-            <ArrowLeft size={15} aria-hidden="true" /> Challenge Library
-          </Link>
+          <div className="flex items-center justify-between gap-4">
+            <Link href="/challenges" className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-zinc-100">
+              <ArrowLeft size={15} aria-hidden="true" /> Challenge Library
+            </Link>
+            <button
+              type="button"
+              onClick={() => setInviteOpen(true)}
+              className="inline-flex items-center gap-2 rounded-xl border border-zinc-700 bg-zinc-900/90 hover:bg-zinc-800 hover:border-zinc-500 px-3.5 py-1.5 text-xs font-semibold text-zinc-100 transition-all cursor-pointer shadow-sm active:scale-95"
+              title="Share this challenge with others"
+            >
+              <Share2 size={14} className="text-[#88BDA4]" aria-hidden="true" />
+              <span>Share Challenge</span>
+            </button>
+          </div>
           <header className="mt-5 border-b border-zinc-800 pb-6">
-            <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-400">
-              <span className="font-mono bg-zinc-800 px-2 py-0.5 rounded border border-zinc-700/60 text-zinc-300 font-semibold">{challenge.language}</span>
-              <span className="bg-zinc-800 px-2 py-0.5 rounded border border-zinc-700/60">Level {challenge.level}</span>
-              <span className="bg-zinc-800 px-2 py-0.5 rounded border border-zinc-700/60">{challenge.challenge_type}</span>
-              <span>· {challenge.topic}</span>
-              {challenge.visibility === 'temporary' && (
-                <span className="inline-flex items-center gap-1 text-[11px] text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">
-                  <Timer size={12} aria-hidden="true" /> Temporary
-                </span>
-              )}
-              {challenge.visibility === 'private' && (
-                <span className="inline-flex items-center gap-1 text-[11px] text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded border border-zinc-700">
-                  <Lock size={12} aria-hidden="true" /> Private
-                </span>
-              )}
-              {challenge.visibility === 'public' && (
-                <span className="inline-flex items-center gap-1 text-[11px] text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded border border-emerald-400/20">
-                  <Globe size={12} aria-hidden="true" /> Public
-                </span>
-              )}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-400">
+                <span className="font-mono bg-zinc-800 px-2 py-0.5 rounded border border-zinc-700/60 text-zinc-300 font-semibold">{challenge.language}</span>
+                <span className="bg-zinc-800 px-2 py-0.5 rounded border border-zinc-700/60">Level {challenge.level}</span>
+                <span className="bg-zinc-800 px-2 py-0.5 rounded border border-zinc-700/60">{challenge.challenge_type}</span>
+                <span>· {challenge.topic}</span>
+                {challenge.visibility === 'temporary' && (
+                  <span className="inline-flex items-center gap-1 text-[11px] text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">
+                    <Timer size={12} aria-hidden="true" /> Temporary
+                  </span>
+                )}
+                {challenge.visibility === 'private' && (
+                  <span className="inline-flex items-center gap-1 text-[11px] text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded border border-zinc-700">
+                    <Lock size={12} aria-hidden="true" /> Private
+                  </span>
+                )}
+                {challenge.visibility === 'public' && (
+                  <span className="inline-flex items-center gap-1 text-[11px] text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded border border-emerald-400/20">
+                    <Globe size={12} aria-hidden="true" /> Public
+                  </span>
+                )}
+              </div>
             </div>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight">{challenge.title}</h1>
             <p className="mt-3 max-w-3xl leading-6 text-zinc-300">{challenge.summary}</p>
@@ -169,8 +182,8 @@ export default function ChallengeDetailsPage({ id }: { id: string }) {
                   onClick={() => setInviteOpen(true)}
                   className="mt-2.5 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-700 bg-zinc-950 px-4 py-2 text-xs font-semibold text-zinc-200 hover:border-zinc-500 hover:bg-zinc-800 transition-colors cursor-pointer"
                 >
-                  <Users size={14} aria-hidden="true" />
-                  <span>Invite Developers</span>
+                  <Share2 size={14} className="text-[#88BDA4]" aria-hidden="true" />
+                  <span>{challenge.visibility === 'public' ? 'Share Challenge' : 'Invite Developers'}</span>
                 </button>
                 {error && (
                   <p className="mt-3 text-xs text-rose-300" role="alert">

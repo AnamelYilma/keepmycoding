@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowLeft, RotateCcw, ShieldCheck, Loader2 } from 'lucide-react';
+import { ArrowLeft, RotateCcw, ShieldCheck, Loader2, Share2 } from 'lucide-react';
 import { ChallengeMetadata } from '@/lib/types/challenge';
 
 interface WorkspaceHeaderProps {
@@ -10,6 +10,7 @@ interface WorkspaceHeaderProps {
   onBack: () => void;
   onResetAll: () => void;
   onSubmit: () => void;
+  onShare?: () => void;
 }
 
 export function WorkspaceHeader({
@@ -19,6 +20,7 @@ export function WorkspaceHeader({
   onBack,
   onResetAll,
   onSubmit,
+  onShare,
 }: WorkspaceHeaderProps) {
   return (
     <header className="border-b border-white/8 bg-[#090A0F]/90 backdrop-blur-md sticky top-0 z-40 px-3 sm:px-4 h-14 flex items-center justify-between">
@@ -56,6 +58,18 @@ export function WorkspaceHeader({
 
       {/* Right: Actions */}
       <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        {onShare && (
+          <button
+            type="button"
+            onClick={onShare}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 rounded-full text-xs font-semibold text-zinc-300 hover:text-white bg-[#11131A] hover:bg-[#171a24] border border-white/10 hover:border-zinc-500 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88BDA4]"
+            title="Share this challenge"
+          >
+            <Share2 className="w-3.5 h-3.5 text-[#88BDA4]" aria-hidden="true" />
+            <span className="hidden xs:inline sm:inline">Share</span>
+          </button>
+        )}
+
         {isDirty && (
           <button
             type="button"
